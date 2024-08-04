@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import jwt from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
 import { env } from "@/environment";
 import { UserModel } from "@/models/User";
 
@@ -18,7 +18,7 @@ const authMiddleware = async (
     const token = req.headers.authorization?.split(" ")[1];
     if (token) {
       try {
-        const decoded: any = jwt.verify(token, env.JWT_SECRET);
+        const decoded = jwt.verify(token, env.JWT_SECRET) as JwtPayload;
         if (!decoded.user) {
           error.status = 401;
           throw new Error("UNAUTHENTICATED");
@@ -37,8 +37,8 @@ const authMiddleware = async (
         }
         res.locals.populatedUser = user;
         next();
-      } catch (err: any) {
-        error.error = err.message;
+      } catch (err) {
+        error.error = (err as Error).message;
         return res.status(error.status).json(error);
       }
     }
