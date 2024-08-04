@@ -1,6 +1,5 @@
 import mongoose from "mongoose";
 import { setupMongoDB } from "../../src/database";
-import axios from "axios";
 
 let isMongoSettingUp = false;
 let isMongoReady = false;
