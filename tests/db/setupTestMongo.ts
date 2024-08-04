@@ -7,7 +7,9 @@ export const mongoDBsetup = async (db: string, disconnect: boolean = false) => {
   if (disconnect) {
     try {
       await mongoose.disconnect();
-    } catch {}
+    } catch {
+      // Ignore disconnect errors
+    }
     return;
   }
   if (!isMongoSettingUp) {

@@ -67,7 +67,9 @@ class User extends BaseModel {
     if (this.password) {
       try {
         return await bcrypt.compare(password, this.password);
-      } catch {}
+      } catch (err) {
+        console.error("Error comparing passwords: ", err);
+      }
     }
     return false;
   }
