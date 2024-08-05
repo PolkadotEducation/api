@@ -1,14 +1,11 @@
 import mongoose from "mongoose";
 import { setupMongoDB } from "../../src/database";
-import axios from "axios";
 
 let isMongoSettingUp = false;
 let isMongoReady = false;
 export const mongoDBsetup = async (db: string, disconnect: boolean = false) => {
   if (disconnect) {
-    try {
-      await mongoose.disconnect();
-    } catch {}
+    await mongoose.disconnect();
     return;
   }
   if (!isMongoSettingUp) {

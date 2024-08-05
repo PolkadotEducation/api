@@ -9,6 +9,7 @@
     "test:mongodb:rm": "docker rm -f doteducation-mongodb-test",
     "test:mongodb:run": "docker run --name doteducation-mongodb-test -p 27777:27017 -dti mongo:7.0.5-jammy",
     "lint": "eslint .",
+    "lint:fix": "eslint --fix .",
     "format": "prettier --check .",
     "format:fix": "prettier --write .",
     "build": "tsc"

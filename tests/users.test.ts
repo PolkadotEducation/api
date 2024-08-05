@@ -64,7 +64,7 @@ describe("Setting API Server up...", () => {
       const email = "user3@polkadot.education";
       const name = "User Three";
       const password = "superSecret";
-      const user = await UserModel.createUser(email, password, name);
+      await UserModel.createUser(email, password, name);
       await axios
         .delete(`${API_URL}/user`, { data: { email } })
         .then((r) => {
