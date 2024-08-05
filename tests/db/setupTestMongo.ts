@@ -5,11 +5,7 @@ let isMongoSettingUp = false;
 let isMongoReady = false;
 export const mongoDBsetup = async (db: string, disconnect: boolean = false) => {
   if (disconnect) {
-    try {
-      await mongoose.disconnect();
-    } catch {
-      // Ignore disconnect errors
-    }
+    await mongoose.disconnect();
     return;
   }
   if (!isMongoSettingUp) {
