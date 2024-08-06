@@ -8,6 +8,8 @@ import {
   loginUser,
 } from "@/controllers/users";
 
+import { createLesson, deleteLesson, getLesson } from "@/controllers/lessons";
+
 const router = (app: Express) => {
   // Users
   app.post("/user", createUser);
@@ -18,6 +20,9 @@ const router = (app: Express) => {
   // Tracks
   // Modules
   // Lessons
+  app.post("/lesson", createLesson);
+  app.get("/lesson", getLesson);
+  app.delete("/lesson", deleteLesson);
 };
 
 export default router;
