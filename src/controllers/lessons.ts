@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { LessonModel } from "@/models/Lesson";
 
 export const createLesson = async (req: Request, res: Response) => {
-  const { title, body, difficulty, challenge } = req.body;
+  const { title, body, difficulty, challenge, references } = req.body;
   if (!title || !body || !difficulty || !challenge) {
     return res.status(400).send({ error: { message: "Missing params" } });
   }
@@ -14,6 +14,7 @@ export const createLesson = async (req: Request, res: Response) => {
       body,
       difficulty,
       challenge,
+      references,
     });
     if (newLesson) return res.status(200).send(newLesson);
   } catch (e) {

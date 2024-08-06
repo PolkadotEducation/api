@@ -60,6 +60,7 @@ describe("Setting API Server up...", () => {
           expect(r.data.body).toEqual(body);
           expect(r.data.difficulty).toEqual(difficulty);
           expect(r.data.challenge).toEqual(expect.objectContaining(challenge));
+          expect(r.data.references).toEqual([]);
         })
         .catch((e) => expect(e).toBeUndefined());
     });
@@ -102,12 +103,23 @@ describe("Setting API Server up...", () => {
         choices: ["Maseru", "Gaborone", "Mbabane", "Lilongwe"],
         correctChoice: 0,
       };
+      const references = [
+        {
+          title: "Polkadot Wiki",
+          link: "https://wiki.polkadot.network/",
+        },
+        {
+          title: "Polkadot Education",
+          link: "https://polkadot.education/",
+        },
+      ];
 
       const newLesson = await LessonModel.create({
         title,
         body,
         difficulty,
         challenge,
+        references,
       });
 
       await axios
@@ -117,6 +129,12 @@ describe("Setting API Server up...", () => {
           expect(r.data.body).toEqual(body);
           expect(r.data.difficulty).toEqual(difficulty);
           expect(r.data.challenge).toEqual(expect.objectContaining(challenge));
+          expect(r.data.references[0]).toEqual(
+            expect.objectContaining(references[0]),
+          );
+          expect(r.data.references[1]).toEqual(
+            expect.objectContaining(references[1]),
+          );
         })
         .catch((e) => expect(e).toBeUndefined());
     });

@@ -22,6 +22,14 @@ class Challenge {
   public correctChoice: number;
 }
 
+class Reference {
+  @prop({ required: true, type: String })
+  public title: string;
+
+  @prop({ required: true, type: String })
+  public link: string;
+}
+
 class Lesson extends BaseModel {
   @prop({ required: true, type: String })
   public title: string;
@@ -34,6 +42,9 @@ class Lesson extends BaseModel {
 
   @prop({ required: true, type: () => Challenge, default: {} })
   public challenge: Challenge;
+
+  @prop({ required: false, type: () => [Reference], default: [] })
+  public references: Reference[];
 }
 
 const LessonModel = getModelForClass(Lesson);
