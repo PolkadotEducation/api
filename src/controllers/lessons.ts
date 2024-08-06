@@ -29,6 +29,45 @@ export const createLesson = async (req: Request, res: Response) => {
   });
 };
 
+export const updateLesson = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { title, body, difficulty, challenge, references } = req.body;
+
+  if (!id || !title || !body || !difficulty || !challenge) {
+    return res.status(400).send({ error: { message: "Missing params" } });
+  }
+
+  let errorMessage;
+  try {
+    const updatedLesson = await LessonModel.findByIdAndUpdate(
+      id,
+      {
+        title,
+        body,
+        difficulty,
+        challenge,
+        references,
+      },
+      { new: true, runValidators: true },
+    );
+
+    if (updatedLesson) {
+      return res.status(200).send(updatedLesson);
+    } else {
+      return res.status(404).send({ error: { message: "Lesson not found" } });
+    }
+  } catch (e) {
+    errorMessage = (e as Error).message;
+    console.log(`[ERROR][updateLesson] ${JSON.stringify(e)}`);
+  }
+
+  return res.status(500).send({
+    error: {
+      message: errorMessage ? errorMessage : "Lesson not updated",
+    },
+  });
+};
+
 export const getLesson = async (req: Request, res: Response) => {
   try {
     const { lessonId } = req.query;

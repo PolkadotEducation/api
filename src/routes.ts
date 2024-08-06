@@ -8,7 +8,12 @@ import {
   loginUser,
 } from "@/controllers/users";
 
-import { createLesson, deleteLesson, getLesson } from "@/controllers/lessons";
+import {
+  createLesson,
+  deleteLesson,
+  getLesson,
+  updateLesson,
+} from "@/controllers/lessons";
 
 const router = (app: Express) => {
   // Users
@@ -23,6 +28,7 @@ const router = (app: Express) => {
   app.post("/lesson", createLesson);
   app.get("/lesson", getLesson);
   app.delete("/lesson", deleteLesson);
+  app.put("/lesson/:id", updateLesson);
 };
 
 export default router;
