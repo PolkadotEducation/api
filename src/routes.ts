@@ -4,21 +4,26 @@ import { Express } from "express";
 import { createUser, deleteUser, getUser, loginUser } from "@/controllers/users";
 
 import { createLesson, deleteLesson, getLesson, updateLesson } from "@/controllers/lessons";
+import authMiddleware from "./middlewares/auth";
+import corsConfig from "./cors.config";
 
 const router = (app: Express) => {
+  // Health check
+  app.get("/status", (_req: Request, resp: Response) => resp.status(200).json({ type: "success" }));
+
   // Users
   app.post("/user", createUser);
   app.get("/user", getUser);
-  app.delete("/user", deleteUser);
   app.post("/user/login", loginUser);
+  app.delete("/user", [corsConfig(), authMiddleware], deleteUser);
 
   // Tracks
   // Modules
   // Lessons
-  app.post("/lesson", createLesson);
-  app.get("/lesson", getLesson);
-  app.delete("/lesson", deleteLesson);
-  app.put("/lesson/:id", updateLesson);
+  app.post("/lesson", [corsConfig(), authMiddleware], createLesson);
+  app.get("/lesson", [corsConfig(), authMiddleware], getLesson);
+  app.delete("/lesson", [corsConfig(), authMiddleware], deleteLesson);
+  app.put("/lesson/:id", [corsConfig(), authMiddleware], updateLesson);
 };
 
 export default router;

@@ -10,6 +10,8 @@ ADD ./package.json .
 
 ADD ./tsconfig.json .
 
+ADD ./tsup.config.ts .
+
 ADD ./yarn.lock .
 
 ADD .env .
