@@ -23,12 +23,7 @@ class BaseModel implements IBaseModel {
    * @param limit - The limit you want connections based on
    * @returns - List of results
    */
-  public static findPaginated(
-    this: ReturnModelType<typeof BaseModel>,
-    query: object,
-    page = 1,
-    limit = 20,
-  ) {
+  public static findPaginated(this: ReturnModelType<typeof BaseModel>, query: object, page = 1, limit = 20) {
     return this.find(query)
       .limit(limit)
       .skip((page - 1) * limit);

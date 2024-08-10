@@ -1,19 +1,9 @@
 import { Express } from "express";
 
 // Controllers
-import {
-  createUser,
-  deleteUser,
-  getUser,
-  loginUser,
-} from "@/controllers/users";
+import { createUser, deleteUser, getUser, loginUser } from "@/controllers/users";
 
-import {
-  createLesson,
-  deleteLesson,
-  getLesson,
-  updateLesson,
-} from "@/controllers/lessons";
+import { createLesson, deleteLesson, getLesson, updateLesson } from "@/controllers/lessons";
 
 const router = (app: Express) => {
   // Users

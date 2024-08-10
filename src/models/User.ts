@@ -1,9 +1,4 @@
-import {
-  DocumentType,
-  ReturnModelType,
-  getModelForClass,
-  prop,
-} from "@typegoose/typegoose";
+import { DocumentType, ReturnModelType, getModelForClass, prop } from "@typegoose/typegoose";
 import moment from "moment";
 import jwt from "jsonwebtoken";
 import * as bcrypt from "bcrypt";
@@ -89,12 +84,7 @@ class User extends BaseModel {
     return jwt.sign(data, secret);
   }
 
-  public static async login(
-    this: ReturnModelType<typeof User>,
-    email: string,
-    password: string,
-    remember = false,
-  ) {
+  public static async login(this: ReturnModelType<typeof User>, email: string, password: string, remember = false) {
     try {
       const user = await this.findOne({ email: email.toLowerCase() });
       if (!user) {
