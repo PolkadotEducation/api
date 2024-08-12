@@ -1,6 +1,6 @@
 {
   "name": "polkadot-education-api",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "main": "dist/index.js",
   "scripts": {
     "dev": "nodemon",
@@ -12,7 +12,8 @@
     "lint:fix": "eslint --fix .",
     "format": "prettier --check .",
     "format:fix": "prettier --write .",
-    "build": "tsc"
+    "build": "tsup",
+    "start": "node dist/index.js"
   },
   "dependencies": {
     "@typegoose/typegoose": "^12.3.1",
@@ -43,6 +44,7 @@
     "prettier": "^3.2.5",
     "ts-jest": "^29.1.2",
     "ts-node": "^10.9.2",
+    "tsup": "^8.2.4",
     "tsx": "^4.7.2",
     "typescript": "^5.4.5",
     "typescript-eslint": "^7.12.0"

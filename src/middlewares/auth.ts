@@ -3,11 +3,9 @@ import jwt, { JwtPayload } from "jsonwebtoken";
 import { env } from "@/environment";
 import { UserModel } from "@/models/User";
 
-const authMiddleware = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
+const authMiddleware = async (req: Request, res: Response, next: NextFunction) => {
+  // Uncomment here to test endpoints without authentication (app's jwt)
+  // if (env.NODE_ENV === "local") return next();
   const error = {
     status: 401,
     error: "You are not authorized to perform this action.",

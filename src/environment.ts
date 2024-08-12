@@ -4,8 +4,7 @@ dotenv.config();
 
 const NODE_ENV = process.env.NODE_ENV || "local";
 
-const MONGODB_URI =
-  process.env.MONGODB_URI || "mongodb://localhost:27017/doteducation";
+const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/doteducation";
 
 const SERVER_HOST = process.env.SERVER_HOST || "0.0.0.0";
 const SERVER_PORT = parseInt(process.env.SERVER_PORT || "4000");
