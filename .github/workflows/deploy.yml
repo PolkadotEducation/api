@@ -46,7 +46,7 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Set up environment variables
+      - name: Environment
         run: |
           touch .env
           echo "NODE_ENV=${{ vars.NODE_ENV }}" >> .env
@@ -54,8 +54,18 @@ jobs:
           echo "SERVER_PORT=${{ vars.PORT }}" >> .env
           echo "JWT_SECRET=${{ vars.JWT_SECRET }}" >> .env
           echo "MONGODB_URI=${{ vars.MONGODB_URI }}" >> .env
+          echo "AWS_SES_REGION=${{ vars.AWS_REGION }}" >> .env
+          echo "AWS_SES_ID=${{ secrets.AWS_SES_ID }}" >> .env
+          echo "AWS_SES_SECRET=${{ secrets.AWS_SES_SECRET }}" >> .env
+          echo "AWS_SES_SOURCE=${{ vars.APAWS_SES_SOURCEP_URL }}" >> .env
           echo "APP_URL=${{ vars.APP_URL }}" >> .env
           echo "" >> .env
+
+      - name: Format and Lint
+        run: yarn format && yarn lint
+
+      - name: Test
+        run: yarn test
 
       - name: Docker Build
         id: build-image
