@@ -1,4 +1,4 @@
-import { Express } from "express";
+import { Express, Request, Response } from "express";
 
 // Controllers
 import { createUser, deleteUser, getUser, loginUser } from "@/controllers/users";
@@ -9,7 +9,7 @@ import corsConfig from "./cors.config";
 
 const router = (app: Express) => {
   // Health check
-  app.get("/status", (_req: Request, resp: Response) => resp.status(200).json({ type: "success" }));
+  app.get("/status", (_req: Request, res: Response) => res.status(200).json({ type: "success" }));
 
   // Users
   app.post("/user", createUser);
