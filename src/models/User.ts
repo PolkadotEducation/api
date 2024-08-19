@@ -1,6 +1,7 @@
 import { DocumentType, ReturnModelType, getModelForClass, prop } from "@typegoose/typegoose";
 import moment from "moment";
 import jwt from "jsonwebtoken";
+import { randomBytes } from "crypto";
 import * as bcrypt from "bcrypt";
 
 import { env } from "@/environment";
@@ -16,6 +17,9 @@ class User extends BaseModel {
 
   @prop({ required: true, type: String })
   public name: string;
+
+  @prop({ required: false, type: String })
+  public verifyToken?: string;
 
   @prop({ required: false, type: Date })
   public lastActivity: Date;
@@ -45,12 +49,14 @@ class User extends BaseModel {
         email: email.toLowerCase(),
         password: await this.hashPassword(password),
         name,
+        verifyToken: randomBytes(16).toString("hex"),
         lastActivity: new Date(),
       });
       return {
         userId: user._id,
         email: user.email,
         name: user.name,
+        verifyToken: user.verifyToken,
         lastActivity: user.lastActivity,
       };
     } catch (e) {
