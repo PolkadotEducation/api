@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { UserModel } from "@/models/User";
+import { sendVerificationEmail } from "@/helpers/aws/ses";
 
 export const createUser = async (req: Request, res: Response) => {
   try {
@@ -9,7 +10,11 @@ export const createUser = async (req: Request, res: Response) => {
     }
 
     const newUser = await UserModel.createUser(email, password, name);
-    if (newUser) return res.status(200).send(newUser);
+    if (newUser) {
+      await sendVerificationEmail(email, newUser.verifyToken!);
+      newUser.verifyToken = undefined;
+      return res.status(200).send(newUser);
+    }
   } catch (e) {
     console.log(`[ERROR][createUser] ${JSON.stringify(e)}`);
   }

@@ -13,6 +13,12 @@ const APP_URL = process.env.APP_URL || `http://${SERVER_HOST}:3000`;
 
 const JWT_SECRET = process.env.JWT_SECRET || "OR5t0v7yk3z7qw77";
 
+// AWS
+const AWS_SES_REGION = process.env.AWS_SES_REGION || "us-east-1";
+const AWS_SES_ID = process.env.AWS_SES_ID || "123123123";
+const AWS_SES_SECRET = process.env.AWS_SES_SECRET || "123123123";
+const AWS_SES_SOURCE = process.env.AWS_SES_SOURCE || "email@polkadot.education";
+
 // DEBUG/TEST
 const DEBUG = parseInt(process.env.DEBUG || "0");
 
@@ -23,5 +29,9 @@ export const env = {
   SERVER_PORT,
   APP_URL,
   JWT_SECRET,
+  AWS_SES_REGION,
+  AWS_SES_SECRET,
+  AWS_SES_ID,
+  AWS_SES_SOURCE,
   DEBUG,
 };
