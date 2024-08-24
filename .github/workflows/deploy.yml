@@ -35,17 +35,6 @@ jobs:
       - name: Tests
         run: yarn install --frozen-lockfile && yarn test
 
-      - name: AWS Setup
-        uses: aws-actions/configure-aws-credentials@v3
-        with:
-          role-to-assume: ${{ secrets.AWS_OIDC_ARN }}
-          role-session-name: samplerolesession
-          aws-region: ${{ vars.AWS_REGION }}
-
-      - name: AWS ECR Login
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
-
       - name: Environment
         run: |
           touch .env
@@ -61,80 +50,17 @@ jobs:
           echo "APP_URL=${{ vars.APP_URL }}" >> .env
           echo "" >> .env
 
-      - name: Format and Lint
-        run: yarn format && yarn lint
+      - name: Install
+        run: yarn
+
+      - name: Format
+        run: yarn format
+
+      - name: Lint
+        run: yarn lint
 
       - name: Test
         run: yarn test
 
-      - name: Docker Build
-        id: build-image
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          STAGE: ${{ vars.STAGE }}
-        run: docker build -t $ECR_REGISTRY/api:$STAGE .
-
-      - name: Docker Artifact
-        if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          STAGE: ${{ vars.STAGE }}
-        run: docker save $ECR_REGISTRY/api:$STAGE -o buildArtifact.tar
-
-      - name: Docker Push
-        if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
-        uses: actions/upload-artifact@v4
-        with:
-          name: api-image
-          path: ./buildArtifact.tar
-          retention-days: 1
-
-  deploy:
-    runs-on: ubuntu-latest
-    needs: build
-    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
-    environment: ${{ github.event.pull_request.base.ref || github.ref_name }}
-
-    steps:
-      - name: Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: api-image
-          path: ./
-
-      - name: AWS Setup
-        uses: aws-actions/configure-aws-credentials@v3
-        with:
-          role-to-assume: ${{ secrets.AWS_OIDC_ARN }}
-          role-session-name: samplerolesession
-          aws-region: ${{ vars.AWS_REGION }}
-
-      - name: AWS ECR Login
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
-
-      - name: AWS ECR Push
-        id: push-image
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          STAGE: ${{ vars.STAGE }}
-        run: |
-          docker load -i buildArtifact.tar
-          docker push $ECR_REGISTRY/api:$STAGE
-          echo "image=$ECR_REGISTRY/api:$STAGE" >> $GITHUB_OUTPUT
-
-      - name: AWS ECR Check image
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          STAGE: ${{ vars.STAGE }}
-        run: |
-          aws ecr describe-images --repository-name api --image-ids imageTag=$STAGE --region $AWS_REGION
-
-      - name: AWS ECS Deploy
-        env:
-          AWS_REGION: ${{ vars.AWS_REGION }}
-          CLUSTER: ${{ vars.AWS_ECS_CLUSTER }}
-          SERVICE: ${{ vars.AWS_ECS_SERVICE }}
-          TASK: ${{ vars.AWS_ECS_TASK }}
-        run: |
-          aws ecs update-service --cluster $CLUSTER --service $SERVICE --task-definition $TASK --force-new-deployment
+      - name: Build
+        run: yarn build
