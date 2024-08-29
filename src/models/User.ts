@@ -46,7 +46,7 @@ class User extends BaseModel {
     password: string,
     name: string,
     company: string,
-    isAdmin: boolean,
+    isAdmin?: boolean,
   ): Promise<UserInfo | undefined> {
     try {
       const exists = await this.findOne({ email: email.toLowerCase() });

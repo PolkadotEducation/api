@@ -4,10 +4,10 @@ import { sendVerificationEmail } from "@/helpers/aws/ses";
 
 export const createUser = async (req: Request, res: Response) => {
   try {
-    const { email, password, name, company, isAdmin } = req.body;
+    const { email, password, name, company } = req.body;
     if (!email || !password) return res.status(400).send({ error: { message: "Missing email or password" } });
 
-    const newUser = await UserModel.createUser(email, password, name, company, isAdmin);
+    const newUser = await UserModel.createUser(email, password, name, company);
     if (newUser) {
       await sendVerificationEmail(email, newUser.verifyToken!);
       newUser.verifyToken = undefined;
