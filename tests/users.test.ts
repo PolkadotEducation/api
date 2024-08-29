@@ -28,16 +28,20 @@ describe("Setting API Server up...", () => {
   });
 
   describe("Users", () => {
-    it("Create a User (POST /user)", async () => {
+    it("Create a User (POST /users)", async () => {
       await mongoDBsetup(MONGODB_DATABASE_NAME);
       const email = "user1@polkadot.education";
       const name = "User One";
       const password = "superSecret";
+      const company = "company";
+      const isAdmin = false;
       await axios
-        .post(`${API_URL}/user`, {
+        .post(`${API_URL}/users`, {
           email,
           name,
           password,
+          company,
+          isAdmin,
         })
         .then((r) => {
           expect(r.data.email).toEqual(email);
@@ -45,30 +49,62 @@ describe("Setting API Server up...", () => {
         .catch((e) => expect(e).toBeUndefined());
     });
 
-    it("Get a User (GET /user)", async () => {
+    it("Get a User (GET /users)", async () => {
       await mongoDBsetup(MONGODB_DATABASE_NAME);
       const email = "user2@polkadot.education";
       const name = "User Two";
       const password = "superSecret";
-      const user = await UserModel.createUser(email, password, name);
+      const user = await UserModel.createUser(email, password, name, "company", false);
       await axios
-        .get(`${API_URL}/user?userId=${user?.userId}`)
+        .get(`${API_URL}/users/${user?.userId}`)
         .then((r) => {
           expect(r.data.email).toEqual(email);
         })
         .catch((e) => expect(e).toBeUndefined());
     });
 
-    it("Delete a User (DELETE /user)", async () => {
+    it("Update a User (PUT /users)", async () => {
       await mongoDBsetup(MONGODB_DATABASE_NAME);
       const email = "user3@polkadot.education";
       const name = "User Three";
       const password = "superSecret";
-      await UserModel.createUser(email, password, name);
+      const user = await UserModel.createUser(email, password, name, "company", false);
+
+      const newEmail = "New Email";
+      const newPassword = "newSuperSecret";
+      const newName = "New Name";
+      const newCompany = "New Company";
       await axios
-        .delete(`${API_URL}/user`, { data: { email } })
+        .put(`${API_URL}/users/${user?.userId}`, {
+          email: newEmail,
+          password: newPassword,
+          name: newName,
+          company: newCompany,
+          isAdmin: true,
+        })
+        .then(async (r) => {
+          expect(r.data.email).toEqual(newEmail);
+          expect(r.data.name).toEqual(newName);
+          expect(r.data.company).toEqual(newCompany);
+          expect(r.data.isAdmin).toEqual(true);
+          // Password check
+          const updatedUser = await UserModel.findById(user?.userId);
+          const validPassword = await updatedUser?.comparePassword(newPassword);
+          expect(validPassword).toBeTruthy();
+        })
+        .catch((e) => expect(e).toBeUndefined());
+    });
+
+    it("Delete a User (DELETE /users)", async () => {
+      await mongoDBsetup(MONGODB_DATABASE_NAME);
+      const email = "user4@polkadot.education";
+      const name = "User Four";
+      const password = "superSecret";
+      const user = await UserModel.createUser(email, password, name, "company", false);
+      await axios
+        .delete(`${API_URL}/users/${user?.userId}`)
         .then((r) => {
-          expect(r.data.message).toEqual(`User '${email}' deleted`);
+          expect(r.data.message).toEqual(`User '${user?.userId}' deleted`);
         })
         .catch((e) => expect(e).toBeUndefined());
     });

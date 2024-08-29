@@ -18,6 +18,12 @@ class User extends BaseModel {
   @prop({ required: true, type: String })
   public name: string;
 
+  @prop({ required: true, type: String, default: "" })
+  public company: string;
+
+  @prop({ required: true, type: Boolean, default: false })
+  public isAdmin: boolean;
+
   @prop({ required: false, type: String })
   public verifyToken?: string;
 
@@ -38,7 +44,9 @@ class User extends BaseModel {
     this: ReturnModelType<typeof User>,
     email: string,
     password: string,
-    name?: string,
+    name: string,
+    company: string,
+    isAdmin: boolean,
   ): Promise<UserInfo | undefined> {
     try {
       const exists = await this.findOne({ email: email.toLowerCase() });
@@ -49,6 +57,8 @@ class User extends BaseModel {
         email: email.toLowerCase(),
         password: await this.hashPassword(password),
         name,
+        company: company || "",
+        isAdmin: isAdmin || false,
         verifyToken: randomBytes(16).toString("hex"),
         lastActivity: new Date(),
       });
@@ -56,6 +66,8 @@ class User extends BaseModel {
         userId: user._id,
         email: user.email,
         name: user.name,
+        company: user.company,
+        isAdmin: user.isAdmin,
         verifyToken: user.verifyToken,
         lastActivity: user.lastActivity,
       };
@@ -83,6 +95,8 @@ class User extends BaseModel {
         id: this._id,
         email: this.email,
         name: this.name,
+        company: this.company,
+        isAdmin: this.isAdmin,
       },
       createdAt: moment().unix(),
       expiresAt: moment().add(expiresDays, "days").unix(),
@@ -98,9 +112,7 @@ class User extends BaseModel {
       }
 
       const validPassword = await user.comparePassword(password);
-      if (!validPassword) {
-        throw "Invalid Password";
-      }
+      if (!validPassword) throw "Invalid Password";
 
       user.lastActivity = new Date();
       await user.save();
