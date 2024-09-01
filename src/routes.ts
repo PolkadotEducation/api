@@ -1,7 +1,7 @@
 import { Express, Request, Response } from "express";
 
 // Controllers
-import { createUser, deleteUser, getUser, loginUser } from "@/controllers/users";
+import { createUser, deleteUser, getUser, loginUser, updateUser } from "@/controllers/users";
 
 import { createLesson, deleteLesson, getLesson, updateLesson } from "@/controllers/lessons";
 import authMiddleware from "./middlewares/auth";
@@ -12,10 +12,11 @@ const router = (app: Express) => {
   app.get("/status", (_req: Request, res: Response) => res.status(200).json({ type: "success" }));
 
   // Users
-  app.post("/user", createUser);
-  app.get("/user", getUser);
-  app.post("/user/login", loginUser);
-  app.delete("/user", [corsConfig(), authMiddleware], deleteUser);
+  app.post("/users", createUser);
+  app.get("/users/:id", getUser);
+  app.put("/users/:id", [corsConfig(), authMiddleware], updateUser);
+  app.delete("/users/:id", [corsConfig(), authMiddleware], deleteUser);
+  app.post("/users/login", loginUser);
 
   // Tracks
   // Modules

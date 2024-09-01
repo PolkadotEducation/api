@@ -8,7 +8,7 @@ class Challenge {
 
   @prop({
     required: true,
-    type: [String],
+    type: Array<string>,
     validate: {
       validator: function (v: string[]) {
         return v.length >= 3 && v.length <= 5;
@@ -43,7 +43,7 @@ class Lesson extends BaseModel {
   @prop({ required: true, type: () => Challenge, default: {} })
   public challenge: Challenge;
 
-  @prop({ required: false, type: () => [Reference], default: [] })
+  @prop({ required: false, type: () => Array<Reference>, default: [] })
   public references: Reference[];
 }
 
