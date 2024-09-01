@@ -1,7 +1,7 @@
 import { Express, Request, Response } from "express";
 
 // Controllers
-import { createUser, deleteUser, getUser, loginUser, updateUser } from "@/controllers/users";
+import { createUser, deleteUser, getUser, loginUser, loginUserWithGoogle, updateUser } from "@/controllers/users";
 
 import { createLesson, deleteLesson, getLesson, updateLesson } from "@/controllers/lessons";
 import authMiddleware from "./middlewares/auth";
@@ -17,6 +17,7 @@ const router = (app: Express) => {
   app.put("/users/:id", [corsConfig(), authMiddleware], updateUser);
   app.delete("/users/:id", [corsConfig(), authMiddleware], deleteUser);
   app.post("/users/login", loginUser);
+  app.post("/users/login/google", loginUserWithGoogle);
 
   // Tracks
   // Modules

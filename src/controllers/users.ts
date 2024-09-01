@@ -109,3 +109,24 @@ export const loginUser = async (req: Request, res: Response) => {
     },
   });
 };
+
+export const loginUserWithGoogle = async (req: Request, res: Response) => {
+  try {
+    const { email, name, picture } = req.body;
+    if (!email) return res.status(400).send({ error: { message: "Missing email" } });
+    const user = await UserModel.findOne({ email });
+    if (user) return res.status(200).send({ jwt: user.getAuthToken(true) });
+    else {
+      await UserModel.createUser(email, `google#${email}`, name, " ", picture);
+      const user = await UserModel.findOne({ email });
+      if (user) return res.status(200).send({ jwt: user.getAuthToken(true) });
+    }
+  } catch (e) {
+    console.log(`[ERROR][loginUser] ${JSON.stringify(e)}`);
+  }
+  return res.status(400).send({
+    error: {
+      message: "Invalid login",
+    },
+  });
+};

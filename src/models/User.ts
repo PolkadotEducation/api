@@ -18,7 +18,10 @@ class User extends BaseModel {
   @prop({ required: true, type: String })
   public name: string;
 
-  @prop({ required: true, type: String, default: "" })
+  @prop({ required: false, type: String })
+  public picture: string;
+
+  @prop({ required: true, type: String, default: " " })
   public company: string;
 
   @prop({ required: true, type: Boolean, default: false })
@@ -46,6 +49,7 @@ class User extends BaseModel {
     password: string,
     name: string,
     company: string,
+    picture?: string,
     isAdmin?: boolean,
   ): Promise<UserInfo | undefined> {
     try {
@@ -57,7 +61,8 @@ class User extends BaseModel {
         email: email.toLowerCase(),
         password: await this.hashPassword(password),
         name,
-        company: company || "",
+        company,
+        picture,
         isAdmin: isAdmin || false,
         verifyToken: randomBytes(16).toString("hex"),
         lastActivity: new Date(),
@@ -67,6 +72,7 @@ class User extends BaseModel {
         email: user.email,
         name: user.name,
         company: user.company,
+        picture: user.picture,
         isAdmin: user.isAdmin,
         verifyToken: user.verifyToken,
         lastActivity: user.lastActivity,
@@ -96,6 +102,7 @@ class User extends BaseModel {
         email: this.email,
         name: this.name,
         company: this.company,
+        picture: this.picture,
         isAdmin: this.isAdmin,
       },
       createdAt: moment().unix(),
