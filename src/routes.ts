@@ -13,7 +13,7 @@ const router = (app: Express) => {
 
   // Users
   app.post("/users", createUser);
-  app.get("/users/:id", getUser);
+  app.get("/users/:id", [corsConfig(), authMiddleware], getUser);
   app.put("/users/:id", [corsConfig(), authMiddleware], updateUser);
   app.delete("/users/:id", [corsConfig(), authMiddleware], deleteUser);
   app.post("/users/login", loginUser);
