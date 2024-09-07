@@ -29,7 +29,7 @@ export const getUser = async (req: Request, res: Response) => {
     const { id } = req.params;
     if (!id) return res.status(400).send({ error: { message: "Missing userId" } });
 
-    const user = await UserModel.findOne({ _id: id }, { email: 1, name: 1, company: 1, isAdmin: 1 });
+    const user = await UserModel.findOne({ _id: id }, { email: 1, name: 1, company: 1, isAdmin: 1, picture: 1 });
     if (user) return res.status(200).send(user);
   } catch (e) {
     console.log(`[ERROR][getUser] ${JSON.stringify(e)}`);
