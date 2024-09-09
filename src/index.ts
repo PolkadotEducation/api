@@ -16,5 +16,6 @@ router(app);
 
 app.listen(env.SERVER_PORT, env.SERVER_HOST, async () => {
   await setupMongoDB();
-  console.log(`> Listening at http://${env.SERVER_HOST}:${env.SERVER_PORT}`);
+  // eslint-disable-next-line no-console
+  console.info(`> Listening at http://${env.SERVER_HOST}:${env.SERVER_PORT}`);
 });
