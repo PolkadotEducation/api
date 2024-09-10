@@ -19,7 +19,7 @@ export const createLesson = async (req: Request, res: Response) => {
     if (newLesson) return res.status(200).send(newLesson);
   } catch (e) {
     errorMessage = (e as Error).message;
-    console.log(`[ERROR][createLesson] ${JSON.stringify(e)}`);
+    console.error(`[ERROR][createLesson] ${JSON.stringify(e)}`);
   }
 
   return res.status(400).send({
@@ -58,7 +58,7 @@ export const updateLesson = async (req: Request, res: Response) => {
     }
   } catch (e) {
     errorMessage = (e as Error).message;
-    console.log(`[ERROR][updateLesson] ${JSON.stringify(e)}`);
+    console.error(`[ERROR][updateLesson] ${JSON.stringify(e)}`);
   }
 
   return res.status(500).send({
@@ -77,7 +77,7 @@ export const getLesson = async (req: Request, res: Response) => {
     const lesson = await LessonModel.findOne({ _id: lessonId });
     if (lesson) return res.status(200).send(lesson);
   } catch (e) {
-    console.log(`[ERROR][getLesson] ${JSON.stringify(e)}`);
+    console.error(`[ERROR][getLesson] ${JSON.stringify(e)}`);
   }
 
   return res.status(400).send({
@@ -99,7 +99,7 @@ export const deleteLesson = async (req: Request, res: Response) => {
       return res.status(200).send({ message: `Lesson '${lessonId}' deleted` });
     }
   } catch (e) {
-    console.log(`[ERROR][deleteLesson] ${JSON.stringify(e)}`);
+    console.error(`[ERROR][deleteLesson] ${JSON.stringify(e)}`);
   }
 
   return res.status(400).send({

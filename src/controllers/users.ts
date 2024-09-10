@@ -14,7 +14,7 @@ export const createUser = async (req: Request, res: Response) => {
       return res.status(200).send(newUser);
     }
   } catch (e) {
-    console.log(`[ERROR][createUser] ${JSON.stringify(e)}`);
+    console.error(`[ERROR][createUser] ${JSON.stringify(e)}`);
   }
 
   return res.status(400).send({
@@ -32,7 +32,7 @@ export const getUser = async (req: Request, res: Response) => {
     const user = await UserModel.findOne({ _id: id }, { email: 1, name: 1, company: 1, isAdmin: 1, picture: 1 });
     if (user) return res.status(200).send(user);
   } catch (e) {
-    console.log(`[ERROR][getUser] ${JSON.stringify(e)}`);
+    console.error(`[ERROR][getUser] ${JSON.stringify(e)}`);
   }
 
   return res.status(400).send({
@@ -64,7 +64,7 @@ export const updateUser = async (req: Request, res: Response) => {
       isAdmin: user.isAdmin,
     });
   } catch (e) {
-    console.log(`[ERROR][updateUser] ${JSON.stringify(e)}`);
+    console.error(`[ERROR][updateUser] ${JSON.stringify(e)}`);
   }
 
   return res.status(400).send({
@@ -82,7 +82,7 @@ export const deleteUser = async (req: Request, res: Response) => {
     const result = await UserModel.deleteOne({ _id: id });
     if (result?.deletedCount > 0) return res.status(200).send({ message: `User '${id}' deleted` });
   } catch (e) {
-    console.log(`[ERROR][deleteUser] ${JSON.stringify(e)}`);
+    console.error(`[ERROR][deleteUser] ${JSON.stringify(e)}`);
   }
 
   return res.status(400).send({
@@ -100,7 +100,7 @@ export const loginUser = async (req: Request, res: Response) => {
     const authToken = await UserModel.login(email, password, true);
     if (authToken) return res.status(200).send({ jwt: authToken });
   } catch (e) {
-    console.log(`[ERROR][loginUser] ${JSON.stringify(e)}`);
+    console.error(`[ERROR][loginUser] ${JSON.stringify(e)}`);
   }
 
   return res.status(400).send({
@@ -122,7 +122,7 @@ export const loginUserWithGoogle = async (req: Request, res: Response) => {
       if (user) return res.status(200).send({ jwt: user.getAuthToken(true) });
     }
   } catch (e) {
-    console.log(`[ERROR][loginUser] ${JSON.stringify(e)}`);
+    console.error(`[ERROR][loginUser] ${JSON.stringify(e)}`);
   }
   return res.status(400).send({
     error: {
