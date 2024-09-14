@@ -29,8 +29,8 @@ const router = (app: Express) => {
   // Modules
   app.post("/module", [corsConfig(), authMiddleware], createModule);
   app.get("/module", [corsConfig(), authMiddleware], getModule);
-  app.put("/module/:id", [corsConfig(), authMiddleware], updateModule);
   app.delete("/module", [corsConfig(), authMiddleware], deleteModule);
+  app.put("/module/:id", [corsConfig(), authMiddleware], updateModule);
 };
 
 export default router;

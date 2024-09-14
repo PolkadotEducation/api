@@ -7,7 +7,7 @@ import { mongoDBsetup } from "./db/setupTestMongo";
 import { readFileSync } from "fs";
 import { join } from "path";
 import { ModuleModel } from "@/models/Module";
-import { LessonModel } from "@/models/Lesson";
+import { Lesson, LessonModel } from "@/models/Lesson";
 
 const PORT = 3012;
 const API_URL = `http://0.0.0.0:${PORT}`;
@@ -57,19 +57,22 @@ describe("Setting API Server up...", () => {
         })
         .then((r) => {
           expect(r.data.title).toEqual(moduleTitle);
-          expect(r.data.lessons).toContainEqual(lesson._id.toString());
+          expect(r.data.lessons[0]).toEqual(lesson._id.toString());
         })
-        .catch((e) => expect(e).toBeUndefined());
+        .catch((e) => {
+          expect(e).toBeUndefined();
+        });
     });
 
     it("Create a Module with invalid lessons returns error (POST /module)", async () => {
       await mongoDBsetup(MONGODB_DATABASE_NAME);
 
       const moduleTitle = "Module with invalid lessons";
+      const invalidLessonId = "60e4b68f2f8fb814b56fa181";
       await axios
         .post(`${API_URL}/module`, {
           title: moduleTitle,
-          lessons: ["invalidLessonId"],
+          lessons: [invalidLessonId],
         })
         .then(() => {})
         .catch((e) => {
@@ -117,8 +120,12 @@ describe("Setting API Server up...", () => {
         .get(`${API_URL}/module?moduleId=${module._id}`)
         .then((r) => {
           expect(r.data.title).toEqual(updatedTitle);
-          expect(r.data.lessons).toContainEqual(lesson1._id.toString());
-          expect(r.data.lessons).toContainEqual(lesson2._id.toString());
+          expect(r.data.lessons.some((recordedLesson: Lesson) => recordedLesson._id === lesson1._id.toString())).toBe(
+            true,
+          );
+          expect(r.data.lessons.some((recordedLesson: Lesson) => recordedLesson._id === lesson2._id.toString())).toBe(
+            true,
+          );
         })
         .catch((e) => expect(e).toBeUndefined());
     });
@@ -146,7 +153,9 @@ describe("Setting API Server up...", () => {
         .get(`${API_URL}/module?moduleId=${newModule._id}`)
         .then((r) => {
           expect(r.data.title).toEqual("Module with Lesson");
-          expect(r.data.lessons[0]).toEqual(lesson._id.toString());
+          expect(r.data.lessons.some((recordedLesson: Lesson) => recordedLesson._id === lesson._id.toString())).toBe(
+            true,
+          );
         })
         .catch((e) => expect(e).toBeUndefined());
     });
@@ -170,12 +179,17 @@ describe("Setting API Server up...", () => {
         lessons: [lesson._id],
       });
 
+      const moduleCountBefore = await ModuleModel.countDocuments();
+
       await axios
         .delete(`${API_URL}/module`, { data: { moduleId: newModule._id } })
         .then((r) => {
           expect(r.data.message).toEqual(`Module '${newModule._id}' deleted`);
         })
         .catch((e) => expect(e).toBeUndefined());
+
+      const moduleCountAfter = await ModuleModel.countDocuments();
+      expect(moduleCountAfter).toBe(moduleCountBefore - 1);
     });
   });
 });
