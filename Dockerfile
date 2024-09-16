@@ -16,7 +16,10 @@ ADD ./yarn.lock .
 
 ADD .env .
 
-RUN yarn install --frozen-lockfile
+RUN apk add --no-cache make gcc g++ python && \
+    yarn install && \
+    yarn rebuild bcrypt --build-from-source && \
+    apk del make gcc g++ python
 
 RUN yarn build
 
