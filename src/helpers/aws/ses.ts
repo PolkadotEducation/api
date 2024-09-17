@@ -46,6 +46,6 @@ export const sendVerificationEmail = async (to: string, token: string) => {
   try {
     return await sesClient.send(sendEmailCommand);
   } catch (e) {
-    console.log(`[ERROR][sendVerificationEmail] ${JSON.stringify(e)}`);
+    console.error(`[ERROR][sendVerificationEmail] ${JSON.stringify(e)}`);
   }
 };

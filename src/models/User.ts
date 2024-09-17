@@ -1,12 +1,13 @@
 import { DocumentType, ReturnModelType, getModelForClass, prop } from "@typegoose/typegoose";
 import moment from "moment";
 import jwt from "jsonwebtoken";
-import { randomBytes } from "crypto";
-import * as bcrypt from "bcrypt";
+import * as crypto from "crypto";
 
 import { env } from "@/environment";
 import BaseModel from "./BaseModel";
 import { UserInfo } from "@/types/User";
+
+const SALT_BUFFER = Buffer.from(env.CRYPTO_SALT, "hex");
 
 class User extends BaseModel {
   @prop({ required: true, unique: true, type: String })
@@ -18,7 +19,10 @@ class User extends BaseModel {
   @prop({ required: true, type: String })
   public name: string;
 
-  @prop({ required: true, type: String, default: "" })
+  @prop({ required: false, type: String })
+  public picture: string;
+
+  @prop({ required: true, type: String, default: " " })
   public company: string;
 
   @prop({ required: true, type: Boolean, default: false })
@@ -30,10 +34,14 @@ class User extends BaseModel {
   @prop({ required: false, type: Date })
   public lastActivity: Date;
 
-  public static async hashPassword(password: string) {
+  public static async hashPassword(password: string): Promise<string> {
     try {
-      const salt = await bcrypt.genSalt();
-      return await bcrypt.hash(password, salt);
+      return new Promise((resolve, reject) => {
+        crypto.scrypt(password, SALT_BUFFER, 32, (err, derivedPassword) => {
+          if (err) reject(err);
+          resolve(derivedPassword.toString("hex"));
+        });
+      });
     } catch (e) {
       console.error(`[ERROR] User.hashPassword: ${e}`);
     }
@@ -46,6 +54,7 @@ class User extends BaseModel {
     password: string,
     name: string,
     company: string,
+    picture?: string,
     isAdmin?: boolean,
   ): Promise<UserInfo | undefined> {
     try {
@@ -57,9 +66,10 @@ class User extends BaseModel {
         email: email.toLowerCase(),
         password: await this.hashPassword(password),
         name,
-        company: company || "",
+        company,
+        picture,
         isAdmin: isAdmin || false,
-        verifyToken: randomBytes(16).toString("hex"),
+        verifyToken: crypto.randomBytes(16).toString("hex"),
         lastActivity: new Date(),
       });
       return {
@@ -67,6 +77,7 @@ class User extends BaseModel {
         email: user.email,
         name: user.name,
         company: user.company,
+        picture: user.picture,
         isAdmin: user.isAdmin,
         verifyToken: user.verifyToken,
         lastActivity: user.lastActivity,
@@ -79,7 +90,12 @@ class User extends BaseModel {
   public async comparePassword(this: DocumentType<User>, password: string) {
     if (this.password) {
       try {
-        return await bcrypt.compare(password, this.password);
+        return new Promise((resolve, reject) => {
+          crypto.scrypt(password, SALT_BUFFER, 32, (err, derivedPassword) => {
+            if (err) reject(err);
+            resolve(this.password == derivedPassword.toString("hex"));
+          });
+        });
       } catch (err) {
         console.error("Error comparing passwords: ", err);
       }
@@ -96,6 +112,7 @@ class User extends BaseModel {
         email: this.email,
         name: this.name,
         company: this.company,
+        picture: this.picture,
         isAdmin: this.isAdmin,
       },
       createdAt: moment().unix(),

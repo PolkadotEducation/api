@@ -54,7 +54,7 @@ describe("Setting API Server up...", () => {
       const email = "user2@polkadot.education";
       const name = "User Two";
       const password = "superSecret";
-      const user = await UserModel.createUser(email, password, name, "company", false);
+      const user = await UserModel.createUser(email, password, name, "company", "Base64OrLink", false);
       await axios
         .get(`${API_URL}/users/${user?.userId}`)
         .then((r) => {
@@ -68,7 +68,7 @@ describe("Setting API Server up...", () => {
       const email = "user3@polkadot.education";
       const name = "User Three";
       const password = "superSecret";
-      const user = await UserModel.createUser(email, password, name, "company", false);
+      const user = await UserModel.createUser(email, password, name, "company", "Base64OrLink", false);
 
       const newEmail = "New Email";
       const newPassword = "newSuperSecret";
@@ -100,7 +100,7 @@ describe("Setting API Server up...", () => {
       const email = "user4@polkadot.education";
       const name = "User Four";
       const password = "superSecret";
-      const user = await UserModel.createUser(email, password, name, "company", false);
+      const user = await UserModel.createUser(email, password, name, "company", "Base64OrLink", false);
       await axios
         .delete(`${API_URL}/users/${user?.userId}`)
         .then((r) => {
