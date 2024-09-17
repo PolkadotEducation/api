@@ -13,12 +13,12 @@ const router = (app: Express) => {
   app.get("/status", (_req: Request, res: Response) => res.status(200).json({ type: "success" }));
 
   // Users
-  app.post("/users", createUser);
+  app.post("/users", corsConfig(), createUser);
   app.get("/users/:id", [corsConfig(), authMiddleware], getUser);
   app.put("/users/:id", [corsConfig(), authMiddleware], updateUser);
   app.delete("/users/:id", [corsConfig(), authMiddleware], deleteUser);
-  app.post("/users/login", loginUser);
-  app.post("/users/login/google", loginUserWithGoogle);
+  app.post("/users/login", corsConfig(), loginUser);
+  app.post("/users/login/google", corsConfig(), loginUserWithGoogle);
 
   // Lessons
   app.post("/lesson", [corsConfig(), authMiddleware], createLesson);
