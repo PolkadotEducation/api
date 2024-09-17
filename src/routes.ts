@@ -2,8 +2,9 @@ import { Express, Request, Response } from "express";
 
 // Controllers
 import { createUser, deleteUser, getUser, loginUser, loginUserWithGoogle, updateUser } from "@/controllers/users";
-
 import { createLesson, deleteLesson, getLesson, updateLesson } from "@/controllers/lessons";
+import { createModule, deleteModule, getModule, updateModule } from "@/controllers/modules";
+
 import authMiddleware from "./middlewares/auth";
 import corsConfig from "./cors.config";
 
@@ -19,13 +20,17 @@ const router = (app: Express) => {
   app.post("/users/login", loginUser);
   app.post("/users/login/google", loginUserWithGoogle);
 
-  // Tracks
-  // Modules
   // Lessons
   app.post("/lesson", [corsConfig(), authMiddleware], createLesson);
   app.get("/lesson", [corsConfig(), authMiddleware], getLesson);
   app.delete("/lesson", [corsConfig(), authMiddleware], deleteLesson);
   app.put("/lesson/:id", [corsConfig(), authMiddleware], updateLesson);
+
+  // Modules
+  app.post("/module", [corsConfig(), authMiddleware], createModule);
+  app.get("/module", [corsConfig(), authMiddleware], getModule);
+  app.delete("/module", [corsConfig(), authMiddleware], deleteModule);
+  app.put("/module/:id", [corsConfig(), authMiddleware], updateModule);
 };
 
 export default router;
