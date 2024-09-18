@@ -6,7 +6,6 @@ import { createLesson, deleteLesson, getLesson, updateLesson } from "@/controlle
 import { createModule, deleteModule, getModule, updateModule } from "@/controllers/modules";
 
 import authMiddleware from "./middlewares/auth";
-import corsConfig from "./cors.config";
 
 const router = (app: Express) => {
   // Health check
@@ -14,23 +13,23 @@ const router = (app: Express) => {
 
   // Users
   app.post("/users", createUser);
-  app.get("/users/:id", [corsConfig(), authMiddleware], getUser);
-  app.put("/users/:id", [corsConfig(), authMiddleware], updateUser);
-  app.delete("/users/:id", [corsConfig(), authMiddleware], deleteUser);
+  app.get("/users/:id", [authMiddleware], getUser);
+  app.put("/users/:id", [authMiddleware], updateUser);
+  app.delete("/users/:id", [authMiddleware], deleteUser);
   app.post("/users/login", loginUser);
   app.post("/users/login/google", loginUserWithGoogle);
 
   // Lessons
-  app.post("/lesson", [corsConfig(), authMiddleware], createLesson);
-  app.get("/lesson", [corsConfig(), authMiddleware], getLesson);
-  app.delete("/lesson", [corsConfig(), authMiddleware], deleteLesson);
-  app.put("/lesson/:id", [corsConfig(), authMiddleware], updateLesson);
+  app.post("/lesson", [authMiddleware], createLesson);
+  app.get("/lesson", [authMiddleware], getLesson);
+  app.delete("/lesson", [authMiddleware], deleteLesson);
+  app.put("/lesson/:id", [authMiddleware], updateLesson);
 
   // Modules
-  app.post("/module", [corsConfig(), authMiddleware], createModule);
-  app.get("/module", [corsConfig(), authMiddleware], getModule);
-  app.delete("/module", [corsConfig(), authMiddleware], deleteModule);
-  app.put("/module/:id", [corsConfig(), authMiddleware], updateModule);
+  app.post("/module", [authMiddleware], createModule);
+  app.get("/module", [authMiddleware], getModule);
+  app.delete("/module", [authMiddleware], deleteModule);
+  app.put("/module/:id", [authMiddleware], updateModule);
 };
 
 export default router;

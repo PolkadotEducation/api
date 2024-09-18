@@ -13,16 +13,17 @@ const authMiddleware = async (req: Request, res: Response, next: NextFunction) =
   if (!req.headers.authorization) {
     return res.status(error.status).json(error);
   } else {
+    const code = req.headers.code?.toString();
     const token = req.headers.authorization?.split(" ")[1];
-    if (token) {
-      try {
+    try {
+      if (token && code) {
+        if (code !== env.AUTH_CODE) throw new Error("UNAUTHENTICATED");
+
         const decoded = jwt.verify(token, env.JWT_SECRET) as JwtPayload;
         if (!decoded.user) {
-          error.status = 401;
           throw new Error("UNAUTHENTICATED");
         }
         if (Date.now() >= (decoded.expiresAt || 0) * 1000) {
-          error.status = 401;
           throw new Error("SESSION EXPIRED");
         }
         res.locals.auth = token;
@@ -30,15 +31,17 @@ const authMiddleware = async (req: Request, res: Response, next: NextFunction) =
 
         const user = await UserModel.findById(res.locals.user.id);
         if (!user) {
-          error.status = 401;
           throw new Error("USER_NOT_FOUND");
         }
         res.locals.populatedUser = user;
         next();
-      } catch (err) {
-        error.error = (err as Error).message;
-        return res.status(error.status).json(error);
+      } else {
+        throw new Error("UNAUTHENTICATED");
       }
+    } catch (err) {
+      error.error = (err as Error).message;
+      console.error(`[ERROR][authMiddleware] ${JSON.stringify(error)}`);
+      return res.status(error.status).json(error);
     }
   }
 };
