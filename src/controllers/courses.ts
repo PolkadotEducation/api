@@ -132,7 +132,7 @@ export const duplicateCourse = async (req: Request, res: Response) => {
     const duplicatedCourse = await CourseModel.create({
       title: `${existingCourse.title} (Copy)`,
       summary: existingCourse.summary,
-      modules: existingCourse.modules.map((module) => module._id),
+      modules: existingCourse.modules,
     });
 
     return res.status(200).send(duplicatedCourse);

@@ -255,7 +255,9 @@ describe("Setting API Server up...", () => {
         .then((r) => {
           expect(r.data.title).toEqual(`${course.title} (Copy)`);
           expect(r.data.summary).toEqual(course.summary);
-          expect(r.data.modules[0]).toEqual(module._id.toString());
+          expect(r.data.modules.some((recordedModule: Module) => recordedModule._id === module._id.toString())).toBe(
+            true,
+          );
         })
         .catch((e) => expect(e).toBeUndefined());
     });
