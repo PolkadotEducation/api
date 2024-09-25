@@ -12,6 +12,7 @@ const SERVER_PORT = parseInt(process.env.SERVER_PORT || "4000");
 const APP_URL = process.env.APP_URL || `http://${SERVER_HOST}:3000`;
 
 const JWT_SECRET = process.env.JWT_SECRET || "OR5t0v7yk3z7qw77";
+const AUTH_CODE = process.env.AUTH_CODE || "localAuthCode";
 const CRYPTO_SALT = process.env.CRYPTO_SALT || "0fd1b53ac50026ab7";
 
 // AWS
@@ -30,6 +31,7 @@ export const env = {
   SERVER_PORT,
   APP_URL,
   JWT_SECRET,
+  AUTH_CODE,
   CRYPTO_SALT,
   AWS_SES_REGION,
   AWS_SES_SECRET,
