@@ -64,7 +64,7 @@ class User extends BaseModel {
       }
       const user = await UserModel.create({
         email: email.toLowerCase(),
-        password: await this.hashPassword(password),
+        password: await this.hashPassword(password || crypto.randomBytes(16).toString("hex")),
         name,
         company,
         picture,

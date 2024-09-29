@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { UserModel } from "@/models/User";
 import { sendVerificationEmail } from "@/helpers/aws/ses";
+import { signatureVerify } from "@polkadot/util-crypto";
 
 export const createUser = async (req: Request, res: Response) => {
   try {
@@ -14,7 +15,7 @@ export const createUser = async (req: Request, res: Response) => {
       return res.status(200).send(newUser);
     }
   } catch (e) {
-    console.error(`[ERROR][createUser] ${JSON.stringify(e)}`);
+    console.error(`[ERROR][createUser] ${e}`);
   }
 
   return res.status(400).send({
@@ -32,7 +33,7 @@ export const getUser = async (req: Request, res: Response) => {
     const user = await UserModel.findOne({ _id: id }, { email: 1, name: 1, company: 1, isAdmin: 1, picture: 1 });
     if (user) return res.status(200).send(user);
   } catch (e) {
-    console.error(`[ERROR][getUser] ${JSON.stringify(e)}`);
+    console.error(`[ERROR][getUser] ${e}`);
   }
 
   return res.status(400).send({
@@ -64,7 +65,7 @@ export const updateUser = async (req: Request, res: Response) => {
       isAdmin: user.isAdmin,
     });
   } catch (e) {
-    console.error(`[ERROR][updateUser] ${JSON.stringify(e)}`);
+    console.error(`[ERROR][updateUser] ${e}`);
   }
 
   return res.status(400).send({
@@ -82,7 +83,7 @@ export const deleteUser = async (req: Request, res: Response) => {
     const result = await UserModel.deleteOne({ _id: id });
     if (result?.deletedCount > 0) return res.status(200).send({ message: `User '${id}' deleted` });
   } catch (e) {
-    console.error(`[ERROR][deleteUser] ${JSON.stringify(e)}`);
+    console.error(`[ERROR][deleteUser] ${e}`);
   }
 
   return res.status(400).send({
@@ -100,7 +101,7 @@ export const loginUser = async (req: Request, res: Response) => {
     const authToken = await UserModel.login(email, password, true);
     if (authToken) return res.status(200).send({ jwt: authToken });
   } catch (e) {
-    console.error(`[ERROR][loginUser] ${JSON.stringify(e)}`);
+    console.error(`[ERROR][loginUser] ${e}`);
   }
 
   return res.status(400).send({
@@ -117,12 +118,38 @@ export const loginUserWithGoogle = async (req: Request, res: Response) => {
     const user = await UserModel.findOne({ email });
     if (user) return res.status(200).send({ jwt: user.getAuthToken(true) });
     else {
-      await UserModel.createUser(email, `google#${email}`, name, " ", picture);
+      await UserModel.createUser(email, "", name, "Google", picture);
       const user = await UserModel.findOne({ email });
       if (user) return res.status(200).send({ jwt: user.getAuthToken(true) });
     }
   } catch (e) {
-    console.error(`[ERROR][loginUser] ${JSON.stringify(e)}`);
+    console.error(`[ERROR][loginUserWithGoogle] ${e}`);
+  }
+  return res.status(400).send({
+    error: {
+      message: "Invalid login",
+    },
+  });
+};
+
+export const loginUserWithWallet = async (req: Request, res: Response) => {
+  try {
+    const { address, name, signature } = req.body;
+    if (!address || !signature) return res.status(400).send({ error: { message: "Missing address or signature" } });
+
+    const { isValid } = signatureVerify(`${address}@PolkadotEducation`, signature, address);
+    if (!isValid) return res.status(400).send({ error: { message: "Invalid Signature" } });
+
+    const addr = String(address).toLowerCase();
+    const user = await UserModel.findOne({ email: addr });
+    if (user) return res.status(200).send({ jwt: user.getAuthToken(true) });
+    else {
+      await UserModel.createUser(addr, "", name || `${address.slice(0, 5)}...${address.slice(-5)}`, "Web3", "");
+      const user = await UserModel.findOne({ email: addr });
+      if (user) return res.status(200).send({ jwt: user.getAuthToken(true) });
+    }
+  } catch (e) {
+    console.error(`[ERROR][loginUserWithWallet] ${e}`);
   }
   return res.status(400).send({
     error: {
