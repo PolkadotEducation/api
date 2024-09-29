@@ -3,13 +3,13 @@
 Polkadot Education API (backend)
 
 ```
-yarn
+bun i
 ```
 
 ```
-yarn test
+bun run test
 ```
 
 ```
-yarn dev
+bun dev
 ```
