@@ -1,4 +1,5 @@
-import { getModelForClass, prop, Ref } from "@typegoose/typegoose";
+import { getModelForClass, prop } from "@typegoose/typegoose";
+import type { Ref } from "@typegoose/typegoose";
 import BaseModel from "./BaseModel";
 import { Lesson } from "./Lesson";
 
