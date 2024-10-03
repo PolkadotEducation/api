@@ -1,7 +1,15 @@
 import { Express, Request, Response } from "express";
 
 // Controllers
-import { createUser, deleteUser, getUser, loginUser, loginUserWithGoogle, updateUser } from "@/controllers/users";
+import {
+  createUser,
+  deleteUser,
+  getUser,
+  loginUser,
+  loginUserWithGoogle,
+  loginUserWithWallet,
+  updateUser,
+} from "@/controllers/users";
 import { createLesson, deleteLesson, getLesson, updateLesson } from "@/controllers/lessons";
 import { createModule, deleteModule, getModule, updateModule } from "@/controllers/modules";
 import { createCourse, deleteCourse, getCourse, updateCourse, duplicateCourse } from "@/controllers/courses";
@@ -19,6 +27,7 @@ const router = (app: Express) => {
   app.delete("/users/:id", [authMiddleware], deleteUser);
   app.post("/users/login", loginUser);
   app.post("/users/login/google", loginUserWithGoogle);
+  app.post("/users/login/wallet", loginUserWithWallet);
 
   // Lessons
   app.post("/lesson", [authMiddleware], createLesson);
