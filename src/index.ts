@@ -1,16 +1,20 @@
-import express from "express";
+import express, { Request, Response } from "express";
 
-import middlewareInjection from "./middlewares";
 import router from "./routes";
 
 import { setupMongoDB } from "./database";
 import { env } from "./environment";
+import corsConfig from "./middlewares/cors.config";
 
 const app = express();
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-middlewareInjection(app);
+// Health check
+app.get("/status", (_req: Request, res: Response) => res.status(200).json({ type: "success" }));
+
+app.use(corsConfig());
 
 router(app);
 

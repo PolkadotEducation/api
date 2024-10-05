@@ -1,4 +1,4 @@
-import { getModelForClass, prop } from "@typegoose/typegoose";
+import { getModelForClass, prop, Severity } from "@typegoose/typegoose";
 
 import BaseModel from "./BaseModel";
 
@@ -15,6 +15,7 @@ class Challenge {
       },
       message: "Choices array must contain between 3 and 5 items.",
     },
+    allowMixed: Severity.ALLOW,
   })
   public choices: string[];
 
