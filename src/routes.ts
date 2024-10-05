@@ -1,4 +1,4 @@
-import { Express, Request, Response } from "express";
+import { Express } from "express";
 
 // Controllers
 import {
@@ -17,9 +17,6 @@ import { createCourse, deleteCourse, getCourse, updateCourse, duplicateCourse } 
 import authMiddleware from "./middlewares/auth";
 
 const router = (app: Express) => {
-  // Health check
-  app.get("/status", (_req: Request, res: Response) => res.status(200).json({ type: "success" }));
-
   // Users
   app.post("/users", createUser);
   app.get("/users/:id", [authMiddleware], getUser);
