@@ -30,13 +30,13 @@ describe("Setting API Server up...", () => {
     server = app.listen(PORT, done);
   });
 
+  beforeAll(async () => {
+    await mongoDBsetup(MONGODB_DATABASE_NAME);
+  });
+
   afterAll(async () => {
     await mongoDBsetup(MONGODB_DATABASE_NAME, true);
     return server && server.close();
-  });
-
-  beforeEach(async () => {
-    await mongoDBsetup(MONGODB_DATABASE_NAME);
   });
 
   describe("Courses", () => {
