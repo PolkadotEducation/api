@@ -94,6 +94,33 @@ export const getCourse = async (req: Request, res: Response) => {
   });
 };
 
+export const getCoursesByLanguage = async (req: Request, res: Response) => {
+  try {
+    const { language } = req.query;
+    if (!language) {
+      return res.status(400).send({ error: { message: "Missing language" } });
+    }
+
+    const courses = await CourseModel.find({ language }).populate("modules");
+    if (courses.length > 0) {
+      return res.status(200).send(courses);
+    } else {
+      return res.status(404).send({
+        error: {
+          message: "No courses found for this language",
+        },
+      });
+    }
+  } catch (e) {
+    console.error(`[ERROR][getCoursesByLanguage] ${JSON.stringify(e)}`);
+    return res.status(500).send({
+      error: {
+        message: JSON.stringify(e),
+      },
+    });
+  }
+};
+
 export const deleteCourse = async (req: Request, res: Response) => {
   try {
     const { courseId } = req.body;

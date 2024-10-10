@@ -197,6 +197,86 @@ describe("Setting API Server up...", () => {
         .catch((e) => expect(e).toBeUndefined());
     });
 
+    it("Get courses by language (GET /courses?language=english)", async () => {
+      await CourseModel.deleteMany({});
+
+      const lesson1 = await LessonModel.create({
+        title: "Lesson in English #1",
+        language: "english",
+        body: loadFixture("example.md"),
+        difficulty: "easy",
+        challenge: {
+          question: "What is the capital of the USA?",
+          choices: ["Washington D.C.", "New York", "Los Angeles", "Chicago"],
+          correctChoice: 0,
+        },
+      });
+
+      const lesson2 = await LessonModel.create({
+        title: "Aula em Português",
+        language: "portuguese",
+        body: loadFixture("example.md"),
+        difficulty: "medium",
+        challenge: {
+          question: "Qual é a capital do Brasil?",
+          choices: ["Brasília", "Rio de Janeiro", "São Paulo"],
+          correctChoice: 0,
+        },
+      });
+
+      const moduleEnglish = await ModuleModel.create({
+        title: "Module in English",
+        lessons: [lesson1._id],
+      });
+
+      const modulePortuguese = await ModuleModel.create({
+        title: "Módulo em Português",
+        lessons: [lesson2._id],
+      });
+
+      await CourseModel.create({
+        title: "Course in English",
+        language: "english",
+        summary: "This is an English course",
+        modules: [moduleEnglish._id],
+      });
+
+      await CourseModel.create({
+        title: "Curso em Português",
+        language: "portuguese",
+        summary: "Este é um curso em Português",
+        modules: [modulePortuguese._id],
+      });
+
+      await axios
+        .get(`${API_URL}/courses?language=english`)
+        .then((r) => {
+          expect(r.data.length).toBe(1);
+          expect(r.data[0].title).toEqual("Course in English");
+        })
+        .catch((e) => expect(e).toBeUndefined());
+    });
+
+    it("Get courses by language with no results (GET /courses?language=french)", async () => {
+      await axios
+        .get(`${API_URL}/courses?language=french`)
+        .then(() => {})
+        .catch((e) => {
+          expect(e.response.status).toEqual(404);
+          expect(e.response.data.error.message).toEqual("No courses found for this language");
+        });
+    });
+
+    it("Get courses by language without specifying language (GET /courses)", async () => {
+      await axios
+        .get(`${API_URL}/courses`)
+        .then(() => {})
+        .catch((e) => {
+          expect(e.response.status).toEqual(400);
+          expect(e.response.data.error.message).toEqual("Missing language");
+        });
+    });
+
     it("Delete a Course (DELETE /course)", async () => {
       const lesson = await LessonModel.create({
         title: "Lesson #4",
