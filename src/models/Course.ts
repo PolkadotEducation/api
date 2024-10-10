@@ -7,6 +7,9 @@ class Course extends BaseModel {
   @prop({ required: true, type: String, maxlength: 100 })
   public title: string;
 
+  @prop({ required: true, enum: ["english", "portuguese", "spanish"] })
+  public language: string;
+
   @prop({ required: true, type: String, maxlength: 1000 })
   public summary: string;
 

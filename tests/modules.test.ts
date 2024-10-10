@@ -29,6 +29,10 @@ describe("Setting API Server up...", () => {
     server = app.listen(PORT, done);
   });
 
+  beforeAll(async () => {
+    await mongoDBsetup(MONGODB_DATABASE_NAME);
+  });
+
   afterAll(async () => {
     await mongoDBsetup(MONGODB_DATABASE_NAME, true);
     return server && server.close();
@@ -36,10 +40,9 @@ describe("Setting API Server up...", () => {
 
   describe("Modules", () => {
     it("Create a Module (POST /module)", async () => {
-      await mongoDBsetup(MONGODB_DATABASE_NAME);
-
       const lesson = await LessonModel.create({
         title: "Lesson #1",
+        language: "english",
         body: loadFixture("example.md"),
         difficulty: "easy",
         challenge: {
@@ -65,8 +68,6 @@ describe("Setting API Server up...", () => {
     });
 
     it("Create a Module with invalid lessons returns error (POST /module)", async () => {
-      await mongoDBsetup(MONGODB_DATABASE_NAME);
-
       const moduleTitle = "Module with invalid lessons";
       const invalidLessonId = "60e4b68f2f8fb814b56fa181";
       await axios
@@ -81,10 +82,9 @@ describe("Setting API Server up...", () => {
     });
 
     it("Update a Module (PUT /module/:id)", async () => {
-      await mongoDBsetup(MONGODB_DATABASE_NAME);
-
       const lesson1 = await LessonModel.create({
         title: "Lesson #1",
+        language: "english",
         body: loadFixture("example.md"),
         difficulty: "easy",
         challenge: {
@@ -96,6 +96,7 @@ describe("Setting API Server up...", () => {
 
       const lesson2 = await LessonModel.create({
         title: "Lesson #2",
+        language: "english",
         body: loadFixture("example.md"),
         difficulty: "easy",
         challenge: {
@@ -131,10 +132,9 @@ describe("Setting API Server up...", () => {
     });
 
     it("Get a Module (GET /module)", async () => {
-      await mongoDBsetup(MONGODB_DATABASE_NAME);
-
       const lesson = await LessonModel.create({
         title: "Lesson #3",
+        language: "english",
         body: loadFixture("example.md"),
         difficulty: "easy",
         challenge: {
@@ -161,10 +161,9 @@ describe("Setting API Server up...", () => {
     });
 
     it("Delete a Module (DELETE /module)", async () => {
-      await mongoDBsetup(MONGODB_DATABASE_NAME);
-
       const lesson = await LessonModel.create({
         title: "Lesson #4",
+        language: "english",
         body: loadFixture("example.md"),
         difficulty: "hard",
         challenge: {

@@ -2,8 +2,8 @@ import { Request, Response } from "express";
 import { LessonModel } from "@/models/Lesson";
 
 export const createLesson = async (req: Request, res: Response) => {
-  const { title, body, difficulty, challenge, references } = req.body;
-  if (!title || !body || !difficulty || !challenge) {
+  const { title, language, body, difficulty, challenge, references } = req.body;
+  if (!title || !language || !body || !difficulty || !challenge) {
     return res.status(400).send({ error: { message: "Missing params" } });
   }
 
@@ -11,6 +11,7 @@ export const createLesson = async (req: Request, res: Response) => {
   try {
     const newLesson = await LessonModel.create({
       title,
+      language,
       body,
       difficulty,
       challenge,
@@ -31,9 +32,9 @@ export const createLesson = async (req: Request, res: Response) => {
 
 export const updateLesson = async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { title, body, difficulty, challenge, references } = req.body;
+  const { title, language, body, difficulty, challenge, references } = req.body;
 
-  if (!id || !title || !body || !difficulty || !challenge) {
+  if (!id || !title || !language || !body || !difficulty || !challenge) {
     return res.status(400).send({ error: { message: "Missing params" } });
   }
 
@@ -43,6 +44,7 @@ export const updateLesson = async (req: Request, res: Response) => {
       id,
       {
         title,
+        language,
         body,
         difficulty,
         challenge,
@@ -85,6 +87,35 @@ export const getLesson = async (req: Request, res: Response) => {
       message: "Lesson not found",
     },
   });
+};
+
+export const getLessonsByLanguage = async (req: Request, res: Response) => {
+  try {
+    const { language } = req.query;
+
+    if (!language) {
+      return res.status(400).send({ error: { message: "Missing language" } });
+    }
+
+    const lessons = await LessonModel.find({ language: language });
+
+    if (lessons.length > 0) {
+      return res.status(200).send(lessons);
+    } else {
+      return res.status(404).send({
+        error: {
+          message: "No lessons found for this language",
+        },
+      });
+    }
+  } catch (e) {
+    console.error(`[ERROR][getLessonsByLanguage] ${JSON.stringify(e)}`);
+    return res.status(500).send({
+      error: {
+        message: JSON.stringify(e),
+      },
+    });
+  }
 };
 
 export const deleteLesson = async (req: Request, res: Response) => {
