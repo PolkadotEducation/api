@@ -15,6 +15,12 @@ export default [
   eslintPluginPrettierRecommended,
   {
     ignores: ["dist/*", "node_modules/*"],
+    languageOptions: {
+      globals: globals.node,
+      parserOptions: {
+        warnOnUnsupportedTypeScriptVersion: false,
+      },
+    },
   },
   {
     rules: {
