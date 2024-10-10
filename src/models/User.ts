@@ -25,6 +25,9 @@ class User extends BaseModel {
   @prop({ required: true, type: String, default: " " })
   public company: string;
 
+  @prop({ required: true, enum: ["english", "portuguese", "spanish"] })
+  public language: string;
+
   @prop({ required: true, type: Boolean, default: false })
   public isAdmin: boolean;
 
@@ -50,12 +53,23 @@ class User extends BaseModel {
 
   public static async createUser(
     this: ReturnModelType<typeof User>,
-    email: string,
-    password: string,
-    name: string,
-    company: string,
-    picture?: string,
-    isAdmin?: boolean,
+    {
+      email,
+      password,
+      name,
+      language,
+      company,
+      picture,
+      isAdmin = false,
+    }: {
+      email: string;
+      password: string;
+      name: string;
+      language: string;
+      company: string;
+      picture?: string;
+      isAdmin?: boolean;
+    },
   ): Promise<UserInfo | undefined> {
     try {
       const exists = await this.findOne({ email: email.toLowerCase() });
@@ -66,9 +80,10 @@ class User extends BaseModel {
         email: email.toLowerCase(),
         password: await this.hashPassword(password || crypto.randomBytes(16).toString("hex")),
         name,
+        language,
         company,
         picture,
-        isAdmin: isAdmin || false,
+        isAdmin,
         verifyToken: crypto.randomBytes(16).toString("hex"),
         lastActivity: new Date(),
       });
@@ -76,6 +91,7 @@ class User extends BaseModel {
         userId: user._id,
         email: user.email,
         name: user.name,
+        language: user.language,
         company: user.company,
         picture: user.picture,
         isAdmin: user.isAdmin,

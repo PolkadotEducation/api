@@ -35,12 +35,15 @@ describe("Setting API Server up...", () => {
     return server && server.close();
   });
 
+  beforeEach(async () => {
+    await mongoDBsetup(MONGODB_DATABASE_NAME);
+  });
+
   describe("Courses", () => {
     it("Create a Course (POST /course)", async () => {
-      await mongoDBsetup(MONGODB_DATABASE_NAME);
-
       const lesson = await LessonModel.create({
         title: "Lesson #1",
+        language: "english",
         body: loadFixture("example.md"),
         difficulty: "easy",
         challenge: {
@@ -56,16 +59,19 @@ describe("Setting API Server up...", () => {
       });
 
       const courseTitle = "Course #1";
+      const courseLanguage = "english";
       const courseSummary = "This is a summary of Course #1";
 
       await axios
         .post(`${API_URL}/course`, {
           title: courseTitle,
+          language: courseLanguage,
           summary: courseSummary,
           modules: [module._id],
         })
         .then((r) => {
           expect(r.data.title).toEqual(courseTitle);
+          expect(r.data.language).toEqual(courseLanguage);
           expect(r.data.summary).toEqual(courseSummary);
           expect(r.data.modules[0]).toEqual(module._id.toString());
         })
@@ -75,15 +81,15 @@ describe("Setting API Server up...", () => {
     });
 
     it("Create a Course with invalid modules returns error (POST /course)", async () => {
-      await mongoDBsetup(MONGODB_DATABASE_NAME);
-
       const courseTitle = "Course with invalid modules";
+      const courseLanguage = "english";
       const courseSummary = "This course contains invalid modules";
       const invalidModuleId = "60e4b68f2f8fb814b56fa181";
 
       await axios
         .post(`${API_URL}/course`, {
           title: courseTitle,
+          language: courseLanguage,
           summary: courseSummary,
           modules: [invalidModuleId],
         })
@@ -94,10 +100,9 @@ describe("Setting API Server up...", () => {
     });
 
     it("Update a Course (PUT /course/:id)", async () => {
-      await mongoDBsetup(MONGODB_DATABASE_NAME);
-
       const lesson1 = await LessonModel.create({
         title: "Lesson #1",
+        language: "english",
         body: loadFixture("example.md"),
         difficulty: "easy",
         challenge: {
@@ -109,6 +114,7 @@ describe("Setting API Server up...", () => {
 
       const lesson2 = await LessonModel.create({
         title: "Lesson #2",
+        language: "english",
         body: loadFixture("example.md"),
         difficulty: "easy",
         challenge: {
@@ -125,15 +131,18 @@ describe("Setting API Server up...", () => {
 
       const course = await CourseModel.create({
         title: "Initial Course",
+        language: "english",
         summary: "This is the initial course summary",
         modules: [module._id],
       });
 
-      const updatedTitle = "Updated Course";
-      const updatedSummary = "This is the updated course summary";
+      const updatedTitle = "Curso atualizado";
+      const updatedLanguage = "portuguese";
+      const updatedSummary = "Resumo do curso atualizado";
 
       await axios.put(`${API_URL}/course/${course._id}`, {
         title: updatedTitle,
+        language: updatedLanguage,
         summary: updatedSummary,
         modules: [module._id],
       });
@@ -142,6 +151,7 @@ describe("Setting API Server up...", () => {
         .get(`${API_URL}/course?courseId=${course._id}`)
         .then((r) => {
           expect(r.data.title).toEqual(updatedTitle);
+          expect(r.data.language).toEqual(updatedLanguage);
           expect(r.data.summary).toEqual(updatedSummary);
           expect(r.data.modules.some((recordedModule: Module) => recordedModule._id === module._id.toString())).toBe(
             true,
@@ -151,10 +161,9 @@ describe("Setting API Server up...", () => {
     });
 
     it("Get a Course (GET /course)", async () => {
-      await mongoDBsetup(MONGODB_DATABASE_NAME);
-
       const lesson = await LessonModel.create({
         title: "Lesson #3",
+        language: "english",
         body: loadFixture("example.md"),
         difficulty: "easy",
         challenge: {
@@ -171,6 +180,7 @@ describe("Setting API Server up...", () => {
 
       const newCourse = await CourseModel.create({
         title: "Course with Module",
+        language: "english",
         summary: "This course contains a module",
         modules: [module._id],
       });
@@ -188,10 +198,9 @@ describe("Setting API Server up...", () => {
     });
 
     it("Delete a Course (DELETE /course)", async () => {
-      await mongoDBsetup(MONGODB_DATABASE_NAME);
-
       const lesson = await LessonModel.create({
         title: "Lesson #4",
+        language: "english",
         body: loadFixture("example.md"),
         difficulty: "hard",
         challenge: {
@@ -208,6 +217,7 @@ describe("Setting API Server up...", () => {
 
       const newCourse = await CourseModel.create({
         title: "Course to Delete",
+        language: "english",
         summary: "This course is about to be deleted",
         modules: [module._id],
       });
@@ -226,10 +236,9 @@ describe("Setting API Server up...", () => {
     });
 
     it("Duplicate a Course (POST /course/duplicate)", async () => {
-      await mongoDBsetup(MONGODB_DATABASE_NAME);
-
       const lesson = await LessonModel.create({
         title: "Lesson #5",
+        language: "english",
         body: loadFixture("example.md"),
         difficulty: "medium",
         challenge: {
@@ -246,6 +255,7 @@ describe("Setting API Server up...", () => {
 
       const course = await CourseModel.create({
         title: "Course to Duplicate",
+        language: "english",
         summary: "This course will be duplicated",
         modules: [module._id],
       });

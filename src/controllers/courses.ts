@@ -3,9 +3,9 @@ import { CourseModel } from "@/models/Course";
 import { ModuleModel } from "@/models/Module";
 
 export const createCourse = async (req: Request, res: Response) => {
-  const { title, summary, modules } = req.body;
+  const { title, language, summary, modules } = req.body;
 
-  if (!title || !summary || !modules) {
+  if (!title || !language || !summary || !modules) {
     return res.status(400).send({ error: { message: "Missing params" } });
   }
 
@@ -18,6 +18,7 @@ export const createCourse = async (req: Request, res: Response) => {
 
     const newCourse = await CourseModel.create({
       title,
+      language,
       summary,
       modules,
     });
@@ -37,9 +38,9 @@ export const createCourse = async (req: Request, res: Response) => {
 
 export const updateCourse = async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { title, summary, modules } = req.body;
+  const { title, language, summary, modules } = req.body;
 
-  if (!id || !title || !summary || !modules) {
+  if (!id || !title || !language || !summary || !modules) {
     return res.status(400).send({ error: { message: "Missing params" } });
   }
 
@@ -52,7 +53,7 @@ export const updateCourse = async (req: Request, res: Response) => {
 
     const updatedCourse = await CourseModel.findByIdAndUpdate(
       id,
-      { title, summary, modules },
+      { title, language, summary, modules },
       { new: true, runValidators: true },
     );
 
@@ -131,6 +132,7 @@ export const duplicateCourse = async (req: Request, res: Response) => {
 
     const duplicatedCourse = await CourseModel.create({
       title: `${existingCourse.title} (Copy)`,
+      language: existingCourse.language,
       summary: existingCourse.summary,
       modules: existingCourse.modules,
     });

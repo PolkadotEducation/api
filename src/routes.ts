@@ -10,7 +10,7 @@ import {
   loginUserWithWallet,
   updateUser,
 } from "@/controllers/users";
-import { createLesson, deleteLesson, getLesson, updateLesson } from "@/controllers/lessons";
+import { createLesson, deleteLesson, getLesson, getLessonsByLanguage, updateLesson } from "@/controllers/lessons";
 import { createModule, deleteModule, getModule, updateModule } from "@/controllers/modules";
 import { createCourse, deleteCourse, getCourse, updateCourse, duplicateCourse } from "@/controllers/courses";
 
@@ -29,6 +29,7 @@ const router = (app: Express) => {
   // Lessons
   app.post("/lesson", [authMiddleware], createLesson);
   app.get("/lesson", [authMiddleware], getLesson);
+  app.get("/lessons", [authMiddleware], getLessonsByLanguage);
   app.delete("/lesson", [authMiddleware], deleteLesson);
   app.put("/lesson/:id", [authMiddleware], updateLesson);
 
