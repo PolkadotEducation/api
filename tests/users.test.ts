@@ -56,7 +56,7 @@ describe("Setting API Server up...", () => {
       const password = "superSecret";
       const user = await UserModel.createUser(email, password, name, "company", "Base64OrLink", false);
       await axios
-        .get(`${API_URL}/users/${user?.userId}`)
+        .get(`${API_URL}/users/${user?.id}`)
         .then((r) => {
           expect(r.data.email).toEqual(email);
         })
@@ -75,7 +75,7 @@ describe("Setting API Server up...", () => {
       const newName = "New Name";
       const newCompany = "New Company";
       await axios
-        .put(`${API_URL}/users/${user?.userId}`, {
+        .put(`${API_URL}/users/${user?.id}`, {
           email: newEmail,
           password: newPassword,
           name: newName,
@@ -88,7 +88,7 @@ describe("Setting API Server up...", () => {
           expect(r.data.company).toEqual(newCompany);
           expect(r.data.isAdmin).toEqual(true);
           // Password check
-          const updatedUser = await UserModel.findById(user?.userId);
+          const updatedUser = await UserModel.findById(user?.id);
           const validPassword = await updatedUser?.comparePassword(newPassword);
           expect(validPassword).toBeTruthy();
         })
@@ -102,9 +102,9 @@ describe("Setting API Server up...", () => {
       const password = "superSecret";
       const user = await UserModel.createUser(email, password, name, "company", "Base64OrLink", false);
       await axios
-        .delete(`${API_URL}/users/${user?.userId}`)
+        .delete(`${API_URL}/users/${user?.id}`)
         .then((r) => {
-          expect(r.data.message).toEqual(`User '${user?.userId}' deleted`);
+          expect(r.data.message).toEqual(`User '${user?.id}' deleted`);
         })
         .catch((e) => expect(e).toBeUndefined());
     });

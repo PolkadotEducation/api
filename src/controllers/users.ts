@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { UserModel } from "@/models/User";
 import { sendVerificationEmail } from "@/helpers/aws/ses";
 import { signatureVerify } from "@polkadot/util-crypto";
+import { UserInfo } from "@/types/User";
 
 export const createUser = async (req: Request, res: Response) => {
   try {
@@ -28,10 +29,21 @@ export const createUser = async (req: Request, res: Response) => {
 export const getUser = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    if (!id) return res.status(400).send({ error: { message: "Missing userId" } });
+    if (!id) return res.status(400).send({ error: { message: "Missing user's id" } });
 
-    const user = await UserModel.findOne({ _id: id }, { email: 1, name: 1, company: 1, isAdmin: 1, picture: 1 });
-    if (user) return res.status(200).send(user);
+    const user = await UserModel.findOne({ _id: id });
+    if (user) {
+      const userInfo: UserInfo = {
+        id: user._id,
+        email: user.email,
+        name: user.name,
+        picture: user.picture,
+        company: user.company,
+        isAdmin: user.isAdmin,
+        lastActivity: user.lastActivity,
+      };
+      return res.status(200).send(userInfo);
+    }
   } catch (e) {
     console.error(`[ERROR][getUser] ${e}`);
   }
@@ -46,24 +58,29 @@ export const getUser = async (req: Request, res: Response) => {
 export const updateUser = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { email, name, company, isAdmin, password } = req.body;
+    const { email, name, picture, company, isAdmin, password } = req.body;
 
     const user = await UserModel.findById(id);
     if (!user) return res.status(404).send({ error: { message: "User not found" } });
 
     if (email) user.email = email;
     if (name) user.name = name;
+    if (picture) user.picture = picture;
     if (company) user.company = company;
     if (typeof isAdmin === "boolean") user.isAdmin = isAdmin;
     if (password) user.password = await UserModel.hashPassword(password);
     await user.save();
 
-    return res.status(200).send({
+    const userInfo: UserInfo = {
+      id: user._id,
       email: user.email,
       name: user.name,
+      picture: user.picture,
       company: user.company,
       isAdmin: user.isAdmin,
-    });
+      lastActivity: user.lastActivity,
+    };
+    return res.status(200).send(userInfo);
   } catch (e) {
     console.error(`[ERROR][updateUser] ${e}`);
   }

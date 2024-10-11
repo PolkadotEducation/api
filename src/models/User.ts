@@ -73,7 +73,7 @@ class User extends BaseModel {
         lastActivity: new Date(),
       });
       return {
-        userId: user._id,
+        id: user._id,
         email: user.email,
         name: user.name,
         company: user.company,
