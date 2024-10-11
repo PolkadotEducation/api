@@ -5,10 +5,16 @@ import { signatureVerify } from "@polkadot/util-crypto";
 
 export const createUser = async (req: Request, res: Response) => {
   try {
-    const { email, password, name, company } = req.body;
+    const { email, password, name, company, language } = req.body;
     if (!email || !password) return res.status(400).send({ error: { message: "Missing email or password" } });
 
-    const newUser = await UserModel.createUser(email, password, name, company);
+    const newUser = await UserModel.createUser({
+      email,
+      password,
+      name,
+      company,
+      language,
+    });
     if (newUser) {
       await sendVerificationEmail(email, newUser.verifyToken!);
       newUser.verifyToken = undefined;
@@ -30,7 +36,10 @@ export const getUser = async (req: Request, res: Response) => {
     const { id } = req.params;
     if (!id) return res.status(400).send({ error: { message: "Missing userId" } });
 
-    const user = await UserModel.findOne({ _id: id }, { email: 1, name: 1, company: 1, isAdmin: 1, picture: 1 });
+    const user = await UserModel.findOne(
+      { _id: id },
+      { email: 1, name: 1, company: 1, isAdmin: 1, picture: 1, language: 1 },
+    );
     if (user) return res.status(200).send(user);
   } catch (e) {
     console.error(`[ERROR][getUser] ${e}`);
@@ -46,7 +55,7 @@ export const getUser = async (req: Request, res: Response) => {
 export const updateUser = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { email, name, company, isAdmin, password } = req.body;
+    const { email, name, company, isAdmin, password, language } = req.body;
 
     const user = await UserModel.findById(id);
     if (!user) return res.status(404).send({ error: { message: "User not found" } });
@@ -56,6 +65,7 @@ export const updateUser = async (req: Request, res: Response) => {
     if (company) user.company = company;
     if (typeof isAdmin === "boolean") user.isAdmin = isAdmin;
     if (password) user.password = await UserModel.hashPassword(password);
+    if (language) user.language = language;
     await user.save();
 
     return res.status(200).send({
@@ -63,6 +73,7 @@ export const updateUser = async (req: Request, res: Response) => {
       name: user.name,
       company: user.company,
       isAdmin: user.isAdmin,
+      language: user.language,
     });
   } catch (e) {
     console.error(`[ERROR][updateUser] ${e}`);
@@ -113,12 +124,19 @@ export const loginUser = async (req: Request, res: Response) => {
 
 export const loginUserWithGoogle = async (req: Request, res: Response) => {
   try {
-    const { email, name, picture } = req.body;
+    const { email, name, picture, language } = req.body;
     if (!email) return res.status(400).send({ error: { message: "Missing email" } });
     const user = await UserModel.findOne({ email });
     if (user) return res.status(200).send({ jwt: user.getAuthToken(true) });
     else {
-      await UserModel.createUser(email, "", name, "Google", picture);
+      await UserModel.createUser({
+        email,
+        password: "",
+        name,
+        company: "Google",
+        picture,
+        language,
+      });
       const user = await UserModel.findOne({ email });
       if (user) return res.status(200).send({ jwt: user.getAuthToken(true) });
     }
@@ -134,7 +152,7 @@ export const loginUserWithGoogle = async (req: Request, res: Response) => {
 
 export const loginUserWithWallet = async (req: Request, res: Response) => {
   try {
-    const { address, name, signature } = req.body;
+    const { address, name, signature, language } = req.body;
     if (!address || !signature) return res.status(400).send({ error: { message: "Missing address or signature" } });
 
     const { isValid } = signatureVerify(`${address}@PolkadotEducation`, signature, address);
@@ -144,7 +162,13 @@ export const loginUserWithWallet = async (req: Request, res: Response) => {
     const user = await UserModel.findOne({ email: addr });
     if (user) return res.status(200).send({ jwt: user.getAuthToken(true) });
     else {
-      await UserModel.createUser(addr, "", name || `${address.slice(0, 5)}...${address.slice(-5)}`, "Web3", "");
+      await UserModel.createUser({
+        email: addr,
+        password: "",
+        name: name || `${address.slice(0, 5)}...${address.slice(-5)}`,
+        company: "Web3",
+        language,
+      });
       const user = await UserModel.findOne({ email: addr });
       if (user) return res.status(200).send({ jwt: user.getAuthToken(true) });
     }
