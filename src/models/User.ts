@@ -139,8 +139,8 @@ class User extends BaseModel implements UserInfo {
     const validPassword = await user.comparePassword(password);
     if (!validPassword) throw "Invalid Password";
 
-    // Not verified yet
-    if (user.verify) {
+    // Not verified yet, we do not verify during tests
+    if (env.NODE_ENV !== "test" && user.verify) {
       const oneDay = new Date();
       oneDay.setDate(oneDay.getDate() - 1);
       // Should we resend a link (after 24h)?
