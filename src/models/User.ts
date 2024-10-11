@@ -30,7 +30,7 @@ class User extends BaseModel implements UserInfo {
   @prop({ required: true, type: String, default: " " })
   public company: string;
 
-  @prop({ required: true, enum: ["english", "portuguese", "spanish"] })
+  @prop({ required: true, type: String, enum: ["english", "portuguese", "spanish"] })
   public language: string;
 
   @prop({ required: true, type: Boolean, default: false })
