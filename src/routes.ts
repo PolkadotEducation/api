@@ -12,9 +12,16 @@ import {
   updateUser,
   recoverUser,
 } from "@/controllers/users";
-import { createLesson, deleteLesson, getLesson, updateLesson } from "@/controllers/lessons";
+import { createLesson, deleteLesson, getLesson, getLessonsByLanguage, updateLesson } from "@/controllers/lessons";
 import { createModule, deleteModule, getModule, updateModule } from "@/controllers/modules";
-import { createCourse, deleteCourse, getCourse, updateCourse, duplicateCourse } from "@/controllers/courses";
+import {
+  createCourse,
+  deleteCourse,
+  getCourse,
+  updateCourse,
+  duplicateCourse,
+  getCoursesByLanguage,
+} from "@/controllers/courses";
 
 import authMiddleware from "./middlewares/auth";
 
@@ -33,6 +40,7 @@ const router = (app: Express) => {
   // Lessons
   app.post("/lesson", [authMiddleware], createLesson);
   app.get("/lesson", [authMiddleware], getLesson);
+  app.get("/lessons", [authMiddleware], getLessonsByLanguage);
   app.delete("/lesson", [authMiddleware], deleteLesson);
   app.put("/lesson/:id", [authMiddleware], updateLesson);
 
@@ -45,6 +53,7 @@ const router = (app: Express) => {
   // Courses
   app.post("/course", [authMiddleware], createCourse);
   app.get("/course", [authMiddleware], getCourse);
+  app.get("/courses", [authMiddleware], getCoursesByLanguage);
   app.delete("/course", [authMiddleware], deleteCourse);
   app.put("/course/:id", [authMiddleware], updateCourse);
   app.post("/course/duplicate", [authMiddleware], duplicateCourse);

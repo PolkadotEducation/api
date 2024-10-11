@@ -2,6 +2,7 @@ export interface UserInfo {
   id: string;
   email: string;
   name: string;
+  language: string;
   company: string;
   picture: string;
   isAdmin: boolean;

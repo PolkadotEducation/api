@@ -8,10 +8,16 @@ import { UserInfo } from "@/types/User";
 
 export const createUser = async (req: Request, res: Response) => {
   try {
-    const { email, password, name, company } = req.body;
+    const { email, password, name, company, language } = req.body;
     if (!email || !password) return res.status(400).send({ error: { message: "Missing email or password" } });
 
-    const newUser = await UserModel.createUser(email, password, name, company);
+    const newUser = await UserModel.createUser({
+      email,
+      password,
+      name,
+      company,
+      language,
+    });
     if (newUser && newUser.verify) {
       await sendVerificationEmail(email, newUser.verify.token);
       newUser.verify = undefined;
@@ -114,6 +120,7 @@ export const getUser = async (req: Request, res: Response) => {
         email: user.email,
         name: user.name,
         picture: user.picture,
+        language: user.language,
         company: user.company,
         isAdmin: user.isAdmin,
         lastActivity: user.lastActivity,
@@ -134,7 +141,7 @@ export const getUser = async (req: Request, res: Response) => {
 export const updateUser = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { email, name, picture, company, isAdmin, password } = req.body;
+    const { email, name, picture, company, isAdmin, password, language } = req.body;
 
     const user = await UserModel.findById(id);
     if (!user) return res.status(404).send({ error: { message: "User not found" } });
@@ -145,6 +152,7 @@ export const updateUser = async (req: Request, res: Response) => {
     if (company) user.company = company;
     if (typeof isAdmin === "boolean") user.isAdmin = isAdmin;
     if (password) user.password = await UserModel.hashPassword(password);
+    if (language) user.language = language;
     await user.save();
 
     const userInfo: UserInfo = {
@@ -154,6 +162,7 @@ export const updateUser = async (req: Request, res: Response) => {
       picture: user.picture,
       company: user.company,
       isAdmin: user.isAdmin,
+      language: user.language,
       lastActivity: user.lastActivity,
     };
     return res.status(200).send(userInfo);
@@ -203,12 +212,19 @@ export const loginUser = async (req: Request, res: Response) => {
 
 export const loginUserWithGoogle = async (req: Request, res: Response) => {
   try {
-    const { email, name, picture } = req.body;
+    const { email, name, picture, language } = req.body;
     if (!email) return res.status(400).send({ error: { message: "Missing email" } });
     const user = await UserModel.findOne({ email });
     if (user) return res.status(200).send({ jwt: user.getAuthToken(true) });
     else {
-      await UserModel.createUser(email, "", name, "Google", picture);
+      await UserModel.createUser({
+        email,
+        password: "",
+        name,
+        company: "Google",
+        picture,
+        language,
+      });
       const user = await UserModel.findOne({ email });
       if (user) return res.status(200).send({ jwt: user.getAuthToken(true) });
     }
@@ -224,7 +240,7 @@ export const loginUserWithGoogle = async (req: Request, res: Response) => {
 
 export const loginUserWithWallet = async (req: Request, res: Response) => {
   try {
-    const { address, name, signature } = req.body;
+    const { address, name, signature, language } = req.body;
     if (!address || !signature) return res.status(400).send({ error: { message: "Missing address or signature" } });
 
     const { isValid } = signatureVerify(`${address}@PolkadotEducation`, signature, address);
@@ -234,7 +250,13 @@ export const loginUserWithWallet = async (req: Request, res: Response) => {
     const user = await UserModel.findOne({ email: addr });
     if (user) return res.status(200).send({ jwt: user.getAuthToken(true) });
     else {
-      await UserModel.createUser(addr, "", name || `${address.slice(0, 5)}...${address.slice(-5)}`, "Web3", "");
+      await UserModel.createUser({
+        email: addr,
+        password: "",
+        name: name || `${address.slice(0, 5)}...${address.slice(-5)}`,
+        company: "Web3",
+        language,
+      });
       const user = await UserModel.findOne({ email: addr });
       if (user) return res.status(200).send({ jwt: user.getAuthToken(true) });
     }

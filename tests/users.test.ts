@@ -22,6 +22,10 @@ describe("Setting API Server up...", () => {
     server = app.listen(PORT, done);
   });
 
+  beforeAll(async () => {
+    await mongoDBsetup(MONGODB_DATABASE_NAME);
+  });
+
   afterAll(async () => {
     await mongoDBsetup(MONGODB_DATABASE_NAME, true);
     return server && server.close();
@@ -29,10 +33,10 @@ describe("Setting API Server up...", () => {
 
   describe("Users", () => {
     it("Create a User (POST /users)", async () => {
-      await mongoDBsetup(MONGODB_DATABASE_NAME);
       const email = "user1@polkadot.education";
       const name = "User One";
       const password = "superSecret";
+      const language = "english";
       const company = "company";
       const isAdmin = false;
       await axios
@@ -40,6 +44,7 @@ describe("Setting API Server up...", () => {
           email,
           name,
           password,
+          language,
           company,
           isAdmin,
         })
@@ -50,11 +55,19 @@ describe("Setting API Server up...", () => {
     });
 
     it("Get a User (GET /users)", async () => {
-      await mongoDBsetup(MONGODB_DATABASE_NAME);
       const email = "user2@polkadot.education";
       const name = "User Two";
       const password = "superSecret";
-      const user = await UserModel.createUser(email, password, name, "company", "Base64OrLink", false);
+      const language = "english";
+      const user = await UserModel.createUser({
+        email,
+        password,
+        name,
+        language,
+        company: "company",
+        picture: "Base64OrLink",
+        isAdmin: false,
+      });
       await axios
         .get(`${API_URL}/users/${user?.id}`)
         .then((r) => {
@@ -64,27 +77,38 @@ describe("Setting API Server up...", () => {
     });
 
     it("Update a User (PUT /users)", async () => {
-      await mongoDBsetup(MONGODB_DATABASE_NAME);
       const email = "user3@polkadot.education";
       const name = "User Three";
       const password = "superSecret";
-      const user = await UserModel.createUser(email, password, name, "company", "Base64OrLink", false);
+      const language = "english";
+      const user = await UserModel.createUser({
+        email,
+        password,
+        name,
+        language,
+        company: "company",
+        picture: "Base64OrLink",
+        isAdmin: false,
+      });
 
       const newEmail = "New Email";
-      const newPassword = "newSuperSecret";
       const newName = "New Name";
+      const newPassword = "newSuperSecret";
+      const newLanguage = "portuguese";
       const newCompany = "New Company";
       await axios
         .put(`${API_URL}/users/${user?.id}`, {
           email: newEmail,
           password: newPassword,
           name: newName,
+          language: newLanguage,
           company: newCompany,
           isAdmin: true,
         })
         .then(async (r) => {
           expect(r.data.email).toEqual(newEmail);
           expect(r.data.name).toEqual(newName);
+          expect(r.data.language).toEqual(newLanguage);
           expect(r.data.company).toEqual(newCompany);
           expect(r.data.isAdmin).toEqual(true);
           // Password check
@@ -96,11 +120,19 @@ describe("Setting API Server up...", () => {
     });
 
     it("Delete a User (DELETE /users)", async () => {
-      await mongoDBsetup(MONGODB_DATABASE_NAME);
       const email = "user4@polkadot.education";
       const name = "User Four";
       const password = "superSecret";
-      const user = await UserModel.createUser(email, password, name, "company", "Base64OrLink", false);
+      const language = "english";
+      const user = await UserModel.createUser({
+        email,
+        password,
+        name,
+        language,
+        company: "company",
+        picture: "Base64OrLink",
+        isAdmin: false,
+      });
       await axios
         .delete(`${API_URL}/users/${user?.id}`)
         .then((r) => {
