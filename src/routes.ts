@@ -3,6 +3,7 @@ import { Express } from "express";
 // Controllers
 import {
   createUser,
+  verifyUser,
   deleteUser,
   getUser,
   loginUser,
@@ -19,6 +20,7 @@ import authMiddleware from "./middlewares/auth";
 const router = (app: Express) => {
   // Users
   app.post("/users", createUser);
+  app.post("/users/verify", verifyUser);
   app.get("/users/:id", [authMiddleware], getUser);
   app.put("/users/:id", [authMiddleware], updateUser);
   app.delete("/users/:id", [authMiddleware], deleteUser);

@@ -41,7 +41,7 @@ const createSendEmailCommand = (
 };
 
 export const sendVerificationEmail = async (to: string, token: string) => {
-  const html = verificationLink.replace("{{VERIFICATION_LINK}}", `${env.APP_URL}/verify/${token}`);
+  const html = verificationLink.replaceAll("{{VERIFICATION_LINK}}", `${env.APP_URL}/verify?email=${to}&token=${token}`);
   const sendEmailCommand = createSendEmailCommand([to], "Verify your Account", html);
   try {
     return await sesClient.send(sendEmailCommand);

@@ -10,9 +10,9 @@ export const createUser = async (req: Request, res: Response) => {
     if (!email || !password) return res.status(400).send({ error: { message: "Missing email or password" } });
 
     const newUser = await UserModel.createUser(email, password, name, company);
-    if (newUser) {
-      await sendVerificationEmail(email, newUser.verifyToken!);
-      newUser.verifyToken = undefined;
+    if (newUser && newUser.verify) {
+      await sendVerificationEmail(email, newUser.verify.token);
+      newUser.verify = undefined;
       return res.status(200).send(newUser);
     }
   } catch (e) {
@@ -24,6 +24,32 @@ export const createUser = async (req: Request, res: Response) => {
       message: "User not created (already exists?)",
     },
   });
+};
+
+export const verifyUser = async (req: Request, res: Response) => {
+  let message = "User can not be verified";
+  try {
+    const { email, token } = req.body;
+    if (!email || !token) return res.status(400).send({ error: { message: "Missing email or token" } });
+
+    const user = await UserModel.findOne({ email });
+    if (user && user.verify?.token === String(token)) {
+      const oneDay = new Date();
+      oneDay.setDate(oneDay.getDate() - 1);
+      if (user.verify.date >= oneDay) {
+        user.verify = undefined;
+        await user.save();
+        return res.status(200).send(user);
+      } else {
+        message = "Verification has expired";
+      }
+    }
+  } catch (e) {
+    console.error(`[ERROR][verifyUser] ${e}`);
+    message = String(e);
+  }
+
+  return res.status(400).send({ error: { message } });
 };
 
 export const getUser = async (req: Request, res: Response) => {
@@ -111,6 +137,7 @@ export const deleteUser = async (req: Request, res: Response) => {
 };
 
 export const loginUser = async (req: Request, res: Response) => {
+  let message = "Invalid login";
   try {
     const { email, password } = req.body;
     if (!email || !password) return res.status(400).send({ error: { message: "Missing email or password" } });
@@ -119,13 +146,9 @@ export const loginUser = async (req: Request, res: Response) => {
     if (authToken) return res.status(200).send({ jwt: authToken });
   } catch (e) {
     console.error(`[ERROR][loginUser] ${e}`);
+    message = String(e);
   }
-
-  return res.status(400).send({
-    error: {
-      message: "Invalid login",
-    },
-  });
+  return res.status(400).send({ error: { message } });
 };
 
 export const loginUserWithGoogle = async (req: Request, res: Response) => {
