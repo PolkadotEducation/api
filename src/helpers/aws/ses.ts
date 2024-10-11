@@ -3,6 +3,7 @@ import { env } from "@/environment";
 import { SESClient, SendEmailCommand } from "@aws-sdk/client-ses";
 
 import verificationLink from "./templates/verificationLink";
+import recoveryLink from "./templates/recoveryLink";
 
 const sesClient = new SESClient({
   credentials: {
@@ -47,5 +48,15 @@ export const sendVerificationEmail = async (to: string, token: string) => {
     return await sesClient.send(sendEmailCommand);
   } catch (e) {
     console.error(`[ERROR][sendVerificationEmail] ${JSON.stringify(e)}`);
+  }
+};
+
+export const sendRecoverEmail = async (to: string, token: string) => {
+  const html = recoveryLink.replaceAll("{{RECOVERY_LINK}}", `${env.APP_URL}/reset-password?email=${to}&token=${token}`);
+  const sendEmailCommand = createSendEmailCommand([to], "Recover your Account", html);
+  try {
+    return await sesClient.send(sendEmailCommand);
+  } catch (e) {
+    console.error(`[ERROR][sendRecoverEmail] ${JSON.stringify(e)}`);
   }
 };

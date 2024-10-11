@@ -134,10 +134,10 @@ class User extends BaseModel implements UserInfo {
 
   public static async login(this: ReturnModelType<typeof User>, email: string, password: string, remember = false) {
     const user = await this.findOne({ email: email.toLowerCase() });
-    if (!user) throw "User not found";
+    if (!user) throw "User not found or invalid password";
 
     const validPassword = await user.comparePassword(password);
-    if (!validPassword) throw "Invalid Password";
+    if (!validPassword) throw "User not found or invalid password";
 
     // Not verified yet, we do not verify during tests
     if (env.NODE_ENV !== "test" && user.verify) {
@@ -152,7 +152,7 @@ class User extends BaseModel implements UserInfo {
         await user.save();
         await sendVerificationEmail(email, user.verify.token);
       }
-      throw "Verify you email";
+      throw "Verify your email";
     }
 
     user.lastActivity = new Date();

@@ -1,6 +1,8 @@
 import { Request, Response } from "express";
+import * as crypto from "crypto";
+
 import { UserModel } from "@/models/User";
-import { sendVerificationEmail } from "@/helpers/aws/ses";
+import { sendRecoverEmail, sendVerificationEmail } from "@/helpers/aws/ses";
 import { signatureVerify } from "@polkadot/util-crypto";
 import { UserInfo } from "@/types/User";
 
@@ -38,6 +40,8 @@ export const verifyUser = async (req: Request, res: Response) => {
       oneDay.setDate(oneDay.getDate() - 1);
       if (user.verify.date >= oneDay) {
         user.verify = undefined;
+        // We also get rid of recovery lock, just in case
+        user.recover = undefined;
         await user.save();
         return res.status(200).send(user);
       } else {
@@ -46,6 +50,52 @@ export const verifyUser = async (req: Request, res: Response) => {
     }
   } catch (e) {
     console.error(`[ERROR][verifyUser] ${e}`);
+    message = String(e);
+  }
+
+  return res.status(400).send({ error: { message } });
+};
+
+export const recoverUser = async (req: Request, res: Response) => {
+  let message = "";
+  try {
+    const { email, token, password } = req.body;
+    if (!email) return res.status(400).send({ error: { message: "Missing email" } });
+
+    const user = await UserModel.findOne({ email });
+    if (user) {
+      // No token means we are starting the workflow
+      if (!token) {
+        user.recover = {
+          token: crypto.randomBytes(16).toString("hex"),
+          date: new Date(),
+        };
+        await user.save();
+        await sendRecoverEmail(email, user.recover.token);
+      } else {
+        if (user && user.recover?.token === String(token)) {
+          const oneDay = new Date();
+          oneDay.setDate(oneDay.getDate() - 1);
+          if (user.recover.date >= oneDay) {
+            user.recover = undefined;
+            // We also get rid of verification lock, just in case
+            user.verify = undefined;
+            user.password = await UserModel.hashPassword(password);
+            await user.save();
+          } else {
+            message = "Recover has expired";
+          }
+        } else {
+          message = "User can not be recovered";
+        }
+      }
+    } else {
+      message = "User can not be recovered";
+    }
+
+    if (!message) return res.status(200).send(true);
+  } catch (e) {
+    console.error(`[ERROR][recoverUser] ${e}`);
     message = String(e);
   }
 
