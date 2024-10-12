@@ -50,6 +50,10 @@ describe("Setting API Server up...", () => {
         })
         .then((r) => {
           expect(r.data.email).toEqual(email);
+          expect(r.data.name).toEqual(name);
+          expect(r.data.language).toEqual(language);
+          expect(r.data.company).toEqual(company);
+          expect(r.data.isAdmin).toEqual(isAdmin);
         })
         .catch((e) => expect(e).toBeUndefined());
     });

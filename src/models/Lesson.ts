@@ -35,7 +35,7 @@ class Lesson extends BaseModel {
   @prop({ required: true, type: String })
   public title: string;
 
-  @prop({ required: true, type: String, enum: ["english", "portuguese", "spanish"] })
+  @prop({ required: true, enum: ["english", "portuguese", "spanish"], type: String, default: "english" })
   public language: string;
 
   @prop({ required: true, type: String })
