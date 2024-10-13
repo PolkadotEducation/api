@@ -89,7 +89,7 @@ export const recoverUser = async (req: Request, res: Response) => {
             user.password = await UserModel.hashPassword(password);
             await user.save();
           } else {
-            message = "Recover has expired";
+            message = "Recovery has expired";
           }
         } else {
           message = "User can not be recovered";

@@ -155,8 +155,7 @@ class User extends BaseModel implements UserInfo {
     const validPassword = await user.comparePassword(password);
     if (!validPassword) throw "User not found or invalid password";
 
-    // Not verified yet, we do not verify during tests
-    if (env.NODE_ENV !== "test" && user.verify) {
+    if (user.verify) {
       const oneDay = new Date();
       oneDay.setDate(oneDay.getDate() - 1);
       // Should we resend a link (after 24h)?
@@ -168,7 +167,8 @@ class User extends BaseModel implements UserInfo {
         await user.save();
         await sendVerificationEmail(email, user.verify.token);
       }
-      throw "Verify your email";
+      // TODO: For now, we do not force verification while testing.
+      if (env.NODE_ENV !== "test") throw "Verify your email";
     }
 
     user.lastActivity = new Date();

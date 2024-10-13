@@ -42,21 +42,25 @@ const createSendEmailCommand = (
 };
 
 export const sendVerificationEmail = async (to: string, token: string) => {
-  const html = verificationLink.replaceAll("{{VERIFICATION_LINK}}", `${env.APP_URL}/verify?email=${to}&token=${token}`);
+  const link = `${env.APP_URL}/verify?email=${to}&token=${token}`;
+  if (env.NODE_ENV === "test") return link;
+  const html = verificationLink.replaceAll("{{VERIFICATION_LINK}}", link);
   const sendEmailCommand = createSendEmailCommand([to], "Verify your Account", html);
   try {
-    return await sesClient.send(sendEmailCommand);
+    await sesClient.send(sendEmailCommand);
   } catch (e) {
-    console.error(`[ERROR][sendVerificationEmail] ${JSON.stringify(e)}`);
+    console.error(`[ERROR][sendVerificationEmail] ${e}`);
   }
 };
 
 export const sendRecoverEmail = async (to: string, token: string) => {
-  const html = recoveryLink.replaceAll("{{RECOVERY_LINK}}", `${env.APP_URL}/reset-password?email=${to}&token=${token}`);
+  const link = `${env.APP_URL}/reset-password?email=${to}&token=${token}`;
+  if (env.NODE_ENV === "test") return link;
+  const html = recoveryLink.replaceAll("{{RECOVERY_LINK}}", link);
   const sendEmailCommand = createSendEmailCommand([to], "Recover your Account", html);
   try {
-    return await sesClient.send(sendEmailCommand);
+    await sesClient.send(sendEmailCommand);
   } catch (e) {
-    console.error(`[ERROR][sendRecoverEmail] ${JSON.stringify(e)}`);
+    console.error(`[ERROR][sendRecoverEmail] ${e}`);
   }
 };
