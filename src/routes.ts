@@ -3,12 +3,14 @@ import { Express } from "express";
 // Controllers
 import {
   createUser,
+  verifyUser,
   deleteUser,
   getUser,
   loginUser,
   loginUserWithGoogle,
   loginUserWithWallet,
   updateUser,
+  recoverUser,
 } from "@/controllers/users";
 import { createLesson, deleteLesson, getLesson, getLessonsByLanguage, updateLesson } from "@/controllers/lessons";
 import { createModule, deleteModule, getModule, updateModule } from "@/controllers/modules";
@@ -26,6 +28,8 @@ import authMiddleware from "./middlewares/auth";
 const router = (app: Express) => {
   // Users
   app.post("/users", createUser);
+  app.post("/users/verify", verifyUser);
+  app.post("/users/recover", recoverUser);
   app.get("/users/:id", [authMiddleware], getUser);
   app.put("/users/:id", [authMiddleware], updateUser);
   app.delete("/users/:id", [authMiddleware], deleteUser);

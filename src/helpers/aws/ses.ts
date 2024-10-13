@@ -3,6 +3,7 @@ import { env } from "@/environment";
 import { SESClient, SendEmailCommand } from "@aws-sdk/client-ses";
 
 import verificationLink from "./templates/verificationLink";
+import recoveryLink from "./templates/recoveryLink";
 
 const sesClient = new SESClient({
   credentials: {
@@ -41,11 +42,25 @@ const createSendEmailCommand = (
 };
 
 export const sendVerificationEmail = async (to: string, token: string) => {
-  const html = verificationLink.replace("{{VERIFICATION_LINK}}", `${env.APP_URL}/verify/${token}`);
+  const link = `${env.APP_URL}/verify?email=${to}&token=${token}`;
+  if (env.NODE_ENV === "test") return link;
+  const html = verificationLink.replaceAll("{{VERIFICATION_LINK}}", link);
   const sendEmailCommand = createSendEmailCommand([to], "Verify your Account", html);
   try {
-    return await sesClient.send(sendEmailCommand);
+    await sesClient.send(sendEmailCommand);
   } catch (e) {
-    console.error(`[ERROR][sendVerificationEmail] ${JSON.stringify(e)}`);
+    console.error(`[ERROR][sendVerificationEmail] ${e}`);
+  }
+};
+
+export const sendRecoverEmail = async (to: string, token: string) => {
+  const link = `${env.APP_URL}/reset-password?email=${to}&token=${token}`;
+  if (env.NODE_ENV === "test") return link;
+  const html = recoveryLink.replaceAll("{{RECOVERY_LINK}}", link);
+  const sendEmailCommand = createSendEmailCommand([to], "Recover your Account", html);
+  try {
+    await sesClient.send(sendEmailCommand);
+  } catch (e) {
+    console.error(`[ERROR][sendRecoverEmail] ${e}`);
   }
 };
