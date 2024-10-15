@@ -79,7 +79,13 @@ export const getCourse = async (req: Request, res: Response) => {
       return res.status(400).send({ error: { message: "Missing courseId" } });
     }
 
-    const course = await CourseModel.findOne({ _id: courseId }).populate("modules");
+    const course = await CourseModel.findOne({ _id: courseId }).populate({
+      path: "modules",
+      populate: {
+        path: "lessons",
+        model: "Lesson",
+      },
+    });
     if (course) {
       return res.status(200).send(course);
     }
