@@ -284,6 +284,15 @@ describe("Setting API Server up...", () => {
         .then((r) => expect(r.data).toEqual(true))
         .catch((e) => expect(e).toBeUndefined());
 
+      // Trying to start recover logic again (users must wait 1h to do that)
+      await axios
+        .post(`${API_URL}/users/recover`, { email })
+        .then((r) => expect(r.data).toEqual(true))
+        .catch((e) => {
+          const errorData = e.response.data.error;
+          expect(errorData.message).toEqual("Recovery already started");
+        });
+
       // Trying to recover with wrong token
       await axios
         .post(`${API_URL}/users/recover`, { email, token: "invalid" })

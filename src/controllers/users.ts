@@ -72,14 +72,21 @@ export const recoverUser = async (req: Request, res: Response) => {
     if (user) {
       // No token means we are starting the workflow
       if (!token) {
-        user.recover = {
-          token: crypto.randomBytes(16).toString("hex"),
-          date: new Date(),
-        };
-        await user.save();
-        await sendRecoverEmail(email, user.recover.token);
+        // One hour cooldown for new requests
+        const oneHour = new Date();
+        oneHour.setHours(oneHour.getHours() - 1);
+        if (!user.recover || user.recover.date < oneHour) {
+          user.recover = {
+            token: crypto.randomBytes(16).toString("hex"),
+            date: new Date(),
+          };
+          await user.save();
+          await sendRecoverEmail(email, user.recover.token);
+        } else {
+          message = "Recovery already started";
+        }
       } else {
-        if (user && user.recover?.token === String(token)) {
+        if (user && password && user.recover?.token === String(token)) {
           const oneDay = new Date();
           oneDay.setDate(oneDay.getDate() - 1);
           if (user.recover.date >= oneDay) {
