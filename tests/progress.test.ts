@@ -7,7 +7,6 @@ import { mongoDBsetup } from "./db/setupTestMongo";
 
 import { readFileSync } from "fs";
 import { join } from "path";
-import { Progress, ProgressModel } from "@/models/Progress";
 import { ModuleModel } from "@/models/Module";
 import { CourseModel } from "@/models/Course";
 import { LessonModel } from "@/models/Lesson";
