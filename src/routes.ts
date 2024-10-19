@@ -24,6 +24,7 @@ import {
 } from "@/controllers/courses";
 
 import authMiddleware from "./middlewares/auth";
+import { submitAnswer } from "./controllers/progress";
 
 const router = (app: Express) => {
   // Users
@@ -57,6 +58,9 @@ const router = (app: Express) => {
   app.delete("/course", [authMiddleware], deleteCourse);
   app.put("/course/:id", [authMiddleware], updateCourse);
   app.post("/course/duplicate", [authMiddleware], duplicateCourse);
+
+  // Progress
+  app.post("/progress", [authMiddleware], submitAnswer);
 };
 
 export default router;
