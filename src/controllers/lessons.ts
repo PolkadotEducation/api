@@ -77,7 +77,19 @@ export const getLesson = async (req: Request, res: Response) => {
       return res.status(400).send({ error: { message: "Missing lessonId" } });
     }
     const lesson = await LessonModel.findOne({ _id: lessonId });
-    if (lesson) return res.status(200).send(lesson);
+    if (lesson) {
+      const lessonRecord = lesson.toObject();
+
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { correctChoice, ...challengeWithoutCorrectChoice } = lessonRecord.challenge;
+
+      const lessonResponse = {
+        ...lessonRecord,
+        challenge: challengeWithoutCorrectChoice,
+      };
+
+      return res.status(200).send(lessonResponse);
+    }
   } catch (e) {
     console.error(`[ERROR][getLesson] ${JSON.stringify(e)}`);
   }
