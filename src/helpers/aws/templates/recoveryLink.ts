@@ -11,8 +11,15 @@ export default `
         <tr>
             <td style="padding: 20px; text-align: center;">
                 <h1 style="margin-top: 0;">Polkadot Education</h1>
-                <p style="margin-bottom: 20px;">Please, <a href="{{RECOVERY_LINK}}" target="_blank">recover</a> your account.</p>
+                <p>We received a request to reset your password. Click the button below to reset it:</p>
                 <a href="{{RECOVERY_LINK}}" target="_blank" style="display: inline-block; background-color: #ff1493; color: white; padding: 10px 20px; border-radius: 20px; text-decoration: none; font-weight: bold;">Recover</a>
+                <p>If the button above doesn't work, please copy and paste the following URL into your browser:</p>
+                <p><a href="{{RECOVERY_LINK}}">{{RECOVERY_LINK}}</a></p>
+                <p>Thanks!</p>
+                <p>The Polkadot Education Team</p>
+                <p style="font-size: 12px; color: #888888; margin-top: 20px;">
+                    If you did not request a password reset, please ignore this email. Your password will remain unchanged.
+                </p>
             </td>
         </tr>
     </table>

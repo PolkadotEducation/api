@@ -11,8 +11,15 @@ export default `
         <tr>
             <td style="padding: 20px; text-align: center;">
                 <h1 style="margin-top: 0;">Polkadot Education</h1>
-                <p style="margin-bottom: 20px;">Please, <a href="{{VERIFICATION_LINK}}" target="_blank">verify</a> your account.</p>
+                <p>Thank you for registering. Please verify your email address to complete your registration.</p>
                 <a href="{{VERIFICATION_LINK}}" target="_blank" style="display: inline-block; background-color: #ff1493; color: white; padding: 10px 20px; border-radius: 20px; text-decoration: none; font-weight: bold;">Verify</a>
+                <p>If the button above doesn't work, please copy and paste the following URL into your browser:</p>
+                <p><a href="{{VERIFICATION_LINK}}">{{VERIFICATION_LINK}}</a></p>
+                <p>Thanks!</p>
+                <p>The Polkadot Education Team</p>
+                <p style="font-size: 12px; color: #888888; margin-top: 20px;">
+                    If you did not create an account, please ignore this email.
+                </p>
             </td>
         </tr>
     </table>
