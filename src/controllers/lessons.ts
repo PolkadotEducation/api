@@ -80,8 +80,8 @@ export const getLesson = async (req: Request, res: Response) => {
     if (lesson) {
       const lessonRecord = lesson.toObject();
 
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { correctChoice, ...challengeWithoutCorrectChoice } = lessonRecord.challenge;
+      // Remove correct choice from lesson to prevent cheating
+      const { correctChoice: _correctChoice, ...challengeWithoutCorrectChoice } = lessonRecord.challenge;
 
       const lessonResponse = {
         ...lessonRecord,
