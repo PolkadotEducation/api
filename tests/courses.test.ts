@@ -8,7 +8,7 @@ import { readFileSync } from "fs";
 import { join } from "path";
 import { CourseModel } from "@/models/Course";
 import { Module, ModuleModel } from "@/models/Module";
-import { LessonModel } from "@/models/Lesson";
+import { Lesson, LessonModel } from "@/models/Lesson";
 
 const PORT = 3013;
 const API_URL = `http://0.0.0.0:${PORT}`;
@@ -193,6 +193,9 @@ describe("Setting API Server up...", () => {
           expect(r.data.modules.some((recordedModule: Module) => recordedModule._id === module._id.toString())).toBe(
             true,
           );
+          expect(
+            r.data.modules[0].lessons.some((recordedLesson: Lesson) => recordedLesson._id === lesson._id.toString()),
+          ).toBe(true);
         })
         .catch((e) => expect(e).toBeUndefined());
     });

@@ -5,11 +5,16 @@ import * as crypto from "crypto";
 
 import { env } from "@/environment";
 import BaseModel from "./BaseModel";
-import { UserInfo } from "@/types/User";
+import { UserInfo, VerifyUser, RecoverPassword } from "@/types/User";
+import { sendVerificationEmail } from "@/helpers/aws/ses";
 
 const SALT_BUFFER = Buffer.from(env.CRYPTO_SALT, "hex");
 
-class User extends BaseModel {
+class User extends BaseModel implements UserInfo {
+  public get id(): string {
+    return this._id ? this._id.toString() : "";
+  }
+
   @prop({ required: true, unique: true, type: String })
   public email: string;
 
@@ -25,14 +30,17 @@ class User extends BaseModel {
   @prop({ required: true, type: String, default: " " })
   public company: string;
 
-  @prop({ required: true, enum: ["english", "portuguese", "spanish"] })
+  @prop({ required: true, enum: ["english", "portuguese", "spanish"], type: String, default: "english" })
   public language: string;
 
   @prop({ required: true, type: Boolean, default: false })
   public isAdmin: boolean;
 
-  @prop({ required: false, type: String })
-  public verifyToken?: string;
+  @prop({ required: false, type: Object })
+  public verify?: VerifyUser;
+
+  @prop({ required: false, type: Object })
+  public recover?: RecoverPassword;
 
   @prop({ required: false, type: Date })
   public lastActivity: Date;
@@ -83,19 +91,22 @@ class User extends BaseModel {
         language,
         company,
         picture,
-        isAdmin,
-        verifyToken: crypto.randomBytes(16).toString("hex"),
+        isAdmin: isAdmin || false,
+        verify: {
+          token: crypto.randomBytes(16).toString("hex"),
+          date: new Date(),
+        },
         lastActivity: new Date(),
       });
       return {
-        userId: user._id,
+        id: user._id,
         email: user.email,
         name: user.name,
         language: user.language,
         company: user.company,
         picture: user.picture,
         isAdmin: user.isAdmin,
-        verifyToken: user.verifyToken,
+        verify: user.verify,
         lastActivity: user.lastActivity,
       };
     } catch (e) {
@@ -138,23 +149,31 @@ class User extends BaseModel {
   }
 
   public static async login(this: ReturnModelType<typeof User>, email: string, password: string, remember = false) {
-    try {
-      const user = await this.findOne({ email: email.toLowerCase() });
-      if (!user) {
-        throw "User not found";
+    const user = await this.findOne({ email: email.toLowerCase() });
+    if (!user) throw "User not found or invalid password";
+
+    const validPassword = await user.comparePassword(password);
+    if (!validPassword) throw "User not found or invalid password";
+
+    if (user.verify) {
+      const oneDay = new Date();
+      oneDay.setDate(oneDay.getDate() - 1);
+      // Should we resend a link (after 24h)?
+      if (user.verify.date < oneDay) {
+        user.verify = {
+          token: crypto.randomBytes(16).toString("hex"),
+          date: new Date(),
+        };
+        await user.save();
+        await sendVerificationEmail(email, user.verify.token);
       }
-
-      const validPassword = await user.comparePassword(password);
-      if (!validPassword) throw "Invalid Password";
-
-      user.lastActivity = new Date();
-      await user.save();
-
-      return user.getAuthToken(remember);
-    } catch (e) {
-      console.error(`[ERROR] User.login: ${e}`);
+      // TODO: For now, we do not force verification while testing.
+      if (env.NODE_ENV !== "test") throw "Verify your email";
     }
-    return "";
+
+    user.lastActivity = new Date();
+    await user.save();
+    return user.getAuthToken(remember);
   }
 }
 
