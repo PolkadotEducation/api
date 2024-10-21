@@ -24,6 +24,7 @@ import {
 } from "@/controllers/courses";
 
 import authMiddleware from "./middlewares/auth";
+import { getCourseProgress, getLessonProgress, getUserXPAndLevel, submitAnswer } from "./controllers/progress";
 
 const router = (app: Express) => {
   // Users
@@ -57,6 +58,12 @@ const router = (app: Express) => {
   app.delete("/course", [authMiddleware], deleteCourse);
   app.put("/course/:id", [authMiddleware], updateCourse);
   app.post("/course/duplicate", [authMiddleware], duplicateCourse);
+
+  // Progress
+  app.post("/progress", [authMiddleware], submitAnswer);
+  app.get("/progress/lesson/:userId/:lessonId", [authMiddleware], getLessonProgress);
+  app.get("/progress/course/:userId/:courseId", [authMiddleware], getCourseProgress);
+  app.get("/progress/xp-level/:userId", [authMiddleware], getUserXPAndLevel);
 };
 
 export default router;
