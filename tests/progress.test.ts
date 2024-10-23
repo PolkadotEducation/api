@@ -180,6 +180,43 @@ describe("Setting API Server up...", () => {
         });
     });
 
+    it("Unique lesson, course, user, and choice (POST /progress)", async () => {
+      const choice = 0;
+
+      await axios
+        .post(`${API_URL}/progress`, {
+          courseId: course._id,
+          lessonId: lesson1._id,
+          userId: user?.id,
+          choice: choice,
+        })
+        .then((r) => {
+          expect(r.data.courseId).toEqual(course._id?.toString());
+          expect(r.data.lessonId).toEqual(lesson1._id?.toString());
+          expect(r.data.userId).toEqual(user?.id.toString());
+          expect(r.data.choice).toEqual(choice);
+          expect(r.data.isCorrect).toEqual(true);
+        })
+        .catch((e) => {
+          expect(e).toBeUndefined();
+        });
+
+      await axios
+        .post(`${API_URL}/progress`, {
+          courseId: course._id,
+          lessonId: lesson1._id,
+          userId: user?.id,
+          choice: choice,
+        })
+        .then(() => {
+          throw new Error("Duplicate progress entry was allowed, but it should not be.");
+        })
+        .catch((e) => {
+          expect(e.response.status).toEqual(400);
+          expect(e.response.data.error.message).toContain("E11000 duplicate key error");
+        });
+    });
+
     it("Get course progress with no completed lessons (GET /progress/course/:userId/:courseId)", async () => {
       await axios
         .get(`${API_URL}/progress/course/${user?.id}/${course._id}`)

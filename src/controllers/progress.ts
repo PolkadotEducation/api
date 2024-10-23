@@ -7,7 +7,7 @@ import { UserModel } from "@/models/User";
 export const submitAnswer = async (req: Request, res: Response) => {
   const { courseId, lessonId, choice, userId } = req.body;
 
-  if (!courseId || !lessonId || !choice || !userId) {
+  if (!courseId || !lessonId || (!choice && choice != 0) || !userId) {
     return res.status(400).send({ error: { message: "Missing params" } });
   }
 
@@ -88,6 +88,7 @@ export const getCourseProgress = async (req: Request, res: Response) => {
     const totalLessons = (course.modules as any[]).reduce((sum, module) => sum + (module.lessons as any[]).length, 0);
     const completedLessons = new Set(progress.map((p) => p.lessonId.toString())).size;
     const progressPercentage = (completedLessons / totalLessons) * 100;
+
     return res.status(200).send({
       totalLessons,
       completedLessons,

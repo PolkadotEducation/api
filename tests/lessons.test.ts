@@ -35,6 +35,10 @@ describe("Setting API Server up...", () => {
   });
 
   afterAll(async () => {
+    await LessonModel.deleteMany({});
+  });
+
+  afterAll(async () => {
     await mongoDBsetup(MONGODB_DATABASE_NAME, true);
     return server && server.close();
   });
