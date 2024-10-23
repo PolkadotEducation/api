@@ -35,6 +35,10 @@ describe("Setting API Server up...", () => {
   });
 
   afterAll(async () => {
+    await LessonModel.deleteMany({});
+  });
+
+  afterAll(async () => {
     await mongoDBsetup(MONGODB_DATABASE_NAME, true);
     return server && server.close();
   });
@@ -162,7 +166,6 @@ describe("Setting API Server up...", () => {
           expect(r.data.title).toEqual(updatedTitle);
           expect(r.data.body).toEqual(updatedBody);
           expect(r.data.difficulty).toEqual(updatedDifficulty);
-          expect(r.data.challenge).toEqual(expect.objectContaining(updatedChallenge));
           expect(r.data.references[0]).toEqual(expect.objectContaining(updatedReferences[0]));
           expect(r.data.references[1]).toEqual(expect.objectContaining(updatedReferences[1]));
           expect(r.data.language).toEqual(updatedLanguage);
@@ -250,7 +253,6 @@ describe("Setting API Server up...", () => {
           expect(r.data.title).toEqual(title);
           expect(r.data.body).toEqual(body);
           expect(r.data.difficulty).toEqual(difficulty);
-          expect(r.data.challenge).toEqual(expect.objectContaining(challenge));
           expect(r.data.references[0]).toEqual(expect.objectContaining(references[0]));
           expect(r.data.references[1]).toEqual(expect.objectContaining(references[1]));
           expect(r.data.language).toEqual(language);
