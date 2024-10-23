@@ -3,6 +3,7 @@ import { ProgressModel } from "@/models/Progress";
 import { LessonModel } from "@/models/Lesson";
 import { Course, CourseModel } from "@/models/Course";
 import { UserModel } from "@/models/User";
+import { Types } from "mongoose";
 
 export const submitAnswer = async (req: Request, res: Response) => {
   const { courseId, lessonId, choice, userId } = req.body;
@@ -47,14 +48,14 @@ export const submitAnswer = async (req: Request, res: Response) => {
 };
 
 export const getLessonProgress = async (req: Request, res: Response) => {
-  const { userId, lessonId } = req.params;
+  const { courseId, lessonId, userId } = req.body;
 
-  if (!userId || !lessonId) {
+  if (!courseId || !lessonId || !userId) {
     return res.status(400).send({ error: { message: "Missing params" } });
   }
 
   try {
-    const progress = await ProgressModel.find({ userId, lessonId });
+    const progress = await ProgressModel.find({ courseId, lessonId, userId });
     return res.status(200).send(progress);
   } catch (e) {
     console.error(`[ERROR][getLessonProgress] ${JSON.stringify(e)}`);
@@ -70,7 +71,7 @@ export const getCourseProgress = async (req: Request, res: Response) => {
   }
 
   try {
-    const progress = await ProgressModel.find({ userId, courseId });
+    const progress = await ProgressModel.find({ userId, courseId, isCorrect: true });
     const course = (await CourseModel.findOne({ _id: courseId }).populate({
       path: "modules",
       populate: {
@@ -130,13 +131,40 @@ export const getUserXPAndLevel = async (req: Request, res: Response) => {
       return res.status(400).send({ error: { message: "User not found" } });
     }
 
-    const progress = await ProgressModel.find({ userId });
+    const progress = await ProgressModel.aggregate([
+      {
+        $match: { userId: new Types.ObjectId(userId) },
+      },
+      {
+        $group: {
+          _id: {
+            courseId: "$courseId",
+            lessonId: "$lessonId",
+            difficulty: "$difficulty",
+          },
+          count: { $sum: 1 },
+          correctCount: { $sum: { $cond: ["$isCorrect", 1, 0] } },
+        },
+      },
+      {
+        $project: {
+          courseId: "$_id.courseId",
+          lessonId: "$_id.lessonId",
+          difficulty: "$_id.difficulty",
+          correctAtFirstTry: { $cond: [{ $eq: ["$count", 1] }, { $eq: ["$correctCount", 1] }, false] },
+          isCorrect: { $gt: ["$correctCount", 0] },
+          _id: 0,
+        },
+      },
+    ]);
 
     let exp = 0;
     for (const p of progress) {
-      const difficulty = p.difficulty as Difficulty;
-      const points = p.isCorrect ? EXP_POINTS[difficulty].perfect : EXP_POINTS[difficulty].withMistakes;
-      exp += points;
+      if (p.isCorrect) {
+        const difficulty = p.difficulty as Difficulty;
+        const points = p.correctAtFirstTry ? EXP_POINTS[difficulty].perfect : EXP_POINTS[difficulty].withMistakes;
+        exp += points;
+      }
     }
 
     const level = calculateLevel(exp);

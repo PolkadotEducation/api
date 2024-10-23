@@ -63,7 +63,7 @@ const router = (app: Express) => {
   app.post("/progress", [authMiddleware], submitAnswer);
   app.get("/progress/lesson/:userId/:lessonId", [authMiddleware], getLessonProgress);
   app.get("/progress/course/:userId/:courseId", [authMiddleware], getCourseProgress);
-  app.get("/progress/xp-level/:userId", [authMiddleware], getUserXPAndLevel);
+  app.get("/progress/level/:userId", [authMiddleware], getUserXPAndLevel);
 };
 
 export default router;
