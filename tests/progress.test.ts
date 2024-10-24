@@ -217,6 +217,35 @@ describe("Setting API Server up...", () => {
         });
     });
 
+    it("Get lesson progress (GET /progress/lesson/:userId/:courseId/:lessonId)", async () => {
+      await ProgressModel.create({
+        courseId: course._id,
+        lessonId: lesson1._id,
+        userId: user?.id,
+        choice: lesson1.challenge.correctChoice + 1,
+        isCorrect: false,
+        difficulty: lesson1.difficulty,
+      });
+
+      await ProgressModel.create({
+        courseId: course._id,
+        lessonId: lesson1._id,
+        userId: user?.id,
+        choice: lesson1.challenge.correctChoice,
+        isCorrect: true,
+        difficulty: lesson1.difficulty,
+      });
+
+      await axios
+        .get(`${API_URL}/progress/lesson/${user?.id}/${course._id}/${lesson1._id}`)
+        .then((r) => {
+          expect(r.data.length).toEqual(2);
+        })
+        .catch((e) => {
+          expect(e).toBeUndefined();
+        });
+    });
+
     it("Get course progress with no completed lessons (GET /progress/course/:userId/:courseId)", async () => {
       await axios
         .get(`${API_URL}/progress/course/${user?.id}/${course._id}`)

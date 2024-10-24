@@ -48,7 +48,7 @@ export const submitAnswer = async (req: Request, res: Response) => {
 };
 
 export const getLessonProgress = async (req: Request, res: Response) => {
-  const { courseId, lessonId, userId } = req.body;
+  const { courseId, lessonId, userId } = req.params;
 
   if (!courseId || !lessonId || !userId) {
     return res.status(400).send({ error: { message: "Missing params" } });
