@@ -4,6 +4,7 @@ import { LessonModel } from "@/models/Lesson";
 import { Course, CourseModel } from "@/models/Course";
 import { UserModel } from "@/models/User";
 import { Types } from "mongoose";
+import { MongoError } from "mongodb";
 
 export const submitAnswer = async (req: Request, res: Response) => {
   const { courseId, lessonId, choice, userId } = req.body;
@@ -36,6 +37,14 @@ export const submitAnswer = async (req: Request, res: Response) => {
     });
     if (newProgress) return res.status(200).send(newProgress);
   } catch (e) {
+    if (e instanceof MongoError && e.code === 11000) {
+      return res.status(409).send({
+        error: {
+          message: "E11000 duplicate key error",
+        },
+      });
+    }
+
     errorMessage = (e as Error).message;
     console.error(`[ERROR][submitAnswer] ${JSON.stringify(e)}`);
   }

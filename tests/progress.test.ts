@@ -212,7 +212,7 @@ describe("Setting API Server up...", () => {
           throw new Error("Duplicate progress entry was allowed, but it should not be.");
         })
         .catch((e) => {
-          expect(e.response.status).toEqual(400);
+          expect(e.response.status).toEqual(409);
           expect(e.response.data.error.message).toContain("E11000 duplicate key error");
         });
     });
