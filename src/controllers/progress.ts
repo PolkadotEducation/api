@@ -23,6 +23,10 @@ export const submitAnswer = async (req: Request, res: Response) => {
     return res.status(400).send({ error: { message: "Course not found" } });
   }
 
+  // prevent the user from submitting again if the lesson is already complete
+  const progress = await ProgressModel.findOne({ courseId, lessonId, userId, isCorrect: true });
+  if (progress) return res.status(200).send(progress);
+
   const isCorrect = choice === lesson.challenge.correctChoice;
 
   let errorMessage;
@@ -35,7 +39,7 @@ export const submitAnswer = async (req: Request, res: Response) => {
       isCorrect,
       difficulty: lesson.difficulty,
     });
-    if (newProgress) return res.status(200).send(newProgress);
+    if (newProgress) return res.status(201).send(newProgress);
   } catch (e) {
     if (e instanceof MongoError && e.code === 11000) {
       return res.status(409).send({

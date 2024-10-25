@@ -174,15 +174,15 @@ describe("Setting API Server up...", () => {
           expect(r.data.userId).toEqual(user?.id.toString());
           expect(r.data.choice).toEqual(wrongChoice);
           expect(r.data.isCorrect).toEqual(false);
+          expect(r.status).toEqual(201);
         })
         .catch((e) => {
           expect(e).toBeUndefined();
         });
     });
 
-    it("Unique lesson, course, user, and choice (POST /progress)", async () => {
+    it("Prevent submitting another answer when lesson is complete (POST /progress)", async () => {
       const choice = 0;
-
       await axios
         .post(`${API_URL}/progress`, {
           courseId: course._id,
@@ -196,6 +196,49 @@ describe("Setting API Server up...", () => {
           expect(r.data.userId).toEqual(user?.id.toString());
           expect(r.data.choice).toEqual(choice);
           expect(r.data.isCorrect).toEqual(true);
+          expect(r.status).toEqual(201);
+        })
+        .catch((e) => {
+          expect(e).toBeUndefined();
+        });
+
+      const wrongChoice = 1;
+      await axios
+        .post(`${API_URL}/progress`, {
+          courseId: course._id,
+          lessonId: lesson1._id,
+          userId: user?.id,
+          choice: wrongChoice,
+        })
+        .then((r) => {
+          expect(r.data.courseId).toEqual(course._id?.toString());
+          expect(r.data.lessonId).toEqual(lesson1._id?.toString());
+          expect(r.data.userId).toEqual(user?.id.toString());
+          expect(r.data.choice).toEqual(choice);
+          expect(r.data.isCorrect).toEqual(true);
+          expect(r.status).toEqual(200);
+        })
+        .catch((e) => {
+          expect(e).toBeUndefined();
+        });
+    });
+
+    it("Unique lesson, course, user, and choice (POST /progress)", async () => {
+      const wrongChoice = 1;
+
+      await axios
+        .post(`${API_URL}/progress`, {
+          courseId: course._id,
+          lessonId: lesson1._id,
+          userId: user?.id,
+          choice: wrongChoice,
+        })
+        .then((r) => {
+          expect(r.data.courseId).toEqual(course._id?.toString());
+          expect(r.data.lessonId).toEqual(lesson1._id?.toString());
+          expect(r.data.userId).toEqual(user?.id.toString());
+          expect(r.data.choice).toEqual(wrongChoice);
+          expect(r.data.isCorrect).toEqual(false);
         })
         .catch((e) => {
           expect(e).toBeUndefined();
@@ -206,7 +249,7 @@ describe("Setting API Server up...", () => {
           courseId: course._id,
           lessonId: lesson1._id,
           userId: user?.id,
-          choice: choice,
+          choice: wrongChoice,
         })
         .then(() => {
           throw new Error("Duplicate progress entry was allowed, but it should not be.");
