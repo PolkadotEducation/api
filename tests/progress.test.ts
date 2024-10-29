@@ -65,6 +65,7 @@ describe("Setting API Server up...", () => {
         company: "company",
         picture: "Base64OrLink",
         isAdmin: false,
+        signInType: "Email",
       });
 
       lesson1 = await LessonModel.create({
