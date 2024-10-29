@@ -45,6 +45,9 @@ class User extends BaseModel implements UserInfo {
   @prop({ required: false, type: Date })
   public lastActivity: Date;
 
+  @prop({ required: true, enum: ["Email", "Google", "Web3"], type: String, default: "Email" })
+  public signInType: string;
+
   public static async hashPassword(password: string): Promise<string> {
     try {
       return new Promise((resolve, reject) => {
@@ -69,6 +72,7 @@ class User extends BaseModel implements UserInfo {
       company,
       picture,
       isAdmin = false,
+      signInType,
     }: {
       email: string;
       password: string;
@@ -77,6 +81,7 @@ class User extends BaseModel implements UserInfo {
       company: string;
       picture?: string;
       isAdmin?: boolean;
+      signInType: "Email" | "Google" | "Web3";
     },
   ): Promise<UserInfo | undefined> {
     try {
@@ -87,7 +92,7 @@ class User extends BaseModel implements UserInfo {
 
       // We do not need to add verification for users from Google and Web3/Wallet
       let verify;
-      if (!["Google", "Web3"].includes(company)) {
+      if (signInType === "Email") {
         verify = {
           token: crypto.randomBytes(16).toString("hex"),
           date: new Date(),
@@ -104,6 +109,7 @@ class User extends BaseModel implements UserInfo {
         isAdmin: isAdmin || false,
         verify,
         lastActivity: new Date(),
+        signInType,
       });
 
       return {
