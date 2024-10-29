@@ -17,6 +17,7 @@ export const createUser = async (req: Request, res: Response) => {
       name,
       company,
       language,
+      signInType: "Email",
     });
     if (newUser && newUser.verify) {
       await sendVerificationEmail(email, newUser.verify.token);
@@ -231,6 +232,7 @@ export const loginUserWithGoogle = async (req: Request, res: Response) => {
         company: "Google",
         picture,
         language,
+        signInType: "Google",
       });
       const user = await UserModel.findOne({ email });
       if (user) return res.status(200).send({ jwt: user.getAuthToken(true) });
@@ -263,6 +265,7 @@ export const loginUserWithWallet = async (req: Request, res: Response) => {
         name: name || `${address.slice(0, 5)}...${address.slice(-5)}`,
         company: "Web3",
         language,
+        signInType: "Web3",
       });
       const user = await UserModel.findOne({ email: addr });
       if (user) return res.status(200).send({ jwt: user.getAuthToken(true) });

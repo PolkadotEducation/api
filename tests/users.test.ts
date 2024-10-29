@@ -75,6 +75,7 @@ describe("Setting API Server up...", () => {
         company: "company",
         picture: "Base64OrLink",
         isAdmin: false,
+        signInType: "Email",
       });
       await axios
         .get(`${API_URL}/users/${user?.id}`)
@@ -97,6 +98,7 @@ describe("Setting API Server up...", () => {
         company: "company",
         picture: "Base64OrLink",
         isAdmin: false,
+        signInType: "Email",
       });
 
       const newEmail = "New Email";
@@ -140,6 +142,7 @@ describe("Setting API Server up...", () => {
         company: "company",
         picture: "Base64OrLink",
         isAdmin: false,
+        signInType: "Email",
       });
       await axios
         .delete(`${API_URL}/users/${user?.id}`)
