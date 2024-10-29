@@ -137,6 +137,7 @@ class User extends BaseModel implements UserInfo {
       user: {
         id: this._id,
         email: this.email,
+        isAdmin: this.isAdmin,
       },
       createdAt: moment().unix(),
       expiresAt: moment().add(expiresDays, "days").unix(),
