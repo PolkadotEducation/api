@@ -84,6 +84,16 @@ class User extends BaseModel implements UserInfo {
       if (exists) {
         throw "User exists";
       }
+
+      // We do not need to add verification for users from Google and Web3/Wallet
+      let verify;
+      if (!["Google", "Web3"].includes(company)) {
+        verify = {
+          token: crypto.randomBytes(16).toString("hex"),
+          date: new Date(),
+        };
+      }
+
       const user = await UserModel.create({
         email: email.toLowerCase(),
         password: await this.hashPassword(password || crypto.randomBytes(16).toString("hex")),
@@ -92,12 +102,10 @@ class User extends BaseModel implements UserInfo {
         company,
         picture,
         isAdmin: isAdmin || false,
-        verify: {
-          token: crypto.randomBytes(16).toString("hex"),
-          date: new Date(),
-        },
+        verify,
         lastActivity: new Date(),
       });
+
       return {
         id: user._id,
         email: user.email,
