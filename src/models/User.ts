@@ -137,9 +137,6 @@ class User extends BaseModel implements UserInfo {
       user: {
         id: this._id,
         email: this.email,
-        name: this.name,
-        company: this.company,
-        picture: this.picture,
         isAdmin: this.isAdmin,
       },
       createdAt: moment().unix(),
