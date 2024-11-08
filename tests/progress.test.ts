@@ -13,6 +13,7 @@ import { Lesson, LessonModel } from "@/models/Lesson";
 import { ProgressModel } from "@/models/Progress";
 import { UserModel } from "@/models/User";
 import { UserInfo } from "@/types/User";
+import { getAuthHeaders } from "./helpers";
 
 const PORT = 3014;
 const API_URL = `http://0.0.0.0:${PORT}`;
@@ -54,12 +55,15 @@ describe("Setting API Server up...", () => {
       module1: Module,
       module2: Module,
       module3: Module,
-      user: UserInfo | undefined;
+      user: UserInfo | undefined,
+      headers: { authorization: string; code: string };
 
     beforeEach(async () => {
+      const email = "new.user@polkadot.education";
+      const password = "password";
       user = await UserModel.createUser({
-        email: "new.user@polkadot.education",
-        password: "password",
+        email,
+        password,
         name: "New User",
         language: "english",
         company: "company",
@@ -67,6 +71,8 @@ describe("Setting API Server up...", () => {
         isAdmin: false,
         signInType: "Email",
       });
+
+      headers = await getAuthHeaders(email, password);
 
       lesson1 = await LessonModel.create({
         title: "Lesson #1",
@@ -163,12 +169,16 @@ describe("Setting API Server up...", () => {
       const wrongChoice = 1;
 
       await axios
-        .post(`${API_URL}/progress`, {
-          courseId: course._id,
-          lessonId: lesson1._id,
-          userId: user?.id,
-          choice: wrongChoice,
-        })
+        .post(
+          `${API_URL}/progress`,
+          {
+            courseId: course._id,
+            lessonId: lesson1._id,
+            userId: user?.id,
+            choice: wrongChoice,
+          },
+          { headers },
+        )
         .then((r) => {
           expect(r.data.courseId).toEqual(course._id?.toString());
           expect(r.data.lessonId).toEqual(lesson1._id?.toString());
@@ -185,12 +195,16 @@ describe("Setting API Server up...", () => {
     it("Prevent submitting another answer when lesson is complete (POST /progress)", async () => {
       const choice = 0;
       await axios
-        .post(`${API_URL}/progress`, {
-          courseId: course._id,
-          lessonId: lesson1._id,
-          userId: user?.id,
-          choice: choice,
-        })
+        .post(
+          `${API_URL}/progress`,
+          {
+            courseId: course._id,
+            lessonId: lesson1._id,
+            userId: user?.id,
+            choice: choice,
+          },
+          { headers },
+        )
         .then((r) => {
           expect(r.data.courseId).toEqual(course._id?.toString());
           expect(r.data.lessonId).toEqual(lesson1._id?.toString());
@@ -205,12 +219,16 @@ describe("Setting API Server up...", () => {
 
       const wrongChoice = 1;
       await axios
-        .post(`${API_URL}/progress`, {
-          courseId: course._id,
-          lessonId: lesson1._id,
-          userId: user?.id,
-          choice: wrongChoice,
-        })
+        .post(
+          `${API_URL}/progress`,
+          {
+            courseId: course._id,
+            lessonId: lesson1._id,
+            userId: user?.id,
+            choice: wrongChoice,
+          },
+          { headers },
+        )
         .then((r) => {
           expect(r.data.courseId).toEqual(course._id?.toString());
           expect(r.data.lessonId).toEqual(lesson1._id?.toString());
@@ -228,12 +246,16 @@ describe("Setting API Server up...", () => {
       const wrongChoice = 1;
 
       await axios
-        .post(`${API_URL}/progress`, {
-          courseId: course._id,
-          lessonId: lesson1._id,
-          userId: user?.id,
-          choice: wrongChoice,
-        })
+        .post(
+          `${API_URL}/progress`,
+          {
+            courseId: course._id,
+            lessonId: lesson1._id,
+            userId: user?.id,
+            choice: wrongChoice,
+          },
+          { headers },
+        )
         .then((r) => {
           expect(r.data.courseId).toEqual(course._id?.toString());
           expect(r.data.lessonId).toEqual(lesson1._id?.toString());
@@ -246,12 +268,16 @@ describe("Setting API Server up...", () => {
         });
 
       await axios
-        .post(`${API_URL}/progress`, {
-          courseId: course._id,
-          lessonId: lesson1._id,
-          userId: user?.id,
-          choice: wrongChoice,
-        })
+        .post(
+          `${API_URL}/progress`,
+          {
+            courseId: course._id,
+            lessonId: lesson1._id,
+            userId: user?.id,
+            choice: wrongChoice,
+          },
+          { headers },
+        )
         .then(() => {
           throw new Error("Duplicate progress entry was allowed, but it should not be.");
         })
@@ -261,7 +287,7 @@ describe("Setting API Server up...", () => {
         });
     });
 
-    it("Get lesson progress (GET /progress/lesson/:userId/:courseId/:lessonId)", async () => {
+    it("Get lesson progress (GET /progress/lesson/:courseId/:lessonId)", async () => {
       await ProgressModel.create({
         courseId: course._id,
         lessonId: lesson1._id,
@@ -281,7 +307,7 @@ describe("Setting API Server up...", () => {
       });
 
       await axios
-        .get(`${API_URL}/progress/lesson/${user?.id}/${course._id}/${lesson1._id}`)
+        .get(`${API_URL}/progress/lesson/${course._id}/${lesson1._id}`, { headers })
         .then((r) => {
           expect(r.data.length).toEqual(2);
         })
@@ -290,9 +316,9 @@ describe("Setting API Server up...", () => {
         });
     });
 
-    it("Get course progress with no completed lessons (GET /progress/course/:userId/:courseId)", async () => {
+    it("Get course progress with no completed lessons (GET /progress/course/:courseId)", async () => {
       await axios
-        .get(`${API_URL}/progress/course/${user?.id}/${course._id}`)
+        .get(`${API_URL}/progress/course/${course._id}`, { headers })
         .then((r) => {
           expect(r.data.totalLessons).toEqual(5);
           expect(r.data.completedLessons).toEqual(0);
@@ -303,7 +329,7 @@ describe("Setting API Server up...", () => {
         });
     });
 
-    it("Get course progress with one completed lesson (GET /progress/course/:userId/:courseId)", async () => {
+    it("Get course progress with one completed lesson (GET /progress/course/:courseId)", async () => {
       await ProgressModel.create({
         courseId: course._id,
         lessonId: lesson1._id,
@@ -314,7 +340,7 @@ describe("Setting API Server up...", () => {
       });
 
       await axios
-        .get(`${API_URL}/progress/course/${user?.id}/${course._id}`)
+        .get(`${API_URL}/progress/course/${course._id}`, { headers })
         .then((r) => {
           expect(r.data.totalLessons).toEqual(5);
           expect(r.data.completedLessons).toEqual(1);
@@ -325,7 +351,7 @@ describe("Setting API Server up...", () => {
         });
     });
 
-    it("Get course progress with one lesson incomplete (GET /progress/course/:userId/:courseId)", async () => {
+    it("Get course progress with one lesson incomplete (GET /progress/course/:courseId)", async () => {
       await ProgressModel.create({
         courseId: course._id,
         lessonId: lesson1._id,
@@ -344,7 +370,7 @@ describe("Setting API Server up...", () => {
       });
 
       await axios
-        .get(`${API_URL}/progress/course/${user?.id}/${course._id}`)
+        .get(`${API_URL}/progress/course/${course._id}`, { headers })
         .then((r) => {
           expect(r.data.totalLessons).toEqual(5);
           expect(r.data.completedLessons).toEqual(1);
@@ -355,7 +381,7 @@ describe("Setting API Server up...", () => {
         });
     });
 
-    it("Get course progress with all lessons completed (GET /progress/course/:userId/:courseId)", async () => {
+    it("Get course progress with all lessons completed (GET /progress/course/:courseId)", async () => {
       await ProgressModel.create({
         courseId: course._id,
         lessonId: lesson1._id,
@@ -402,7 +428,7 @@ describe("Setting API Server up...", () => {
       });
 
       await axios
-        .get(`${API_URL}/progress/course/${user?.id}/${course._id}`)
+        .get(`${API_URL}/progress/course/${course._id}`, { headers })
         .then((r) => {
           expect(r.status).toEqual(200);
           expect(r.data.totalLessons).toEqual(5);
@@ -414,7 +440,7 @@ describe("Setting API Server up...", () => {
         });
     });
 
-    it("Get user XP and level (GET /progress/level/:userId)", async () => {
+    it("Get user XP and level (GET /progress/level)", async () => {
       // Easy lesson mistake (0 XP)
       await ProgressModel.create({
         courseId: course._id,
@@ -487,7 +513,7 @@ describe("Setting API Server up...", () => {
 
       // Total: 125 XP
       await axios
-        .get(`${API_URL}/progress/level/${user?.id}`)
+        .get(`${API_URL}/progress/level`, { headers })
         .then((r) => {
           expect(r.status).toEqual(200);
           expect(r.data).toHaveProperty("exp");

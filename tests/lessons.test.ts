@@ -8,6 +8,8 @@ import { mongoDBsetup } from "./db/setupTestMongo";
 import { readFileSync } from "fs";
 import { join } from "path";
 import { Lesson, LessonModel } from "@/models/Lesson";
+import { getAuthHeaders } from "./helpers";
+import { UserModel } from "@/models/User";
 
 const PORT = 3011;
 const API_URL = `http://0.0.0.0:${PORT}`;
@@ -20,6 +22,8 @@ const loadFixture = (fixture: string) => {
 };
 
 describe("Setting API Server up...", () => {
+  let headers: { authorization: string; code: string };
+
   let server: Server;
   beforeAll((done) => {
     const app = express();
@@ -32,6 +36,19 @@ describe("Setting API Server up...", () => {
 
   beforeAll(async () => {
     await mongoDBsetup(MONGODB_DATABASE_NAME);
+    const email = "new.user@polkadot.education";
+    const password = "password";
+    await UserModel.createUser({
+      email,
+      password,
+      name: "New User",
+      language: "english",
+      company: "company",
+      picture: "Base64OrLink",
+      isAdmin: false,
+      signInType: "Email",
+    });
+    headers = await getAuthHeaders(email, password);
   });
 
   afterAll(async () => {
@@ -56,13 +73,17 @@ describe("Setting API Server up...", () => {
       };
 
       await axios
-        .post(`${API_URL}/lesson`, {
-          title,
-          language,
-          body,
-          difficulty,
-          challenge,
-        })
+        .post(
+          `${API_URL}/lesson`,
+          {
+            title,
+            language,
+            body,
+            difficulty,
+            challenge,
+          },
+          { headers },
+        )
         .then((r) => {
           expect(r.data.title).toEqual(title);
           expect(r.data.language).toEqual(language);
@@ -86,13 +107,17 @@ describe("Setting API Server up...", () => {
       };
 
       await axios
-        .post(`${API_URL}/lesson`, {
-          title,
-          language,
-          body,
-          difficulty,
-          challenge: invalidChallenge,
-        })
+        .post(
+          `${API_URL}/lesson`,
+          {
+            title,
+            language,
+            body,
+            difficulty,
+            challenge: invalidChallenge,
+          },
+          { headers },
+        )
         .then(() => {})
         .catch((e) => {
           expect(e.response.data.error.message).toContain(
@@ -151,17 +176,21 @@ describe("Setting API Server up...", () => {
       ];
       const updatedLanguage = "english";
 
-      await axios.put(`${API_URL}/lesson/${lesson._id}`, {
-        title: updatedTitle,
-        body: updatedBody,
-        difficulty: updatedDifficulty,
-        challenge: updatedChallenge,
-        references: updatedReferences,
-        language: updatedLanguage,
-      });
+      await axios.put(
+        `${API_URL}/lesson/${lesson._id}`,
+        {
+          title: updatedTitle,
+          body: updatedBody,
+          difficulty: updatedDifficulty,
+          challenge: updatedChallenge,
+          references: updatedReferences,
+          language: updatedLanguage,
+        },
+        { headers },
+      );
 
       await axios
-        .get(`${API_URL}/lesson?lessonId=${lesson._id}`)
+        .get(`${API_URL}/lesson?lessonId=${lesson._id}`, { headers })
         .then((r) => {
           expect(r.data.title).toEqual(updatedTitle);
           expect(r.data.body).toEqual(updatedBody);
@@ -202,13 +231,17 @@ describe("Setting API Server up...", () => {
       };
 
       await axios
-        .put(`${API_URL}/lesson/${initialLesson._id}`, {
-          title: updatedTitle,
-          body: updatedBody,
-          difficulty: updatedDifficulty,
-          challenge: invalidChallenge,
-          language,
-        })
+        .put(
+          `${API_URL}/lesson/${initialLesson._id}`,
+          {
+            title: updatedTitle,
+            body: updatedBody,
+            difficulty: updatedDifficulty,
+            challenge: invalidChallenge,
+            language,
+          },
+          { headers },
+        )
         .then(() => {})
         .catch((e) => {
           expect(e.response.data.error.message).toContain(
@@ -248,7 +281,7 @@ describe("Setting API Server up...", () => {
       });
 
       await axios
-        .get(`${API_URL}/lesson?lessonId=${newLesson?._id}`)
+        .get(`${API_URL}/lesson?lessonId=${newLesson?._id}`, { headers })
         .then((r) => {
           expect(r.data.title).toEqual(title);
           expect(r.data.body).toEqual(body);
@@ -302,7 +335,7 @@ describe("Setting API Server up...", () => {
       await LessonModel.insertMany(lessonsData);
 
       await axios
-        .get(`${API_URL}/lessons?language=english`)
+        .get(`${API_URL}/lessons?language=english`, { headers })
         .then((r) => {
           expect(r.status).toEqual(200);
           expect(r.data.length).toEqual(2);
@@ -319,7 +352,7 @@ describe("Setting API Server up...", () => {
 
     it("Get lessons by language with no results (GET /lessons?language=french)", async () => {
       await axios
-        .get(`${API_URL}/lessons?language=french`)
+        .get(`${API_URL}/lessons?language=french`, { headers })
         .then(() => {})
         .catch((e) => {
           expect(e.response.status).toEqual(404);
@@ -329,7 +362,7 @@ describe("Setting API Server up...", () => {
 
     it("Get lessons by language without specifying language (GET /lessons)", async () => {
       await axios
-        .get(`${API_URL}/lessons`)
+        .get(`${API_URL}/lessons`, { headers })
         .then(() => {})
         .catch((e) => {
           expect(e.response.status).toEqual(400);
@@ -357,7 +390,7 @@ describe("Setting API Server up...", () => {
       });
 
       await axios
-        .delete(`${API_URL}/lesson`, { data: { lessonId: newLesson._id } })
+        .delete(`${API_URL}/lesson`, { headers, data: { lessonId: newLesson._id } })
         .then((r) => {
           expect(r.data.message).toEqual(`Lesson '${newLesson._id}' deleted`);
         })
