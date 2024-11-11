@@ -4,8 +4,6 @@ import { env } from "@/environment";
 import { UserModel } from "@/models/User";
 
 const authMiddleware = async (req: Request, res: Response, next: NextFunction) => {
-  // Comment here to test endpoints with authentication (app's jwt)
-  if (["local", "test"].includes(env.NODE_ENV)) return next();
   const error = {
     status: 401,
     error: "You are not authorized to perform this action.",

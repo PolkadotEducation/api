@@ -31,9 +31,9 @@ const router = (app: Express) => {
   app.post("/users", createUser);
   app.post("/users/verify", verifyUser);
   app.post("/users/recover", recoverUser);
-  app.get("/users/:id", [authMiddleware], getUser);
-  app.put("/users/:id", [authMiddleware], updateUser);
-  app.delete("/users/:id", [authMiddleware], deleteUser);
+  app.get("/users", [authMiddleware], getUser);
+  app.put("/users", [authMiddleware], updateUser);
+  app.delete("/users", [authMiddleware], deleteUser);
   app.post("/users/login", loginUser);
   app.post("/users/login/google", loginUserWithGoogle);
   app.post("/users/login/wallet", loginUserWithWallet);
@@ -61,9 +61,9 @@ const router = (app: Express) => {
 
   // Progress
   app.post("/progress", [authMiddleware], submitAnswer);
-  app.get("/progress/lesson/:userId/:courseId/:lessonId", [authMiddleware], getLessonProgress);
-  app.get("/progress/course/:userId/:courseId", [authMiddleware], getCourseProgress);
-  app.get("/progress/level/:userId", [authMiddleware], getUserXPAndLevel);
+  app.get("/progress/lesson/:courseId/:lessonId", [authMiddleware], getLessonProgress);
+  app.get("/progress/course/:courseId", [authMiddleware], getCourseProgress);
+  app.get("/progress/level", [authMiddleware], getUserXPAndLevel);
 };
 
 export default router;

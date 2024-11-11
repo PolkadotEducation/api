@@ -7,7 +7,9 @@ import { Types } from "mongoose";
 import { MongoError } from "mongodb";
 
 export const submitAnswer = async (req: Request, res: Response) => {
-  const { courseId, lessonId, choice, userId } = req.body;
+  const { courseId, lessonId, choice } = req.body;
+
+  const userId = res.locals?.populatedUser?._id;
 
   if (!courseId || !lessonId || (!choice && choice != 0) || !userId) {
     return res.status(400).send({ error: { message: "Missing params" } });
@@ -61,7 +63,9 @@ export const submitAnswer = async (req: Request, res: Response) => {
 };
 
 export const getLessonProgress = async (req: Request, res: Response) => {
-  const { courseId, lessonId, userId } = req.params;
+  const { courseId, lessonId } = req.params;
+
+  const userId = res.locals?.populatedUser?._id;
 
   if (!courseId || !lessonId || !userId) {
     return res.status(400).send({ error: { message: "Missing params" } });
@@ -77,7 +81,9 @@ export const getLessonProgress = async (req: Request, res: Response) => {
 };
 
 export const getCourseProgress = async (req: Request, res: Response) => {
-  const { userId, courseId } = req.params;
+  const { courseId } = req.params;
+
+  const userId = res.locals?.populatedUser;
 
   if (!userId || !courseId) {
     return res.status(400).send({ error: { message: "Missing params" } });
@@ -130,8 +136,8 @@ const calculateLevel = (exp: number): number => {
   return level;
 };
 
-export const getUserXPAndLevel = async (req: Request, res: Response) => {
-  const { userId } = req.params;
+export const getUserXPAndLevel = async (_req: Request, res: Response) => {
+  const userId = res.locals?.populatedUser?._id;
 
   if (!userId) {
     return res.status(400).send({ error: { message: "Missing userId" } });

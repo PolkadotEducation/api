@@ -116,12 +116,12 @@ export const recoverUser = async (req: Request, res: Response) => {
   return res.status(400).send({ error: { message } });
 };
 
-export const getUser = async (req: Request, res: Response) => {
+export const getUser = async (_req: Request, res: Response) => {
   try {
-    const { id } = req.params;
-    if (!id) return res.status(400).send({ error: { message: "Missing user's id" } });
+    const userId = res.locals?.populatedUser?._id;
+    if (!userId) return res.status(400).send({ error: { message: "Missing user's id" } });
 
-    const user = await UserModel.findOne({ _id: id });
+    const user = await UserModel.findOne({ _id: userId });
     if (user) {
       const userInfo: UserInfo = {
         id: user._id,
@@ -148,10 +148,10 @@ export const getUser = async (req: Request, res: Response) => {
 
 export const updateUser = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const userId = res.locals?.populatedUser?._id;
     const { email, name, picture, company, isAdmin, password, language } = req.body;
 
-    const user = await UserModel.findById(id);
+    const user = await UserModel.findById(userId);
     if (!user) return res.status(404).send({ error: { message: "User not found" } });
 
     if (email) user.email = email;
@@ -185,13 +185,13 @@ export const updateUser = async (req: Request, res: Response) => {
   });
 };
 
-export const deleteUser = async (req: Request, res: Response) => {
+export const deleteUser = async (_req: Request, res: Response) => {
   try {
-    const { id } = req.params;
-    if (!id) return res.status(400).send({ error: { message: "Missing userId" } });
+    const userId = res.locals?.populatedUser?._id;
+    if (!userId) return res.status(400).send({ error: { message: "Missing userId" } });
 
-    const result = await UserModel.deleteOne({ _id: id });
-    if (result?.deletedCount > 0) return res.status(200).send({ message: `User '${id}' deleted` });
+    const result = await UserModel.deleteOne({ _id: userId });
+    if (result?.deletedCount > 0) return res.status(200).send({ message: `User '${userId}' deleted` });
   } catch (e) {
     console.error(`[ERROR][deleteUser] ${e}`);
   }

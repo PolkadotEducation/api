@@ -5,6 +5,7 @@ import axios from "axios";
 import router from "@/routes";
 import { mongoDBsetup } from "./db/setupTestMongo";
 import { UserModel } from "@/models/User";
+import { getAuthHeaders } from "./helpers";
 
 const PORT = 3010;
 const API_URL = `http://0.0.0.0:${PORT}`;
@@ -67,7 +68,7 @@ describe("Setting API Server up...", () => {
       const name = "User Two";
       const password = "superSecret";
       const language = "english";
-      const user = await UserModel.createUser({
+      await UserModel.createUser({
         email,
         password,
         name,
@@ -77,8 +78,11 @@ describe("Setting API Server up...", () => {
         isAdmin: false,
         signInType: "Email",
       });
+
+      const headers = await getAuthHeaders(email, password);
+
       await axios
-        .get(`${API_URL}/users/${user?.id}`)
+        .get(`${API_URL}/users`, { headers })
         .then((r) => {
           expect(r.data.email).toEqual(email);
         })
@@ -101,20 +105,26 @@ describe("Setting API Server up...", () => {
         signInType: "Email",
       });
 
+      const headers = await getAuthHeaders(email, password);
+
       const newEmail = "New Email";
       const newName = "New Name";
       const newPassword = "newSuperSecret";
       const newLanguage = "portuguese";
       const newCompany = "New Company";
       await axios
-        .put(`${API_URL}/users/${user?.id}`, {
-          email: newEmail,
-          password: newPassword,
-          name: newName,
-          language: newLanguage,
-          company: newCompany,
-          isAdmin: true,
-        })
+        .put(
+          `${API_URL}/users`,
+          {
+            email: newEmail,
+            password: newPassword,
+            name: newName,
+            language: newLanguage,
+            company: newCompany,
+            isAdmin: true,
+          },
+          { headers },
+        )
         .then(async (r) => {
           expect(r.data.email).toEqual(newEmail);
           expect(r.data.name).toEqual(newName);
@@ -144,8 +154,11 @@ describe("Setting API Server up...", () => {
         isAdmin: false,
         signInType: "Email",
       });
+
+      const headers = await getAuthHeaders(email, password);
+
       await axios
-        .delete(`${API_URL}/users/${user?.id}`)
+        .delete(`${API_URL}/users`, { headers })
         .then((r) => {
           expect(r.data.message).toEqual(`User '${user?.id}' deleted`);
         })
