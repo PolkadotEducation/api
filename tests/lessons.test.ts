@@ -23,6 +23,7 @@ const loadFixture = (fixture: string) => {
 
 describe("Setting API Server up...", () => {
   let headers: { authorization: string; code: string };
+  let adminHeaders: { authorization: string; code: string };
 
   let server: Server;
   beforeAll((done) => {
@@ -48,7 +49,19 @@ describe("Setting API Server up...", () => {
       isAdmin: false,
       signInType: "Email",
     });
+    const adminEmail = "admin@polkadot.education";
+    await UserModel.createUser({
+      email: adminEmail,
+      password,
+      name: "New User",
+      language: "english",
+      company: "company",
+      picture: "Base64OrLink",
+      isAdmin: true,
+      signInType: "Email",
+    });
     headers = await getAuthHeaders(email, password);
+    adminHeaders = await getAuthHeaders(adminEmail, password);
   });
 
   afterAll(async () => {
@@ -82,7 +95,7 @@ describe("Setting API Server up...", () => {
             difficulty,
             challenge,
           },
-          { headers },
+          { headers: adminHeaders },
         )
         .then((r) => {
           expect(r.data.title).toEqual(title);
@@ -116,7 +129,7 @@ describe("Setting API Server up...", () => {
             difficulty,
             challenge: invalidChallenge,
           },
-          { headers },
+          { headers: adminHeaders },
         )
         .then(() => {})
         .catch((e) => {
@@ -186,7 +199,7 @@ describe("Setting API Server up...", () => {
           references: updatedReferences,
           language: updatedLanguage,
         },
-        { headers },
+        { headers: adminHeaders },
       );
 
       await axios
@@ -240,7 +253,7 @@ describe("Setting API Server up...", () => {
             challenge: invalidChallenge,
             language,
           },
-          { headers },
+          { headers: adminHeaders },
         )
         .then(() => {})
         .catch((e) => {
@@ -390,9 +403,70 @@ describe("Setting API Server up...", () => {
       });
 
       await axios
-        .delete(`${API_URL}/lesson`, { headers, data: { lessonId: newLesson._id } })
+        .delete(`${API_URL}/lesson`, { headers: adminHeaders, data: { lessonId: newLesson._id } })
         .then((r) => {
           expect(r.data.message).toEqual(`Lesson '${newLesson._id}' deleted`);
+        })
+        .catch((e) => expect(e).toBeUndefined());
+    });
+
+    it("Should return 200 and lessons summary if lessons found", async () => {
+      await LessonModel.deleteMany({});
+
+      const lessonsData = [
+        {
+          title: "Lesson in English #1",
+          body: "This is the body of lesson 1 in English.",
+          difficulty: "easy",
+          language: "english",
+          challenge: {
+            question: "What is the capital of England?",
+            choices: ["London", "Paris", "Berlin", "Rome"],
+            correctChoice: 0,
+          },
+        },
+        {
+          title: "Lesson in English #2",
+          body: "This is the body of lesson 2 in English.",
+          difficulty: "easy",
+          language: "english",
+          challenge: {
+            question: "What is the capital of the USA?",
+            choices: ["Washington D.C.", "New York", "Los Angeles", "Chicago"],
+            correctChoice: 0,
+          },
+        },
+        {
+          title: "Lição em Português",
+          body: "Este é o corpo da lição em Português.",
+          difficulty: "easy",
+          language: "portuguese",
+          challenge: {
+            question: "Qual é a capital do Brasil?",
+            choices: ["Rio de Janeiro", "São Paulo", "Brasília", "Salvador"],
+            correctChoice: 2,
+          },
+        },
+      ];
+
+      await LessonModel.insertMany(lessonsData);
+
+      await axios
+        .get(`${API_URL}/lessons/summary`, { headers: adminHeaders })
+        .then((r) => {
+          expect(r.status).toEqual(200);
+          expect(r.data.length).toEqual(3);
+        })
+        .catch((e) => expect(e).toBeUndefined());
+    });
+
+    it("Should return 204 if no lessons found", async () => {
+      await LessonModel.deleteMany({});
+
+      await axios
+        .get(`${API_URL}/lessons/summary`, { headers: adminHeaders })
+        .then((r) => {
+          expect(r.status).toEqual(204);
         })
         .catch((e) => expect(e).toBeUndefined());
     });

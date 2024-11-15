@@ -130,6 +130,25 @@ export const getLessonsByLanguage = async (req: Request, res: Response) => {
   }
 };
 
+export const getLessonsSummary = async (_req: Request, res: Response) => {
+  try {
+    const lessonsSummary = await LessonModel.find().select("_id title language").lean();
+
+    if (lessonsSummary.length > 0) {
+      return res.status(200).send(lessonsSummary);
+    } else {
+      return res.status(204).send();
+    }
+  } catch (e) {
+    console.error(`[ERROR][getLessonsSummary] ${JSON.stringify(e)}`);
+    return res.status(500).send({
+      error: {
+        message: JSON.stringify(e),
+      },
+    });
+  }
+};
+
 export const deleteLesson = async (req: Request, res: Response) => {
   try {
     const { lessonId } = req.body;
