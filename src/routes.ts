@@ -50,7 +50,7 @@ const router = (app: Express) => {
   app.post("/lesson", [authMiddleware, adminMiddleware], createLesson);
   app.get("/lesson", [authMiddleware], getLesson);
   app.get("/lessons", [authMiddleware], getLessonsByLanguage);
-  app.delete("/lesson", [authMiddleware, adminMiddleware], deleteLesson);
+  app.delete("/lesson/:id", [authMiddleware, adminMiddleware], deleteLesson);
   app.put("/lesson/:id", [authMiddleware, adminMiddleware], updateLesson);
   app.get("/lessons/summary", [authMiddleware, adminMiddleware], getLessonsSummary);
 

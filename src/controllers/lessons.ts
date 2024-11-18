@@ -151,14 +151,14 @@ export const getLessonsSummary = async (_req: Request, res: Response) => {
 
 export const deleteLesson = async (req: Request, res: Response) => {
   try {
-    const { lessonId } = req.body;
-    if (!lessonId) {
+    const { id } = req.params;
+    if (!id) {
       return res.status(400).send({ error: { message: "Missing lessonId" } });
     }
 
-    const result = await LessonModel.deleteOne({ _id: lessonId });
+    const result = await LessonModel.deleteOne({ _id: id });
     if (result?.deletedCount > 0) {
-      return res.status(200).send({ message: `Lesson '${lessonId}' deleted` });
+      return res.status(200).send({ message: `Lesson '${id}' deleted` });
     }
   } catch (e) {
     console.error(`[ERROR][deleteLesson] ${JSON.stringify(e)}`);
