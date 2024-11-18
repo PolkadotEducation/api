@@ -23,6 +23,7 @@ const loadFixture = (fixture: string) => {
 
 describe("Setting API Server up...", () => {
   let headers: { authorization: string; code: string };
+  let adminHeaders: { authorization: string; code: string };
 
   let server: Server;
   beforeAll((done) => {
@@ -48,7 +49,19 @@ describe("Setting API Server up...", () => {
       isAdmin: false,
       signInType: "Email",
     });
+    const adminEmail = "admin@polkadot.education";
+    await UserModel.createUser({
+      email: adminEmail,
+      password,
+      name: "New User",
+      language: "english",
+      company: "company",
+      picture: "Base64OrLink",
+      isAdmin: true,
+      signInType: "Email",
+    });
     headers = await getAuthHeaders(email, password);
+    adminHeaders = await getAuthHeaders(adminEmail, password);
   });
 
   afterAll(async () => {
@@ -94,7 +107,7 @@ describe("Setting API Server up...", () => {
             summary: courseSummary,
             modules: [module._id],
           },
-          { headers },
+          { headers: adminHeaders },
         )
         .then((r) => {
           expect(r.data.title).toEqual(courseTitle);
@@ -122,7 +135,7 @@ describe("Setting API Server up...", () => {
             summary: courseSummary,
             modules: [invalidModuleId],
           },
-          { headers },
+          { headers: adminHeaders },
         )
         .then(() => {})
         .catch((e) => {
@@ -179,7 +192,7 @@ describe("Setting API Server up...", () => {
           summary: updatedSummary,
           modules: [module._id],
         },
-        { headers },
+        { headers: adminHeaders },
       );
 
       await axios
@@ -343,7 +356,7 @@ describe("Setting API Server up...", () => {
       const courseCountBefore = await CourseModel.countDocuments();
 
       await axios
-        .delete(`${API_URL}/course`, { headers, data: { courseId: newCourse._id } })
+        .delete(`${API_URL}/course`, { headers: adminHeaders, data: { courseId: newCourse._id } })
         .then((r) => {
           expect(r.data.message).toEqual(`Course '${newCourse._id}' deleted`);
         })
@@ -379,7 +392,7 @@ describe("Setting API Server up...", () => {
       });
 
       await axios
-        .post(`${API_URL}/course/duplicate`, { courseId: course._id }, { headers })
+        .post(`${API_URL}/course/duplicate`, { courseId: course._id }, { headers: adminHeaders })
         .then((r) => {
           expect(r.data.title).toEqual(`${course.title} (Copy)`);
           expect(r.data.summary).toEqual(course.summary);

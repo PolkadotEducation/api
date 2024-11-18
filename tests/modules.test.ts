@@ -22,6 +22,7 @@ const loadFixture = (fixture: string) => {
 
 describe("Setting API Server up...", () => {
   let headers: { authorization: string; code: string };
+  let adminHeaders: { authorization: string; code: string };
 
   let server: Server;
   beforeAll((done) => {
@@ -47,7 +48,19 @@ describe("Setting API Server up...", () => {
       isAdmin: false,
       signInType: "Email",
     });
+    const adminEmail = "admin@polkadot.education";
+    await UserModel.createUser({
+      email: adminEmail,
+      password,
+      name: "New User",
+      language: "english",
+      company: "company",
+      picture: "Base64OrLink",
+      isAdmin: true,
+      signInType: "Email",
+    });
     headers = await getAuthHeaders(email, password);
+    adminHeaders = await getAuthHeaders(adminEmail, password);
   });
 
   afterEach(async () => {
@@ -82,7 +95,7 @@ describe("Setting API Server up...", () => {
             title: moduleTitle,
             lessons: [lesson._id],
           },
-          { headers },
+          { headers: adminHeaders },
         )
         .then((r) => {
           expect(r.data.title).toEqual(moduleTitle);
@@ -103,7 +116,7 @@ describe("Setting API Server up...", () => {
             title: moduleTitle,
             lessons: [invalidLessonId],
           },
-          { headers },
+          { headers: adminHeaders },
         )
         .then(() => {})
         .catch((e) => {
@@ -148,7 +161,7 @@ describe("Setting API Server up...", () => {
           title: updatedTitle,
           lessons: [lesson1._id, lesson2._id],
         },
-        { headers },
+        { headers: adminHeaders },
       );
 
       await axios
@@ -215,7 +228,7 @@ describe("Setting API Server up...", () => {
       const moduleCountBefore = await ModuleModel.countDocuments();
 
       await axios
-        .delete(`${API_URL}/module`, { headers, data: { moduleId: newModule._id } })
+        .delete(`${API_URL}/module`, { headers: adminHeaders, data: { moduleId: newModule._id } })
         .then((r) => {
           expect(r.data.message).toEqual(`Module '${newModule._id}' deleted`);
         })
