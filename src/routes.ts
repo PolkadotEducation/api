@@ -32,7 +32,6 @@ import {
 
 import authMiddleware from "./middlewares/auth";
 import { getCourseProgress, getLessonProgress, getUserXPAndLevel, submitAnswer } from "./controllers/progress";
-import adminMiddleware from "./middlewares/admin";
 import { createTeam, deleteTeam, getTeam, getUserTeams, updateTeam } from "./controllers/teams";
 import teamMiddleware from "./middlewares/team";
 
@@ -72,12 +71,12 @@ const router = (app: Express) => {
   app.put("/module/:id", [authMiddleware, teamMiddleware], updateModule);
 
   // Courses
-  app.post("/course", [authMiddleware, adminMiddleware], createCourse);
-  app.get("/course", [authMiddleware], getCourse);
-  app.get("/courses", [authMiddleware], getCoursesByLanguage);
-  app.delete("/course", [authMiddleware, adminMiddleware], deleteCourse);
-  app.put("/course/:id", [authMiddleware, adminMiddleware], updateCourse);
-  app.post("/course/duplicate", [authMiddleware, adminMiddleware], duplicateCourse);
+  app.post("/course", [authMiddleware, teamMiddleware], createCourse);
+  app.get("/course", [authMiddleware, teamMiddleware], getCourse);
+  app.get("/courses", [authMiddleware, teamMiddleware], getCoursesByLanguage);
+  app.delete("/course", [authMiddleware, teamMiddleware], deleteCourse);
+  app.put("/course/:id", [authMiddleware, teamMiddleware], updateCourse);
+  app.post("/course/duplicate", [authMiddleware, teamMiddleware], duplicateCourse);
 
   // Progress
   app.post("/progress", [authMiddleware], submitAnswer);

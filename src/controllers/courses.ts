@@ -1,11 +1,13 @@
 import { Request, Response } from "express";
+import { ObjectId } from "bson";
+
 import { CourseModel } from "@/models/Course";
 import { ModuleModel } from "@/models/Module";
 
 export const createCourse = async (req: Request, res: Response) => {
-  const { title, language, summary, modules } = req.body;
+  const { teamId, title, language, summary, modules } = req.body;
 
-  if (!title || !language || !summary || !modules) {
+  if (!teamId || !title || !language || !summary || !modules) {
     return res.status(400).send({ error: { message: "Missing params" } });
   }
 
@@ -17,6 +19,7 @@ export const createCourse = async (req: Request, res: Response) => {
     }
 
     const newCourse = await CourseModel.create({
+      teamId: new ObjectId(teamId as string),
       title,
       language,
       summary,
@@ -102,12 +105,12 @@ export const getCourse = async (req: Request, res: Response) => {
 
 export const getCoursesByLanguage = async (req: Request, res: Response) => {
   try {
-    const { language } = req.query;
-    if (!language) {
-      return res.status(400).send({ error: { message: "Missing language" } });
+    const { teamId, language } = req.query;
+    if (!teamId || !language) {
+      return res.status(400).send({ error: { message: "Missing teamId or language" } });
     }
 
-    const courses = await CourseModel.find({ language }).populate("modules");
+    const courses = await CourseModel.find({ teamId, language }).populate("modules");
     if (courses.length > 0) {
       return res.status(200).send(courses);
     } else {
@@ -164,6 +167,7 @@ export const duplicateCourse = async (req: Request, res: Response) => {
     }
 
     const duplicatedCourse = await CourseModel.create({
+      teamId: existingCourse.teamId,
       title: `${existingCourse.title} (Copy)`,
       language: existingCourse.language,
       summary: existingCourse.summary,
