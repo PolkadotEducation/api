@@ -426,7 +426,7 @@ describe("Setting API Server up...", () => {
       });
 
       await axios
-        .delete(`${API_URL}/lesson/${newLesson._id}?teamId=${team._id}`, { headers: adminHeaders })
+        .delete(`${API_URL}/lesson`, { headers: adminHeaders, data: { teamId: team._id, lessonId: newLesson._id } })
         .then((r) => {
           expect(r.data.message).toEqual(`Lesson '${newLesson._id}' deleted`);
         })
@@ -524,7 +524,7 @@ describe("Setting API Server up...", () => {
         .then(() => {})
         .catch((e) => expect(e.response.status).toEqual(403));
 
-      const newLesson = await LessonModel.create({
+      const lesson = await LessonModel.create({
         teamId: team,
         title,
         body,
@@ -535,13 +535,13 @@ describe("Setting API Server up...", () => {
       });
 
       await axios
-        .get(`${API_URL}/lesson?teamId=${team._id}&lessonId=${newLesson._id}`, { headers })
+        .get(`${API_URL}/lesson?teamId=${team._id}&lessonId=${lesson._id}`, { headers })
         .then(() => {})
         .catch((e) => expect(e.response.status).toEqual(403));
 
       await axios
         .put(
-          `${API_URL}/lesson/${newLesson._id}`,
+          `${API_URL}/lesson/${lesson._id}`,
           {
             teamId: team._id,
             title,
@@ -556,7 +556,7 @@ describe("Setting API Server up...", () => {
         .catch((e) => expect(e.response.status).toEqual(403));
 
       await axios
-        .delete(`${API_URL}/lesson/${newLesson._id}?teamId=${team._id}`, { headers })
+        .delete(`${API_URL}/lesson`, { headers, data: { teamId: team._id, moduleId: lesson._id } })
         .then(() => {})
         .catch((e) => expect(e.response.status).toEqual(403));
     });

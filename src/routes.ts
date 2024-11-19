@@ -55,21 +55,21 @@ const router = (app: Express) => {
   app.post("/teams", [authMiddleware], createTeam);
   app.get("/teams", [authMiddleware], getTeam);
   app.put("/teams/:id", [authMiddleware], updateTeam);
-  app.delete("/teams/:id", [authMiddleware], deleteTeam);
+  app.delete("/teams", [authMiddleware], deleteTeam);
 
   // Lessons
   app.post("/lesson", [authMiddleware, teamMiddleware], createLesson);
   app.get("/lesson", [authMiddleware, teamMiddleware], getLesson);
   app.get("/lessons", [authMiddleware, teamMiddleware], getLessonsByLanguage);
-  app.delete("/lesson/:id", [authMiddleware, teamMiddleware], deleteLesson);
+  app.delete("/lesson", [authMiddleware, teamMiddleware], deleteLesson);
   app.put("/lesson/:id", [authMiddleware, teamMiddleware], updateLesson);
   app.get("/lessons/summary", [authMiddleware, teamMiddleware], getLessonsSummary);
 
   // Modules
-  app.post("/module", [authMiddleware, adminMiddleware], createModule);
-  app.get("/module", [authMiddleware], getModule);
-  app.delete("/module", [authMiddleware, adminMiddleware], deleteModule);
-  app.put("/module/:id", [authMiddleware, adminMiddleware], updateModule);
+  app.post("/module", [authMiddleware, teamMiddleware], createModule);
+  app.get("/module", [authMiddleware, teamMiddleware], getModule);
+  app.delete("/module", [authMiddleware, teamMiddleware], deleteModule);
+  app.put("/module/:id", [authMiddleware, teamMiddleware], updateModule);
 
   // Courses
   app.post("/course", [authMiddleware, adminMiddleware], createCourse);

@@ -145,11 +145,11 @@ export const updateTeam = async (req: Request, res: Response) => {
 export const deleteTeam = async (req: Request, res: Response) => {
   try {
     const ownerEmail = res.locals?.populatedUser?.email;
-    const { id } = req.params;
-    if (!id) return res.status(404).send({ error: { message: "Missing team's id" } });
+    const { teamId } = req.body;
+    if (!teamId) return res.status(404).send({ error: { message: "Missing team's id" } });
 
-    const result = await TeamModel.deleteOne({ _id: id, owner: ownerEmail });
-    if (result?.deletedCount > 0) return res.status(200).send({ message: `Team '${id}' deleted` });
+    const result = await TeamModel.deleteOne({ _id: teamId, owner: ownerEmail });
+    if (result?.deletedCount > 0) return res.status(200).send({ message: `Team '${teamId}' deleted` });
   } catch (e) {
     console.error(`[ERROR][deleteTeam] ${e}`);
   }

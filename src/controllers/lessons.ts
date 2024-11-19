@@ -35,9 +35,9 @@ export const createLesson = async (req: Request, res: Response) => {
 
 export const updateLesson = async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { teamId, title, language, body, difficulty, challenge, references } = req.body;
+  const { title, language, body, difficulty, challenge, references } = req.body;
 
-  if (!id || !teamId || !title || !language || !body || !difficulty || !challenge) {
+  if (!id || !title || !language || !body || !difficulty || !challenge) {
     return res.status(400).send({ error: { message: "Missing params" } });
   }
 
@@ -159,14 +159,14 @@ export const getLessonsSummary = async (req: Request, res: Response) => {
 
 export const deleteLesson = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
-    if (!id) {
+    const { lessonId } = req.body;
+    if (!lessonId) {
       return res.status(400).send({ error: { message: "Missing lessonId" } });
     }
 
-    const result = await LessonModel.deleteOne({ _id: id });
+    const result = await LessonModel.deleteOne({ _id: lessonId });
     if (result?.deletedCount > 0) {
-      return res.status(200).send({ message: `Lesson '${id}' deleted` });
+      return res.status(200).send({ message: `Lesson '${lessonId}' deleted` });
     }
   } catch (e) {
     console.error(`[ERROR][deleteLesson] ${JSON.stringify(e)}`);

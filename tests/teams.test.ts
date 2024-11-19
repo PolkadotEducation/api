@@ -244,7 +244,7 @@ describe("Setting API Server up...", () => {
       await UserTeamModel.create({ email, teamId: team });
 
       await axios
-        .delete(`${API_URL}/teams/${team._id}`, { headers })
+        .delete(`${API_URL}/teams`, { headers, data: { teamId: team._id } })
         .then((r) => {
           expect(r.data.message).toEqual(`Team '${team._id}' deleted`);
         })

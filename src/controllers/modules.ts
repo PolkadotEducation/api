@@ -1,11 +1,13 @@
 import { Request, Response } from "express";
+import { ObjectId } from "bson";
+
 import { ModuleModel } from "@/models/Module";
 import { LessonModel } from "@/models/Lesson";
 
 export const createModule = async (req: Request, res: Response) => {
-  const { title, lessons } = req.body;
+  const { teamId, title, lessons } = req.body;
 
-  if (!title || !lessons) {
+  if (!teamId || !title || !lessons) {
     return res.status(400).send({ error: { message: "Missing params" } });
   }
 
@@ -17,6 +19,7 @@ export const createModule = async (req: Request, res: Response) => {
     }
 
     const newModule = await ModuleModel.create({
+      teamId: new ObjectId(teamId as string),
       title,
       lessons,
     });

@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 
 import { UserTeamModel } from "@/models/UserTeam";
+import { env } from "@/environment";
 
 const teamMiddleware = async (req: Request, res: Response, next: NextFunction) => {
   const error = {
@@ -15,7 +16,7 @@ const teamMiddleware = async (req: Request, res: Response, next: NextFunction) =
     next();
   } catch (err) {
     error.error = (err as Error).message;
-    console.error(`[ERROR][teamMiddleware] ${JSON.stringify(error)}`);
+    if (env.DEBUG) console.error(`[ERROR][teamMiddleware] ${JSON.stringify(error)}`);
     return res.status(error.status).json(error);
   }
 };
