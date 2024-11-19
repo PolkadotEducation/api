@@ -33,6 +33,8 @@ import {
 import authMiddleware from "./middlewares/auth";
 import { getCourseProgress, getLessonProgress, getUserXPAndLevel, submitAnswer } from "./controllers/progress";
 import adminMiddleware from "./middlewares/admin";
+import { createTeam, deleteTeam, getTeam, getUserTeams, updateTeam } from "./controllers/teams";
+import teamMiddleware from "./middlewares/team";
 
 const router = (app: Express) => {
   // Users
@@ -46,13 +48,22 @@ const router = (app: Express) => {
   app.post("/users/login/google", loginUserWithGoogle);
   app.post("/users/login/wallet", loginUserWithWallet);
 
+  // User's teams
+  app.get("/users/teams", [authMiddleware], getUserTeams);
+
+  // Team
+  app.post("/teams", [authMiddleware], createTeam);
+  app.get("/teams", [authMiddleware], getTeam);
+  app.put("/teams/:id", [authMiddleware], updateTeam);
+  app.delete("/teams/:id", [authMiddleware], deleteTeam);
+
   // Lessons
-  app.post("/lesson", [authMiddleware, adminMiddleware], createLesson);
-  app.get("/lesson", [authMiddleware], getLesson);
-  app.get("/lessons", [authMiddleware], getLessonsByLanguage);
-  app.delete("/lesson/:id", [authMiddleware, adminMiddleware], deleteLesson);
-  app.put("/lesson/:id", [authMiddleware, adminMiddleware], updateLesson);
-  app.get("/lessons/summary", [authMiddleware, adminMiddleware], getLessonsSummary);
+  app.post("/lesson", [authMiddleware, teamMiddleware], createLesson);
+  app.get("/lesson", [authMiddleware, teamMiddleware], getLesson);
+  app.get("/lessons", [authMiddleware, teamMiddleware], getLessonsByLanguage);
+  app.delete("/lesson/:id", [authMiddleware, teamMiddleware], deleteLesson);
+  app.put("/lesson/:id", [authMiddleware, teamMiddleware], updateLesson);
+  app.get("/lessons/summary", [authMiddleware, teamMiddleware], getLessonsSummary);
 
   // Modules
   app.post("/module", [authMiddleware, adminMiddleware], createModule);

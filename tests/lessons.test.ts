@@ -10,6 +10,8 @@ import { join } from "path";
 import { Lesson, LessonModel } from "@/models/Lesson";
 import { getAuthHeaders } from "./helpers";
 import { UserModel } from "@/models/User";
+import { Team, TeamModel } from "@/models/Team";
+import { UserTeamModel } from "@/models/UserTeam";
 
 const PORT = 3011;
 const API_URL = `http://0.0.0.0:${PORT}`;
@@ -22,6 +24,7 @@ const loadFixture = (fixture: string) => {
 };
 
 describe("Setting API Server up...", () => {
+  let team: Team;
   let headers: { authorization: string; code: string };
   let adminHeaders: { authorization: string; code: string };
 
@@ -60,6 +63,15 @@ describe("Setting API Server up...", () => {
       isAdmin: true,
       signInType: "Email",
     });
+
+    team = await TeamModel.create({
+      owner: adminEmail,
+      name: "Admin Team",
+      description: "Admin Team Description",
+      picture: "...",
+    });
+    await UserTeamModel.create({ email: adminEmail, teamId: team });
+
     headers = await getAuthHeaders(email, password);
     adminHeaders = await getAuthHeaders(adminEmail, password);
   });
@@ -89,6 +101,7 @@ describe("Setting API Server up...", () => {
         .post(
           `${API_URL}/lesson`,
           {
+            teamId: team._id,
             title,
             language,
             body,
@@ -123,6 +136,7 @@ describe("Setting API Server up...", () => {
         .post(
           `${API_URL}/lesson`,
           {
+            teamId: team._id,
             title,
             language,
             body,
@@ -161,6 +175,7 @@ describe("Setting API Server up...", () => {
       ];
 
       const lesson = await LessonModel.create({
+        teamId: team,
         title,
         body,
         difficulty,
@@ -192,6 +207,7 @@ describe("Setting API Server up...", () => {
       await axios.put(
         `${API_URL}/lesson/${lesson._id}`,
         {
+          teamId: team._id,
           title: updatedTitle,
           body: updatedBody,
           difficulty: updatedDifficulty,
@@ -203,7 +219,7 @@ describe("Setting API Server up...", () => {
       );
 
       await axios
-        .get(`${API_URL}/lesson?lessonId=${lesson._id}`, { headers })
+        .get(`${API_URL}/lesson?teamId=${team._id}&lessonId=${lesson._id}`, { headers: adminHeaders })
         .then((r) => {
           expect(r.data.title).toEqual(updatedTitle);
           expect(r.data.body).toEqual(updatedBody);
@@ -227,6 +243,7 @@ describe("Setting API Server up...", () => {
       const language = "english";
 
       const initialLesson = await LessonModel.create({
+        teamId: team,
         title: initialTitle,
         body: initialBody,
         difficulty: initialDifficulty,
@@ -247,6 +264,7 @@ describe("Setting API Server up...", () => {
         .put(
           `${API_URL}/lesson/${initialLesson._id}`,
           {
+            teamId: team._id,
             title: updatedTitle,
             body: updatedBody,
             difficulty: updatedDifficulty,
@@ -285,6 +303,7 @@ describe("Setting API Server up...", () => {
       ];
 
       const newLesson = await LessonModel.create({
+        teamId: team,
         title,
         body,
         difficulty,
@@ -294,7 +313,7 @@ describe("Setting API Server up...", () => {
       });
 
       await axios
-        .get(`${API_URL}/lesson?lessonId=${newLesson?._id}`, { headers })
+        .get(`${API_URL}/lesson?teamId=${team._id}&lessonId=${newLesson._id}`, { headers: adminHeaders })
         .then((r) => {
           expect(r.data.title).toEqual(title);
           expect(r.data.body).toEqual(body);
@@ -311,6 +330,7 @@ describe("Setting API Server up...", () => {
 
       const lessonsData = [
         {
+          teamId: team,
           title: "Lesson in English #1",
           body: "This is the body of lesson 1 in English.",
           difficulty: "easy",
@@ -322,6 +342,7 @@ describe("Setting API Server up...", () => {
           },
         },
         {
+          teamId: team,
           title: "Lesson in English #2",
           body: "This is the body of lesson 2 in English.",
           difficulty: "easy",
@@ -333,6 +354,7 @@ describe("Setting API Server up...", () => {
           },
         },
         {
+          teamId: team,
           title: "Lição em Português",
           body: "Este é o corpo da lição em Português.",
           difficulty: "easy",
@@ -348,7 +370,7 @@ describe("Setting API Server up...", () => {
       await LessonModel.insertMany(lessonsData);
 
       await axios
-        .get(`${API_URL}/lessons?language=english`, { headers })
+        .get(`${API_URL}/lessons?teamId=${team._id}&language=english`, { headers: adminHeaders })
         .then((r) => {
           expect(r.status).toEqual(200);
           expect(r.data.length).toEqual(2);
@@ -365,7 +387,7 @@ describe("Setting API Server up...", () => {
 
     it("Get lessons by language with no results (GET /lessons?language=french)", async () => {
       await axios
-        .get(`${API_URL}/lessons?language=french`, { headers })
+        .get(`${API_URL}/lessons?teamId=${team._id}&language=french`, { headers: adminHeaders })
         .then(() => {})
         .catch((e) => {
           expect(e.response.status).toEqual(404);
@@ -375,11 +397,11 @@ describe("Setting API Server up...", () => {
 
     it("Get lessons by language without specifying language (GET /lessons)", async () => {
       await axios
-        .get(`${API_URL}/lessons`, { headers })
+        .get(`${API_URL}/lessons?teamId=${team._id}`, { headers: adminHeaders })
         .then(() => {})
         .catch((e) => {
           expect(e.response.status).toEqual(400);
-          expect(e.response.data.error.message).toEqual("Missing language");
+          expect(e.response.data.error.message).toEqual("Missing teamId or language");
         });
     });
 
@@ -395,6 +417,7 @@ describe("Setting API Server up...", () => {
       };
 
       const newLesson = await LessonModel.create({
+        teamId: team,
         title,
         body,
         difficulty,
@@ -403,7 +426,7 @@ describe("Setting API Server up...", () => {
       });
 
       await axios
-        .delete(`${API_URL}/lesson`, { headers: adminHeaders, data: { lessonId: newLesson._id } })
+        .delete(`${API_URL}/lesson/${newLesson._id}?teamId=${team._id}`, { headers: adminHeaders })
         .then((r) => {
           expect(r.data.message).toEqual(`Lesson '${newLesson._id}' deleted`);
         })
@@ -415,6 +438,7 @@ describe("Setting API Server up...", () => {
 
       const lessonsData = [
         {
+          teamId: team,
           title: "Lesson in English #1",
           body: "This is the body of lesson 1 in English.",
           difficulty: "easy",
@@ -426,6 +450,7 @@ describe("Setting API Server up...", () => {
           },
         },
         {
+          teamId: team,
           title: "Lesson in English #2",
           body: "This is the body of lesson 2 in English.",
           difficulty: "easy",
@@ -437,6 +462,7 @@ describe("Setting API Server up...", () => {
           },
         },
         {
+          teamId: team,
           title: "Lição em Português",
           body: "Este é o corpo da lição em Português.",
           difficulty: "easy",
@@ -452,7 +478,7 @@ describe("Setting API Server up...", () => {
       await LessonModel.insertMany(lessonsData);
 
       await axios
-        .get(`${API_URL}/lessons/summary`, { headers: adminHeaders })
+        .get(`${API_URL}/lessons/summary?teamId=${team._id}`, { headers: adminHeaders })
         .then((r) => {
           expect(r.status).toEqual(200);
           expect(r.data.length).toEqual(3);
@@ -464,11 +490,75 @@ describe("Setting API Server up...", () => {
       await LessonModel.deleteMany({});
 
       await axios
-        .get(`${API_URL}/lessons/summary`, { headers: adminHeaders })
+        .get(`${API_URL}/lessons/summary?teamId=${team._id}`, { headers: adminHeaders })
         .then((r) => {
           expect(r.status).toEqual(204);
         })
         .catch((e) => expect(e).toBeUndefined());
+    });
+
+    it("Should return 403 if no permisson to POST/GET/PUT/DELETE", async () => {
+      const title = "Lesson #X";
+      const language = "english";
+      const body = loadFixture("example.md");
+      const difficulty = "easy";
+      const challenge = {
+        question: "What is the capital of France?",
+        choices: ["Berlin", "Madrid", "Paris", "Rome"],
+        correctChoice: 2,
+      };
+
+      await axios
+        .post(
+          `${API_URL}/lesson`,
+          {
+            teamId: team._id,
+            title,
+            language,
+            body,
+            difficulty,
+            challenge,
+          },
+          { headers },
+        )
+        .then(() => {})
+        .catch((e) => expect(e.response.status).toEqual(403));
+
+      const newLesson = await LessonModel.create({
+        teamId: team,
+        title,
+        body,
+        difficulty,
+        challenge,
+        references: [],
+        language,
+      });
+
+      await axios
+        .get(`${API_URL}/lesson?teamId=${team._id}&lessonId=${newLesson._id}`, { headers })
+        .then(() => {})
+        .catch((e) => expect(e.response.status).toEqual(403));
+
+      await axios
+        .put(
+          `${API_URL}/lesson/${newLesson._id}`,
+          {
+            teamId: team._id,
+            title,
+            language,
+            body,
+            difficulty,
+            challenge,
+          },
+          { headers },
+        )
+        .then(() => {})
+        .catch((e) => expect(e.response.status).toEqual(403));
+
+      await axios
+        .delete(`${API_URL}/lesson/${newLesson._id}?teamId=${team._id}`, { headers })
+        .then(() => {})
+        .catch((e) => expect(e.response.status).toEqual(403));
     });
   });
 });

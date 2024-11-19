@@ -1,15 +1,18 @@
 import { Request, Response } from "express";
+import { ObjectId } from "bson";
+
 import { LessonModel } from "@/models/Lesson";
 
 export const createLesson = async (req: Request, res: Response) => {
-  const { title, language, body, difficulty, challenge, references } = req.body;
-  if (!title || !language || !body || !difficulty || !challenge) {
+  const { teamId, title, language, body, difficulty, challenge, references } = req.body;
+  if (!teamId || !title || !language || !body || !difficulty || !challenge) {
     return res.status(400).send({ error: { message: "Missing params" } });
   }
 
   let errorMessage;
   try {
     const newLesson = await LessonModel.create({
+      teamId: new ObjectId(teamId as string),
       title,
       language,
       body,
@@ -32,9 +35,9 @@ export const createLesson = async (req: Request, res: Response) => {
 
 export const updateLesson = async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { title, language, body, difficulty, challenge, references } = req.body;
+  const { teamId, title, language, body, difficulty, challenge, references } = req.body;
 
-  if (!id || !title || !language || !body || !difficulty || !challenge) {
+  if (!id || !teamId || !title || !language || !body || !difficulty || !challenge) {
     return res.status(400).send({ error: { message: "Missing params" } });
   }
 
@@ -103,13 +106,13 @@ export const getLesson = async (req: Request, res: Response) => {
 
 export const getLessonsByLanguage = async (req: Request, res: Response) => {
   try {
-    const { language } = req.query;
+    const { teamId, language } = req.query;
 
-    if (!language) {
-      return res.status(400).send({ error: { message: "Missing language" } });
+    if (!teamId || !language) {
+      return res.status(400).send({ error: { message: "Missing teamId or language" } });
     }
 
-    const lessons = await LessonModel.find({ language: language });
+    const lessons = await LessonModel.find({ teamId, language });
 
     if (lessons.length > 0) {
       return res.status(200).send(lessons);
@@ -130,9 +133,14 @@ export const getLessonsByLanguage = async (req: Request, res: Response) => {
   }
 };
 
-export const getLessonsSummary = async (_req: Request, res: Response) => {
+export const getLessonsSummary = async (req: Request, res: Response) => {
   try {
-    const lessonsSummary = await LessonModel.find().select("_id title language").lean();
+    const { teamId } = req.query;
+    if (!teamId) {
+      return res.status(400).send({ error: { message: "Missing teamId" } });
+    }
+
+    const lessonsSummary = await LessonModel.find({ teamId }).select("_id title language").lean();
 
     if (lessonsSummary.length > 0) {
       return res.status(200).send(lessonsSummary);
