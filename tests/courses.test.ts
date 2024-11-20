@@ -9,6 +9,8 @@ import { join } from "path";
 import { CourseModel } from "@/models/Course";
 import { Module, ModuleModel } from "@/models/Module";
 import { Lesson, LessonModel } from "@/models/Lesson";
+import { UserModel } from "@/models/User";
+import { getAuthHeaders } from "./helpers";
 
 const PORT = 3013;
 const API_URL = `http://0.0.0.0:${PORT}`;
@@ -20,6 +22,9 @@ const loadFixture = (fixture: string) => {
 };
 
 describe("Setting API Server up...", () => {
+  let headers: { authorization: string; code: string };
+  let adminHeaders: { authorization: string; code: string };
+
   let server: Server;
   beforeAll((done) => {
     const app = express();
@@ -32,6 +37,31 @@ describe("Setting API Server up...", () => {
 
   beforeAll(async () => {
     await mongoDBsetup(MONGODB_DATABASE_NAME);
+    const email = "new.user@polkadot.education";
+    const password = "password";
+    await UserModel.createUser({
+      email,
+      password,
+      name: "New User",
+      language: "english",
+      company: "company",
+      picture: "Base64OrLink",
+      isAdmin: false,
+      signInType: "Email",
+    });
+    const adminEmail = "admin@polkadot.education";
+    await UserModel.createUser({
+      email: adminEmail,
+      password,
+      name: "New User",
+      language: "english",
+      company: "company",
+      picture: "Base64OrLink",
+      isAdmin: true,
+      signInType: "Email",
+    });
+    headers = await getAuthHeaders(email, password);
+    adminHeaders = await getAuthHeaders(adminEmail, password);
   });
 
   afterAll(async () => {
@@ -69,12 +99,16 @@ describe("Setting API Server up...", () => {
       const courseSummary = "This is a summary of Course #1";
 
       await axios
-        .post(`${API_URL}/course`, {
-          title: courseTitle,
-          language: courseLanguage,
-          summary: courseSummary,
-          modules: [module._id],
-        })
+        .post(
+          `${API_URL}/course`,
+          {
+            title: courseTitle,
+            language: courseLanguage,
+            summary: courseSummary,
+            modules: [module._id],
+          },
+          { headers: adminHeaders },
+        )
         .then((r) => {
           expect(r.data.title).toEqual(courseTitle);
           expect(r.data.language).toEqual(courseLanguage);
@@ -93,12 +127,16 @@ describe("Setting API Server up...", () => {
       const invalidModuleId = "60e4b68f2f8fb814b56fa181";
 
       await axios
-        .post(`${API_URL}/course`, {
-          title: courseTitle,
-          language: courseLanguage,
-          summary: courseSummary,
-          modules: [invalidModuleId],
-        })
+        .post(
+          `${API_URL}/course`,
+          {
+            title: courseTitle,
+            language: courseLanguage,
+            summary: courseSummary,
+            modules: [invalidModuleId],
+          },
+          { headers: adminHeaders },
+        )
         .then(() => {})
         .catch((e) => {
           expect(e.response.data.error.message).toContain("Some modules not found");
@@ -146,15 +184,19 @@ describe("Setting API Server up...", () => {
       const updatedLanguage = "portuguese";
       const updatedSummary = "Resumo do curso atualizado";
 
-      await axios.put(`${API_URL}/course/${course._id}`, {
-        title: updatedTitle,
-        language: updatedLanguage,
-        summary: updatedSummary,
-        modules: [module._id],
-      });
+      await axios.put(
+        `${API_URL}/course/${course._id}`,
+        {
+          title: updatedTitle,
+          language: updatedLanguage,
+          summary: updatedSummary,
+          modules: [module._id],
+        },
+        { headers: adminHeaders },
+      );
 
       await axios
-        .get(`${API_URL}/course?courseId=${course._id}`)
+        .get(`${API_URL}/course?courseId=${course._id}`, { headers })
         .then((r) => {
           expect(r.data.title).toEqual(updatedTitle);
           expect(r.data.language).toEqual(updatedLanguage);
@@ -192,7 +234,7 @@ describe("Setting API Server up...", () => {
       });
 
       await axios
-        .get(`${API_URL}/course?courseId=${newCourse._id}`)
+        .get(`${API_URL}/course?courseId=${newCourse._id}`, { headers })
         .then((r) => {
           expect(r.data.title).toEqual("Course with Module");
           expect(r.data.summary).toEqual("This course contains a module");
@@ -258,7 +300,7 @@ describe("Setting API Server up...", () => {
       });
 
       await axios
-        .get(`${API_URL}/courses?language=english`)
+        .get(`${API_URL}/courses?language=english`, { headers })
         .then((r) => {
           expect(r.data.length).toBe(1);
           expect(r.data[0].title).toEqual("Course in English");
@@ -268,7 +310,7 @@ describe("Setting API Server up...", () => {
 
     it("Get courses by language with no results (GET /courses?language=french)", async () => {
       await axios
-        .get(`${API_URL}/courses?language=french`)
+        .get(`${API_URL}/courses?language=french`, { headers })
         .then(() => {})
         .catch((e) => {
           expect(e.response.status).toEqual(404);
@@ -278,7 +320,7 @@ describe("Setting API Server up...", () => {
 
     it("Get courses by language without specifying language (GET /courses)", async () => {
       await axios
-        .get(`${API_URL}/courses`)
+        .get(`${API_URL}/courses`, { headers })
         .then(() => {})
         .catch((e) => {
           expect(e.response.status).toEqual(400);
@@ -314,7 +356,7 @@ describe("Setting API Server up...", () => {
       const courseCountBefore = await CourseModel.countDocuments();
 
       await axios
-        .delete(`${API_URL}/course`, { data: { courseId: newCourse._id } })
+        .delete(`${API_URL}/course`, { headers: adminHeaders, data: { courseId: newCourse._id } })
         .then((r) => {
           expect(r.data.message).toEqual(`Course '${newCourse._id}' deleted`);
         })
@@ -350,7 +392,7 @@ describe("Setting API Server up...", () => {
       });
 
       await axios
-        .post(`${API_URL}/course/duplicate`, { courseId: course._id })
+        .post(`${API_URL}/course/duplicate`, { courseId: course._id }, { headers: adminHeaders })
         .then((r) => {
           expect(r.data.title).toEqual(`${course.title} (Copy)`);
           expect(r.data.summary).toEqual(course.summary);

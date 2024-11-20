@@ -8,6 +8,8 @@ import { readFileSync } from "fs";
 import { join } from "path";
 import { ModuleModel } from "@/models/Module";
 import { Lesson, LessonModel } from "@/models/Lesson";
+import { UserModel } from "@/models/User";
+import { getAuthHeaders } from "./helpers";
 
 const PORT = 3012;
 const API_URL = `http://0.0.0.0:${PORT}`;
@@ -19,6 +21,9 @@ const loadFixture = (fixture: string) => {
 };
 
 describe("Setting API Server up...", () => {
+  let headers: { authorization: string; code: string };
+  let adminHeaders: { authorization: string; code: string };
+
   let server: Server;
   beforeAll((done) => {
     const app = express();
@@ -31,6 +36,31 @@ describe("Setting API Server up...", () => {
 
   beforeAll(async () => {
     await mongoDBsetup(MONGODB_DATABASE_NAME);
+    const email = "new.user@polkadot.education";
+    const password = "password";
+    await UserModel.createUser({
+      email,
+      password,
+      name: "New User",
+      language: "english",
+      company: "company",
+      picture: "Base64OrLink",
+      isAdmin: false,
+      signInType: "Email",
+    });
+    const adminEmail = "admin@polkadot.education";
+    await UserModel.createUser({
+      email: adminEmail,
+      password,
+      name: "New User",
+      language: "english",
+      company: "company",
+      picture: "Base64OrLink",
+      isAdmin: true,
+      signInType: "Email",
+    });
+    headers = await getAuthHeaders(email, password);
+    adminHeaders = await getAuthHeaders(adminEmail, password);
   });
 
   afterEach(async () => {
@@ -59,10 +89,14 @@ describe("Setting API Server up...", () => {
 
       const moduleTitle = "Module #1";
       await axios
-        .post(`${API_URL}/module`, {
-          title: moduleTitle,
-          lessons: [lesson._id],
-        })
+        .post(
+          `${API_URL}/module`,
+          {
+            title: moduleTitle,
+            lessons: [lesson._id],
+          },
+          { headers: adminHeaders },
+        )
         .then((r) => {
           expect(r.data.title).toEqual(moduleTitle);
           expect(r.data.lessons[0]).toEqual(lesson._id.toString());
@@ -76,10 +110,14 @@ describe("Setting API Server up...", () => {
       const moduleTitle = "Module with invalid lessons";
       const invalidLessonId = "60e4b68f2f8fb814b56fa181";
       await axios
-        .post(`${API_URL}/module`, {
-          title: moduleTitle,
-          lessons: [invalidLessonId],
-        })
+        .post(
+          `${API_URL}/module`,
+          {
+            title: moduleTitle,
+            lessons: [invalidLessonId],
+          },
+          { headers: adminHeaders },
+        )
         .then(() => {})
         .catch((e) => {
           expect(e.response.data.error.message).toContain("Some lessons not found");
@@ -117,13 +155,17 @@ describe("Setting API Server up...", () => {
       });
 
       const updatedTitle = "Updated Module";
-      await axios.put(`${API_URL}/module/${module._id}`, {
-        title: updatedTitle,
-        lessons: [lesson1._id, lesson2._id],
-      });
+      await axios.put(
+        `${API_URL}/module/${module._id}`,
+        {
+          title: updatedTitle,
+          lessons: [lesson1._id, lesson2._id],
+        },
+        { headers: adminHeaders },
+      );
 
       await axios
-        .get(`${API_URL}/module?moduleId=${module._id}`)
+        .get(`${API_URL}/module?moduleId=${module._id}`, { headers })
         .then((r) => {
           expect(r.data.title).toEqual(updatedTitle);
           expect(r.data.lessons.some((recordedLesson: Lesson) => recordedLesson._id === lesson1._id.toString())).toBe(
@@ -155,7 +197,7 @@ describe("Setting API Server up...", () => {
       });
 
       await axios
-        .get(`${API_URL}/module?moduleId=${newModule._id}`)
+        .get(`${API_URL}/module?moduleId=${newModule._id}`, { headers })
         .then((r) => {
           expect(r.data.title).toEqual("Module with Lesson");
           expect(r.data.lessons.some((recordedLesson: Lesson) => recordedLesson._id === lesson._id.toString())).toBe(
@@ -186,7 +228,7 @@ describe("Setting API Server up...", () => {
       const moduleCountBefore = await ModuleModel.countDocuments();
 
       await axios
-        .delete(`${API_URL}/module`, { data: { moduleId: newModule._id } })
+        .delete(`${API_URL}/module`, { headers: adminHeaders, data: { moduleId: newModule._id } })
         .then((r) => {
           expect(r.data.message).toEqual(`Module '${newModule._id}' deleted`);
         })
