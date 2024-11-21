@@ -39,9 +39,9 @@ export const createModule = async (req: Request, res: Response) => {
 
 export const updateModule = async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { title, lessons } = req.body;
+  const { teamId, title, lessons } = req.body;
 
-  if (!id || !title || !lessons) {
+  if (!id || !teamId || !title || !lessons) {
     return res.status(400).send({ error: { message: "Missing params" } });
   }
 
@@ -52,8 +52,8 @@ export const updateModule = async (req: Request, res: Response) => {
       return res.status(400).send({ error: { message: "Some lessons not found" } });
     }
 
-    const updatedModule = await ModuleModel.findByIdAndUpdate(
-      id,
+    const updatedModule = await ModuleModel.findOneAndUpdate(
+      { _id: id, teamId },
       { title, lessons },
       { new: true, runValidators: true },
     );
@@ -97,12 +97,12 @@ export const getModule = async (req: Request, res: Response) => {
 
 export const deleteModule = async (req: Request, res: Response) => {
   try {
-    const { moduleId } = req.body;
-    if (!moduleId) {
-      return res.status(400).send({ error: { message: "Missing moduleId" } });
+    const { teamId, moduleId } = req.body;
+    if (!teamId || !moduleId) {
+      return res.status(400).send({ error: { message: "Missing teamId or moduleId" } });
     }
 
-    const result = await ModuleModel.deleteOne({ _id: moduleId });
+    const result = await ModuleModel.deleteOne({ _id: moduleId, teamId });
     if (result?.deletedCount > 0) {
       return res.status(200).send({ message: `Module '${moduleId}' deleted` });
     }

@@ -35,16 +35,16 @@ export const createLesson = async (req: Request, res: Response) => {
 
 export const updateLesson = async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { title, language, body, difficulty, challenge, references } = req.body;
+  const { teamId, title, language, body, difficulty, challenge, references } = req.body;
 
-  if (!id || !title || !language || !body || !difficulty || !challenge) {
+  if (!id || !teamId || !title || !language || !body || !difficulty || !challenge) {
     return res.status(400).send({ error: { message: "Missing params" } });
   }
 
   let errorMessage;
   try {
-    const updatedLesson = await LessonModel.findByIdAndUpdate(
-      id,
+    const updatedLesson = await LessonModel.findOneAndUpdate(
+      { _id: id, teamId },
       {
         title,
         language,
@@ -163,12 +163,12 @@ export const getLessonsSummary = async (req: Request, res: Response) => {
 
 export const deleteLesson = async (req: Request, res: Response) => {
   try {
-    const { lessonId } = req.body;
-    if (!lessonId) {
-      return res.status(400).send({ error: { message: "Missing lessonId" } });
+    const { teamId, lessonId } = req.body;
+    if (!teamId || !lessonId) {
+      return res.status(400).send({ error: { message: "Missing teamId or lessonId" } });
     }
 
-    const result = await LessonModel.deleteOne({ _id: lessonId });
+    const result = await LessonModel.deleteOne({ _id: lessonId, teamId });
     if (result?.deletedCount > 0) {
       return res.status(200).send({ message: `Lesson '${lessonId}' deleted` });
     }
