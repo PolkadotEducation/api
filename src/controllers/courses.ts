@@ -103,20 +103,24 @@ export const getCourse = async (req: Request, res: Response) => {
   });
 };
 
-export const getCoursesByLanguage = async (req: Request, res: Response) => {
+export const getCourses = async (req: Request, res: Response) => {
   try {
     const { teamId, language } = req.query;
-    if (!teamId || !language) {
+    if (!teamId && !language) {
       return res.status(400).send({ error: { message: "Missing teamId or language" } });
     }
 
-    const courses = await CourseModel.find({ teamId, language }).populate("modules");
+    let query = {};
+    if (teamId) query = { teamId };
+    if (language) query = { ...query, language };
+
+    const courses = await CourseModel.find(query).populate("modules");
     if (courses.length > 0) {
       return res.status(200).send(courses);
     } else {
       return res.status(404).send({
         error: {
-          message: "No courses found for this language",
+          message: "No courses found for this team and/or language",
         },
       });
     }

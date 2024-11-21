@@ -184,7 +184,7 @@ describe("Setting API Server up...", () => {
       );
 
       await axios
-        .get(`${API_URL}/module?teamId=${team._id}&moduleId=${module._id}`, { headers: adminHeaders })
+        .get(`${API_URL}/module?moduleId=${module._id}`, { headers: adminHeaders })
         .then((r) => {
           expect(r.data.title).toEqual(updatedTitle);
           expect(r.data.lessons.some((recordedLesson: Lesson) => recordedLesson._id === lesson1._id.toString())).toBe(
@@ -218,7 +218,7 @@ describe("Setting API Server up...", () => {
       });
 
       await axios
-        .get(`${API_URL}/module?teamId=${team._id}&moduleId=${newModule._id}`, { headers: adminHeaders })
+        .get(`${API_URL}/module?moduleId=${newModule._id}`, { headers: adminHeaders })
         .then((r) => {
           expect(r.data.title).toEqual("Module with Lesson");
           expect(r.data.lessons.some((recordedLesson: Lesson) => recordedLesson._id === lesson._id.toString())).toBe(
@@ -293,11 +293,6 @@ describe("Setting API Server up...", () => {
         title: "Initial Module",
         lessons: [lesson._id],
       });
-
-      await axios
-        .get(`${API_URL}/module?teamId=${team._id}&moduleId=${module._id}`, { headers })
-        .then(() => {})
-        .catch((e) => expect(e.response.status).toEqual(403));
 
       await axios
         .put(

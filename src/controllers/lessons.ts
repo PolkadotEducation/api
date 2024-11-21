@@ -108,11 +108,15 @@ export const getLessonsByLanguage = async (req: Request, res: Response) => {
   try {
     const { teamId, language } = req.query;
 
-    if (!teamId || !language) {
+    if (!teamId && !language) {
       return res.status(400).send({ error: { message: "Missing teamId or language" } });
     }
 
-    const lessons = await LessonModel.find({ teamId, language });
+    let query = {};
+    if (teamId) query = { teamId };
+    if (language) query = { ...query, language };
+
+    const lessons = await LessonModel.find(query);
 
     if (lessons.length > 0) {
       return res.status(200).send(lessons);
@@ -136,11 +140,11 @@ export const getLessonsByLanguage = async (req: Request, res: Response) => {
 export const getLessonsSummary = async (req: Request, res: Response) => {
   try {
     const { teamId } = req.query;
-    if (!teamId) {
-      return res.status(400).send({ error: { message: "Missing teamId" } });
-    }
 
-    const lessonsSummary = await LessonModel.find({ teamId }).select("_id title language").lean();
+    let query = {};
+    if (teamId) query = { teamId };
+
+    const lessonsSummary = await LessonModel.find(query).select("_id title language").lean();
 
     if (lessonsSummary.length > 0) {
       return res.status(200).send(lessonsSummary);

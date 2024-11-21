@@ -152,7 +152,7 @@ export const getUserXPAndLevel = async (_req: Request, res: Response) => {
 
     const progress = await ProgressModel.aggregate([
       {
-        $match: { userId: new Types.ObjectId(userId) },
+        $match: { userId: new Types.ObjectId(userId as string) },
       },
       {
         $group: {

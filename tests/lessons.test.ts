@@ -219,7 +219,7 @@ describe("Setting API Server up...", () => {
       );
 
       await axios
-        .get(`${API_URL}/lesson?teamId=${team._id}&lessonId=${lesson._id}`, { headers: adminHeaders })
+        .get(`${API_URL}/lesson?lessonId=${lesson._id}`, { headers: adminHeaders })
         .then((r) => {
           expect(r.data.title).toEqual(updatedTitle);
           expect(r.data.body).toEqual(updatedBody);
@@ -313,7 +313,7 @@ describe("Setting API Server up...", () => {
       });
 
       await axios
-        .get(`${API_URL}/lesson?teamId=${team._id}&lessonId=${newLesson._id}`, { headers: adminHeaders })
+        .get(`${API_URL}/lesson?lessonId=${newLesson._id}`, { headers: adminHeaders })
         .then((r) => {
           expect(r.data.title).toEqual(title);
           expect(r.data.body).toEqual(body);
@@ -370,7 +370,7 @@ describe("Setting API Server up...", () => {
       await LessonModel.insertMany(lessonsData);
 
       await axios
-        .get(`${API_URL}/lessons?teamId=${team._id}&language=english`, { headers: adminHeaders })
+        .get(`${API_URL}/lessons?language=english`, { headers: adminHeaders })
         .then((r) => {
           expect(r.status).toEqual(200);
           expect(r.data.length).toEqual(2);
@@ -387,7 +387,7 @@ describe("Setting API Server up...", () => {
 
     it("Get lessons by language with no results (GET /lessons?language=french)", async () => {
       await axios
-        .get(`${API_URL}/lessons?teamId=${team._id}&language=french`, { headers: adminHeaders })
+        .get(`${API_URL}/lessons?language=french`, { headers: adminHeaders })
         .then(() => {})
         .catch((e) => {
           expect(e.response.status).toEqual(404);
@@ -397,7 +397,7 @@ describe("Setting API Server up...", () => {
 
     it("Get lessons by language without specifying language (GET /lessons)", async () => {
       await axios
-        .get(`${API_URL}/lessons?teamId=${team._id}`, { headers: adminHeaders })
+        .get(`${API_URL}/lessons`, { headers: adminHeaders })
         .then(() => {})
         .catch((e) => {
           expect(e.response.status).toEqual(400);
@@ -477,6 +477,7 @@ describe("Setting API Server up...", () => {
 
       await LessonModel.insertMany(lessonsData);
 
+      // Fetching lessons from an specific teamId
       await axios
         .get(`${API_URL}/lessons/summary?teamId=${team._id}`, { headers: adminHeaders })
         .then((r) => {
@@ -490,7 +491,7 @@ describe("Setting API Server up...", () => {
       await LessonModel.deleteMany({});
 
       await axios
-        .get(`${API_URL}/lessons/summary?teamId=${team._id}`, { headers: adminHeaders })
+        .get(`${API_URL}/lessons/summary`, { headers: adminHeaders })
         .then((r) => {
           expect(r.status).toEqual(204);
         })
@@ -533,11 +534,6 @@ describe("Setting API Server up...", () => {
         references: [],
         language,
       });
-
-      await axios
-        .get(`${API_URL}/lesson?teamId=${team._id}&lessonId=${lesson._id}`, { headers })
-        .then(() => {})
-        .catch((e) => expect(e.response.status).toEqual(403));
 
       await axios
         .put(

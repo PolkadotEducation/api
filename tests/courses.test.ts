@@ -217,7 +217,7 @@ describe("Setting API Server up...", () => {
       );
 
       await axios
-        .get(`${API_URL}/course?teamId=${team._id}&courseId=${course._id}`, { headers: adminHeaders })
+        .get(`${API_URL}/course?courseId=${course._id}`, { headers: adminHeaders })
         .then((r) => {
           expect(r.data.title).toEqual(updatedTitle);
           expect(r.data.language).toEqual(updatedLanguage);
@@ -258,7 +258,7 @@ describe("Setting API Server up...", () => {
       });
 
       await axios
-        .get(`${API_URL}/course?teamId=${team._id}&courseId=${newCourse._id}`, { headers: adminHeaders })
+        .get(`${API_URL}/course?courseId=${newCourse._id}`, { headers: adminHeaders })
         .then((r) => {
           expect(r.data.title).toEqual("Course with Module");
           expect(r.data.summary).toEqual("This course contains a module");
@@ -329,8 +329,15 @@ describe("Setting API Server up...", () => {
         modules: [modulePortuguese._id],
       });
 
+      // Getting all courses from a specific Team
       await axios
-        .get(`${API_URL}/courses?teamId=${team._id}&language=english`, { headers: adminHeaders })
+        .get(`${API_URL}/courses?teamId=${team._id}`, { headers: adminHeaders })
+        .then((r) => expect(r.data.length).toBe(2))
+        .catch((e) => expect(e).toBeUndefined());
+
+      // Getting all courses from any team but english only
+      await axios
+        .get(`${API_URL}/courses?language=english`, { headers: adminHeaders })
         .then((r) => {
           expect(r.data.length).toBe(1);
           expect(r.data[0].title).toEqual("Course in English");
@@ -340,17 +347,17 @@ describe("Setting API Server up...", () => {
 
     it("Get courses by language with no results (GET /courses?language=french)", async () => {
       await axios
-        .get(`${API_URL}/courses?teamId=${team._id}&language=french`, { headers: adminHeaders })
+        .get(`${API_URL}/courses?language=french`, { headers: adminHeaders })
         .then(() => {})
         .catch((e) => {
           expect(e.response.status).toEqual(404);
-          expect(e.response.data.error.message).toEqual("No courses found for this language");
+          expect(e.response.data.error.message).toEqual("No courses found for this team and/or language");
         });
     });
 
-    it("Get courses by language without specifying language (GET /courses)", async () => {
+    it("Get courses by language without specifying language nor teamId (GET /courses)", async () => {
       await axios
-        .get(`${API_URL}/courses?teamId=${team._id}`, { headers: adminHeaders })
+        .get(`${API_URL}/courses`, { headers: adminHeaders })
         .then(() => {})
         .catch((e) => {
           expect(e.response.status).toEqual(400);
@@ -481,11 +488,6 @@ describe("Setting API Server up...", () => {
         summary: "Summary",
         modules: [module._id],
       });
-
-      await axios
-        .get(`${API_URL}/course?teamId=${team._id}&courseId=${course._id}`, { headers })
-        .then(() => {})
-        .catch((e) => expect(e.response.status).toEqual(403));
 
       await axios
         .put(

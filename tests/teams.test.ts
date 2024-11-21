@@ -75,6 +75,7 @@ describe("Setting API Server up...", () => {
         .post(
           `${API_URL}/teams`,
           {
+            owner: email,
             name,
             description,
             picture,
