@@ -1,3 +1,5 @@
+import { TeamInfo } from "./Team";
+
 export interface UserInfo {
   id: string;
   email: string;
@@ -5,6 +7,7 @@ export interface UserInfo {
   language: string;
   company: string;
   picture: string;
+  teams?: TeamInfo[];
   isAdmin: boolean;
   lastActivity: Date;
   verify?: VerifyUser;

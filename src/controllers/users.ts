@@ -5,6 +5,7 @@ import { UserModel } from "@/models/User";
 import { sendRecoverEmail, sendVerificationEmail } from "@/helpers/aws/ses";
 import { signatureVerify } from "@polkadot/util-crypto";
 import { UserInfo } from "@/types/User";
+import { getUserTeamInfo } from "@/helpers/team";
 
 export const createUser = async (req: Request, res: Response) => {
   try {
@@ -128,6 +129,7 @@ export const getUser = async (_req: Request, res: Response) => {
         email: user.email,
         name: user.name,
         picture: user.picture,
+        teams: await getUserTeamInfo(user.email),
         language: user.language,
         company: user.company,
         isAdmin: user.isAdmin,
@@ -168,6 +170,7 @@ export const updateUser = async (req: Request, res: Response) => {
       email: user.email,
       name: user.name,
       picture: user.picture,
+      teams: await getUserTeamInfo(user.email),
       company: user.company,
       isAdmin: user.isAdmin,
       language: user.language,
