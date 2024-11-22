@@ -73,6 +73,28 @@ export const updateModule = async (req: Request, res: Response) => {
   }
 };
 
+export const getModules = async (req: Request, res: Response) => {
+  try {
+    const { teamId } = req.query;
+    if (!teamId) {
+      return res.status(400).send({ error: { message: "Missing teamId" } });
+    }
+
+    const module = await ModuleModel.findOne({ teamId }).populate("lessons");
+    if (module) {
+      return res.status(200).send(module);
+    }
+  } catch (e) {
+    console.error(`[ERROR][getModules] ${JSON.stringify(e)}`);
+  }
+
+  return res.status(400).send({
+    error: {
+      message: "Modules not found",
+    },
+  });
+};
+
 export const getModule = async (req: Request, res: Response) => {
   try {
     const { moduleId } = req.query;

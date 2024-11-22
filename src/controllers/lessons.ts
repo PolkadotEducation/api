@@ -104,7 +104,7 @@ export const getLesson = async (req: Request, res: Response) => {
   });
 };
 
-export const getLessonsByLanguage = async (req: Request, res: Response) => {
+export const getLessons = async (req: Request, res: Response) => {
   try {
     const { teamId, language } = req.query;
 

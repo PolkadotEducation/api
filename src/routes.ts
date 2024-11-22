@@ -16,11 +16,11 @@ import {
   createLesson,
   deleteLesson,
   getLesson,
-  getLessonsByLanguage,
+  getLessons,
   getLessonsSummary,
   updateLesson,
 } from "@/controllers/lessons";
-import { createModule, deleteModule, getModule, updateModule } from "@/controllers/modules";
+import { createModule, deleteModule, getModule, getModules, updateModule } from "@/controllers/modules";
 import {
   createCourse,
   deleteCourse,
@@ -60,7 +60,7 @@ const router = (app: Express) => {
   // Lessons
   app.post("/lesson", [authMiddleware, teamMiddleware], createLesson);
   app.get("/lesson", [authMiddleware], getLesson);
-  app.get("/lessons", [authMiddleware], getLessonsByLanguage);
+  app.get("/lessons", [authMiddleware], getLessons);
   app.delete("/lesson", [authMiddleware, teamMiddleware], deleteLesson);
   app.put("/lesson/:id", [authMiddleware, teamMiddleware], updateLesson);
   app.get("/lessons/summary", [authMiddleware], getLessonsSummary);
@@ -68,6 +68,7 @@ const router = (app: Express) => {
   // Modules
   app.post("/module", [authMiddleware, teamMiddleware], createModule);
   app.get("/module", [authMiddleware], getModule);
+  app.get("/modules", [authMiddleware], getModules);
   app.delete("/module", [authMiddleware, teamMiddleware], deleteModule);
   app.put("/module/:id", [authMiddleware, teamMiddleware], updateModule);
 
