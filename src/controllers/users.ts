@@ -226,7 +226,7 @@ export const loginUserWithGoogle = async (req: Request, res: Response) => {
     const { email, name, picture, language } = req.body;
     if (!email) return res.status(400).send({ error: { message: "Missing email" } });
     const user = await UserModel.findOne({ email });
-    if (user) return res.status(200).send({ jwt: user.getAuthToken(true) });
+    if (user) return res.status(200).send({ jwt: await user.getAuthToken(true) });
     else {
       await UserModel.createUser({
         email,
@@ -238,7 +238,7 @@ export const loginUserWithGoogle = async (req: Request, res: Response) => {
         signInType: "Google",
       });
       const user = await UserModel.findOne({ email });
-      if (user) return res.status(200).send({ jwt: user.getAuthToken(true) });
+      if (user) return res.status(200).send({ jwt: await user.getAuthToken(true) });
     }
   } catch (e) {
     console.error(`[ERROR][loginUserWithGoogle] ${e}`);
@@ -260,7 +260,7 @@ export const loginUserWithWallet = async (req: Request, res: Response) => {
 
     const addr = String(address).toLowerCase();
     const user = await UserModel.findOne({ email: addr });
-    if (user) return res.status(200).send({ jwt: user.getAuthToken(true) });
+    if (user) return res.status(200).send({ jwt: await user.getAuthToken(true) });
     else {
       await UserModel.createUser({
         email: addr,
@@ -271,7 +271,7 @@ export const loginUserWithWallet = async (req: Request, res: Response) => {
         signInType: "Web3",
       });
       const user = await UserModel.findOne({ email: addr });
-      if (user) return res.status(200).send({ jwt: user.getAuthToken(true) });
+      if (user) return res.status(200).send({ jwt: await user.getAuthToken(true) });
     }
   } catch (e) {
     console.error(`[ERROR][loginUserWithWallet] ${e}`);

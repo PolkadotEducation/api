@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { ObjectId } from "mongodb";
 
 import { TeamModel } from "@/models/Team";
 import { UserTeamModel } from "@/models/UserTeam";
@@ -42,9 +43,10 @@ export const createTeam = async (req: Request, res: Response) => {
 
 export const getTeam = async (req: Request, res: Response) => {
   try {
-    const { teamId } = req.query;
-    if (!teamId) return res.status(400).send({ error: { message: "Missing team's id" } });
+    const { teamId: id } = req.query;
+    if (!id) return res.status(400).send({ error: { message: "Missing team's id" } });
 
+    const teamId = new ObjectId(id as string);
     const team = await TeamModel.findOne({ _id: teamId }).lean();
     const members = (await UserTeamModel.find({ teamId })).map((m) => m.email);
 
@@ -98,7 +100,7 @@ export const updateTeam = async (req: Request, res: Response) => {
     // remMembers: email[] (to be removed)
     const { name, description, picture, owner, addMembers, remMembers } = req.body;
 
-    const team = await TeamModel.findOne({ _id: id, owner: ownerEmail });
+    const team = await TeamModel.findOne({ _id: new ObjectId(id as string), owner: ownerEmail });
     if (!id || !team) return res.status(404).send({ error: { message: "Team not found" } });
 
     if (name) team.name = name;
@@ -148,9 +150,10 @@ export const updateTeam = async (req: Request, res: Response) => {
 export const deleteTeam = async (req: Request, res: Response) => {
   try {
     const ownerEmail = res.locals?.populatedUser?.email;
-    const { teamId } = req.body;
-    if (!teamId) return res.status(404).send({ error: { message: "Missing team's id" } });
+    const { teamId: id } = req.body;
+    if (!id) return res.status(404).send({ error: { message: "Missing team's id" } });
 
+    const teamId = new ObjectId(id as string);
     const result = await TeamModel.deleteOne({ _id: teamId, owner: ownerEmail });
     if (result?.deletedCount > 0) return res.status(200).send({ message: `Team '${teamId}' deleted` });
   } catch (e) {

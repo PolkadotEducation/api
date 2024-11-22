@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { ObjectId } from "mongodb";
 
 import { CourseModel } from "@/models/Course";
 import { ModuleModel } from "@/models/Module";
@@ -18,7 +19,7 @@ export const createCourse = async (req: Request, res: Response) => {
     }
 
     const newCourse = await CourseModel.create({
-      teamId,
+      teamId: new ObjectId(teamId as string),
       title,
       language,
       summary,
@@ -29,7 +30,7 @@ export const createCourse = async (req: Request, res: Response) => {
       return res.status(200).send(newCourse);
     }
   } catch (e) {
-    console.error(`[ERROR][createCourse] ${JSON.stringify(e)}`);
+    console.error(`[ERROR][createCourse] ${e}`);
     return res.status(400).send({
       error: {
         message: (e as Error).message || "Course not created",
@@ -54,7 +55,7 @@ export const updateCourse = async (req: Request, res: Response) => {
     }
 
     const updatedCourse = await CourseModel.findOneAndUpdate(
-      { _id: id, teamId },
+      { _id: id, teamId: new ObjectId(teamId as string) },
       { title, language, summary, modules },
       { new: true, runValidators: true },
     );
@@ -65,7 +66,7 @@ export const updateCourse = async (req: Request, res: Response) => {
       return res.status(404).send({ error: { message: "Course not found" } });
     }
   } catch (e) {
-    console.error(`[ERROR][updateCourse] ${JSON.stringify(e)}`);
+    console.error(`[ERROR][updateCourse] ${e}`);
     return res.status(500).send({
       error: {
         message: (e as Error).message || "Course not updated",
@@ -92,7 +93,7 @@ export const getCourse = async (req: Request, res: Response) => {
       return res.status(200).send(course);
     }
   } catch (e) {
-    console.error(`[ERROR][getCourse] ${JSON.stringify(e)}`);
+    console.error(`[ERROR][getCourse] ${e}`);
   }
 
   return res.status(400).send({
@@ -110,7 +111,7 @@ export const getCourses = async (req: Request, res: Response) => {
     }
 
     let query = {};
-    if (teamId) query = { teamId };
+    if (teamId) query = { teamId: new ObjectId(teamId as string) };
     if (language) query = { ...query, language };
 
     const courses = await CourseModel.find(query).populate("modules");
@@ -124,10 +125,10 @@ export const getCourses = async (req: Request, res: Response) => {
       });
     }
   } catch (e) {
-    console.error(`[ERROR][getCoursesByLanguage] ${JSON.stringify(e)}`);
+    console.error(`[ERROR][getCourses] ${e}`);
     return res.status(500).send({
       error: {
-        message: JSON.stringify(e),
+        message: e,
       },
     });
   }
@@ -140,12 +141,12 @@ export const deleteCourse = async (req: Request, res: Response) => {
       return res.status(400).send({ error: { message: "Missing teamId or courseId" } });
     }
 
-    const result = await CourseModel.deleteOne({ _id: courseId, teamId });
+    const result = await CourseModel.deleteOne({ _id: courseId, teamId: new ObjectId(teamId as string) });
     if (result?.deletedCount > 0) {
       return res.status(200).send({ message: `Course '${courseId}' deleted` });
     }
   } catch (e) {
-    console.error(`[ERROR][deleteCourse] ${JSON.stringify(e)}`);
+    console.error(`[ERROR][deleteCourse] ${e}`);
   }
 
   return res.status(400).send({
@@ -163,7 +164,10 @@ export const duplicateCourse = async (req: Request, res: Response) => {
   }
 
   try {
-    const existingCourse = await CourseModel.findOne({ _id: courseId, teamId }).populate("modules");
+    const existingCourse = await CourseModel.findOne({
+      _id: courseId,
+      teamId: new ObjectId(teamId as string),
+    }).populate("modules");
 
     if (!existingCourse) {
       return res.status(404).send({ error: { message: "Course not found" } });
@@ -179,7 +183,7 @@ export const duplicateCourse = async (req: Request, res: Response) => {
 
     return res.status(200).send(duplicatedCourse);
   } catch (e) {
-    console.error(`[ERROR][duplicateCourse] ${JSON.stringify(e)}`);
+    console.error(`[ERROR][duplicateCourse] ${e}`);
     return res.status(500).send({
       error: {
         message: (e as Error).message || "Course not duplicated",

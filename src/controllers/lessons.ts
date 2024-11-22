@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { ObjectId } from "bson";
+import { ObjectId } from "mongodb";
 
 import { LessonModel } from "@/models/Lesson";
 
@@ -23,7 +23,7 @@ export const createLesson = async (req: Request, res: Response) => {
     if (newLesson) return res.status(200).send(newLesson);
   } catch (e) {
     errorMessage = (e as Error).message;
-    console.error(`[ERROR][createLesson] ${JSON.stringify(e)}`);
+    console.error(`[ERROR][createLesson] ${e}`);
   }
 
   return res.status(400).send({
@@ -44,7 +44,7 @@ export const updateLesson = async (req: Request, res: Response) => {
   let errorMessage;
   try {
     const updatedLesson = await LessonModel.findOneAndUpdate(
-      { _id: id, teamId },
+      { _id: id, teamId: new ObjectId(teamId as string) },
       {
         title,
         language,
@@ -63,7 +63,7 @@ export const updateLesson = async (req: Request, res: Response) => {
     }
   } catch (e) {
     errorMessage = (e as Error).message;
-    console.error(`[ERROR][updateLesson] ${JSON.stringify(e)}`);
+    console.error(`[ERROR][updateLesson] ${e}`);
   }
 
   return res.status(500).send({
@@ -94,7 +94,7 @@ export const getLesson = async (req: Request, res: Response) => {
       return res.status(200).send(lessonResponse);
     }
   } catch (e) {
-    console.error(`[ERROR][getLesson] ${JSON.stringify(e)}`);
+    console.error(`[ERROR][getLesson] ${e}`);
   }
 
   return res.status(400).send({
@@ -113,7 +113,7 @@ export const getLessons = async (req: Request, res: Response) => {
     }
 
     let query = {};
-    if (teamId) query = { teamId };
+    if (teamId) query = { teamId: new ObjectId(teamId as string) };
     if (language) query = { ...query, language };
 
     const lessons = await LessonModel.find(query);
@@ -128,7 +128,7 @@ export const getLessons = async (req: Request, res: Response) => {
       });
     }
   } catch (e) {
-    console.error(`[ERROR][getLessonsByLanguage] ${JSON.stringify(e)}`);
+    console.error(`[ERROR][getLessons] ${e}`);
     return res.status(500).send({
       error: {
         message: JSON.stringify(e),
@@ -142,7 +142,7 @@ export const getLessonsSummary = async (req: Request, res: Response) => {
     const { teamId } = req.query;
 
     let query = {};
-    if (teamId) query = { teamId };
+    if (teamId) query = { teamId: new ObjectId(teamId as string) };
 
     const lessonsSummary = await LessonModel.find(query).select("_id title language").lean();
 
@@ -152,7 +152,7 @@ export const getLessonsSummary = async (req: Request, res: Response) => {
       return res.status(204).send();
     }
   } catch (e) {
-    console.error(`[ERROR][getLessonsSummary] ${JSON.stringify(e)}`);
+    console.error(`[ERROR][getLessonsSummary] ${e}`);
     return res.status(500).send({
       error: {
         message: JSON.stringify(e),
@@ -168,12 +168,12 @@ export const deleteLesson = async (req: Request, res: Response) => {
       return res.status(400).send({ error: { message: "Missing teamId or lessonId" } });
     }
 
-    const result = await LessonModel.deleteOne({ _id: lessonId, teamId });
+    const result = await LessonModel.deleteOne({ _id: lessonId, teamId: new ObjectId(teamId as string) });
     if (result?.deletedCount > 0) {
       return res.status(200).send({ message: `Lesson '${lessonId}' deleted` });
     }
   } catch (e) {
-    console.error(`[ERROR][deleteLesson] ${JSON.stringify(e)}`);
+    console.error(`[ERROR][deleteLesson] ${e}`);
   }
 
   return res.status(400).send({
