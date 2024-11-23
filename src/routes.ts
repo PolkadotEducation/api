@@ -15,6 +15,7 @@ import {
 import {
   createLesson,
   deleteLesson,
+  duplicateLessons,
   getLesson,
   getLessonsByLanguage,
   getLessonsSummary,
@@ -53,6 +54,7 @@ const router = (app: Express) => {
   app.delete("/lesson/:id", [authMiddleware, adminMiddleware], deleteLesson);
   app.put("/lesson/:id", [authMiddleware, adminMiddleware], updateLesson);
   app.get("/lessons/summary", [authMiddleware, adminMiddleware], getLessonsSummary);
+  app.post("/lessons/duplicate", [authMiddleware, adminMiddleware], duplicateLessons);
 
   // Modules
   app.post("/module", [authMiddleware, adminMiddleware], createModule);
