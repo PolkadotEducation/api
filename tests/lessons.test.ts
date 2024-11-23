@@ -403,7 +403,7 @@ describe("Setting API Server up...", () => {
       });
 
       await axios
-        .delete(`${API_URL}/lesson`, { headers: adminHeaders, data: { lessonId: newLesson._id } })
+        .delete(`${API_URL}/lesson/${newLesson._id}`, { headers: adminHeaders })
         .then((r) => {
           expect(r.data.message).toEqual(`Lesson '${newLesson._id}' deleted`);
         })
@@ -469,6 +469,53 @@ describe("Setting API Server up...", () => {
           expect(r.status).toEqual(204);
         })
         .catch((e) => expect(e).toBeUndefined());
+    });
+
+    it("Duplicate lessons (POST /lessons/duplicate)", async () => {
+      const lesson1 = await LessonModel.create({
+        title: "Original Lesson 1",
+        body: "Content of lesson 1",
+        difficulty: "easy",
+        language: "english",
+        challenge: {
+          question: "What is the capital of England?",
+          choices: ["London", "Paris", "Berlin", "Rome"],
+          correctChoice: 0,
+        },
+        references: [],
+      });
+
+      const lesson2 = await LessonModel.create({
+        title: "Original Lesson 2",
+        body: "Content of lesson 2",
+        difficulty: "medium",
+        language: "english",
+        challenge: {
+          question: "What is the capital of the USA?",
+          choices: ["Washington D.C.", "New York", "Los Angeles", "Chicago"],
+          correctChoice: 0,
+        },
+        references: [],
+      });
+
+      await axios
+        .post(`${API_URL}/lessons/duplicate`, { lessons: [lesson1._id, lesson2._id] }, { headers: adminHeaders })
+        .then((r) => {
+          expect(r.status).toEqual(200);
+          expect(r.data.length).toEqual(2);
+          expect(r.data[0]).not.toEqual(lesson1._id);
+          expect(r.data[1]).not.toEqual(lesson2._id);
+
+          return Promise.all(r.data.map((id: string) => LessonModel.findById(id)));
+        })
+        .catch((e) => expect(e).toBeUndefined());
+    });
+
+    it("Duplicate lessons missing lessons (POST /lessons/duplicate)", async () => {
+      await axios.post(`${API_URL}/lessons/duplicate`, {}, { headers: adminHeaders }).catch((e) => {
+        expect(e.response.status).toEqual(400);
+        expect(e.response.data.error.message).toContain("Missing lessons to duplicate");
+      });
     });
   });
 });

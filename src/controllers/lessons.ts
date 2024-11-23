@@ -170,3 +170,43 @@ export const deleteLesson = async (req: Request, res: Response) => {
     },
   });
 };
+
+export const duplicateLessons = async (req: Request, res: Response) => {
+  const { lessons } = req.body;
+
+  if (!lessons || lessons.length <= 0) {
+    return res.status(400).send({ error: { message: "Missing lessons to duplicate" } });
+  }
+
+  try {
+    const duplicatedLessonsIds = await Promise.all(
+      lessons.map(async (id: string) => {
+        const existingLesson = await LessonModel.findById(id);
+
+        if (!existingLesson) {
+          throw new Error(`Lesson with id ${id} not found`);
+        }
+
+        const duplicatedLesson = await LessonModel.create({
+          title: existingLesson.title,
+          language: existingLesson.language,
+          body: existingLesson.body,
+          difficulty: existingLesson.difficulty,
+          challenge: existingLesson.challenge,
+          references: existingLesson.references,
+        });
+
+        return duplicatedLesson._id;
+      }),
+    );
+
+    return res.status(200).send(duplicatedLessonsIds);
+  } catch (e) {
+    console.error(`[ERROR][duplicateLesson] ${JSON.stringify(e)}`);
+    return res.status(500).send({
+      error: {
+        message: (e as Error).message || "Lesson not duplicated",
+      },
+    });
+  }
+};
