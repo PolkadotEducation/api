@@ -4,7 +4,8 @@ import { ObjectId } from "mongodb";
 import { LessonModel } from "@/models/Lesson";
 
 export const createLesson = async (req: Request, res: Response) => {
-  const { teamId, title, language, body, difficulty, challenge, references } = req.body;
+  const { teamId } = req.params;
+  const { title, language, body, difficulty, challenge, references } = req.body;
   if (!teamId || !title || !language || !body || !difficulty || !challenge) {
     return res.status(400).send({ error: { message: "Missing params" } });
   }
@@ -34,8 +35,8 @@ export const createLesson = async (req: Request, res: Response) => {
 };
 
 export const updateLesson = async (req: Request, res: Response) => {
-  const { id } = req.params;
-  const { teamId, title, language, body, difficulty, challenge, references } = req.body;
+  const { teamId, id } = req.params;
+  const { title, language, body, difficulty, challenge, references } = req.body;
 
   if (!id || !teamId || !title || !language || !body || !difficulty || !challenge) {
     return res.status(400).send({ error: { message: "Missing params" } });
@@ -163,7 +164,7 @@ export const getLessonsSummary = async (req: Request, res: Response) => {
 
 export const deleteLesson = async (req: Request, res: Response) => {
   try {
-    const { teamId, lessonId } = req.body;
+    const { teamId, id: lessonId } = req.params;
     if (!teamId || !lessonId) {
       return res.status(400).send({ error: { message: "Missing teamId or lessonId" } });
     }
@@ -184,6 +185,7 @@ export const deleteLesson = async (req: Request, res: Response) => {
 };
 
 export const duplicateLessons = async (req: Request, res: Response) => {
+  const { teamId } = req.params;
   const { lessons } = req.body;
 
   if (!lessons || lessons.length <= 0) {
@@ -193,13 +195,14 @@ export const duplicateLessons = async (req: Request, res: Response) => {
   try {
     const duplicatedLessonsIds = await Promise.all(
       lessons.map(async (id: string) => {
-        const existingLesson = await LessonModel.findById(id);
+        const existingLesson = await LessonModel.findOne({ _id: id, teamId: new ObjectId(teamId as string) });
 
         if (!existingLesson) {
           throw new Error(`Lesson with id ${id} not found`);
         }
 
         const duplicatedLesson = await LessonModel.create({
+          teamId: existingLesson.teamId,
           title: existingLesson.title,
           language: existingLesson.language,
           body: existingLesson.body,

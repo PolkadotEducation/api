@@ -5,7 +5,8 @@ import { ModuleModel } from "@/models/Module";
 import { LessonModel } from "@/models/Lesson";
 
 export const createModule = async (req: Request, res: Response) => {
-  const { teamId, title, lessons } = req.body;
+  const { teamId } = req.params;
+  const { title, lessons } = req.body;
 
   if (!teamId || !title || !lessons) {
     return res.status(400).send({ error: { message: "Missing params" } });
@@ -38,8 +39,8 @@ export const createModule = async (req: Request, res: Response) => {
 };
 
 export const updateModule = async (req: Request, res: Response) => {
-  const { id } = req.params;
-  const { teamId, title, lessons } = req.body;
+  const { teamId, id } = req.params;
+  const { title, lessons } = req.body;
 
   if (!id || !teamId || !title || !lessons) {
     return res.status(400).send({ error: { message: "Missing params" } });
@@ -119,7 +120,7 @@ export const getModule = async (req: Request, res: Response) => {
 
 export const deleteModule = async (req: Request, res: Response) => {
   try {
-    const { teamId, moduleId } = req.body;
+    const { teamId, id: moduleId } = req.params;
     if (!teamId || !moduleId) {
       return res.status(400).send({ error: { message: "Missing teamId or moduleId" } });
     }

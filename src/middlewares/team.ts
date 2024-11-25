@@ -9,7 +9,7 @@ const teamMiddleware = async (req: Request, res: Response, next: NextFunction) =
     error: "You must be a team member to access this resource.",
   };
   try {
-    const teamId = req.query.teamId || req.body.teamId;
+    const { teamId } = req.params;
     const email = res.locals?.user?.email;
     const isMember = await UserTeamModel.findOne({ email, teamId });
     if (!isMember) throw new Error("ACCESS_DENIED");

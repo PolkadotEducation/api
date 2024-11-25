@@ -56,31 +56,31 @@ const router = (app: Express) => {
   app.post("/teams", [authMiddleware, adminMiddleware], createTeam);
   app.get("/teams", [authMiddleware], getTeam);
   app.put("/teams/:id", [authMiddleware], updateTeam);
-  app.delete("/teams", [authMiddleware], deleteTeam);
+  app.delete("/teams/:id", [authMiddleware], deleteTeam);
 
   // Lessons
-  app.post("/lesson", [authMiddleware, teamMiddleware], createLesson);
+  app.post("/lesson/:teamId", [authMiddleware, teamMiddleware], createLesson);
   app.get("/lesson", [authMiddleware], getLesson);
   app.get("/lessons", [authMiddleware], getLessons);
-  app.delete("/lesson", [authMiddleware, teamMiddleware], deleteLesson);
-  app.put("/lesson/:id", [authMiddleware, teamMiddleware], updateLesson);
+  app.delete("/lesson/:teamId/:id", [authMiddleware, teamMiddleware], deleteLesson);
+  app.put("/lesson/:teamId/:id", [authMiddleware, teamMiddleware], updateLesson);
   app.get("/lessons/summary", [authMiddleware], getLessonsSummary);
-  app.post("/lessons/duplicate", [authMiddleware, teamMiddleware], duplicateLessons);
+  app.post("/lessons/duplicate/:teamId", [authMiddleware, teamMiddleware], duplicateLessons);
 
   // Modules
-  app.post("/module", [authMiddleware, teamMiddleware], createModule);
+  app.post("/module/:teamId", [authMiddleware, teamMiddleware], createModule);
   app.get("/module", [authMiddleware], getModule);
   app.get("/modules", [authMiddleware], getModules);
-  app.delete("/module", [authMiddleware, teamMiddleware], deleteModule);
-  app.put("/module/:id", [authMiddleware, teamMiddleware], updateModule);
+  app.delete("/module/:teamId/:id", [authMiddleware, teamMiddleware], deleteModule);
+  app.put("/module/:teamId/:id", [authMiddleware, teamMiddleware], updateModule);
 
   // Courses
-  app.post("/course", [authMiddleware, teamMiddleware], createCourse);
+  app.post("/course/:teamId", [authMiddleware, teamMiddleware], createCourse);
   app.get("/course", [authMiddleware], getCourse);
   app.get("/courses", [authMiddleware], getCourses);
-  app.delete("/course", [authMiddleware, teamMiddleware], deleteCourse);
-  app.put("/course/:id", [authMiddleware, teamMiddleware], updateCourse);
-  app.post("/course/duplicate", [authMiddleware, teamMiddleware], duplicateCourse);
+  app.delete("/course/:teamId/:id", [authMiddleware, teamMiddleware], deleteCourse);
+  app.put("/course/:teamId/:id", [authMiddleware, teamMiddleware], updateCourse);
+  app.post("/course/duplicate/:teamId/:id", [authMiddleware, teamMiddleware], duplicateCourse);
 
   // Progress
   app.post("/progress", [authMiddleware], submitAnswer);

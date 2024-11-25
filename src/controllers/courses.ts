@@ -5,7 +5,8 @@ import { CourseModel } from "@/models/Course";
 import { ModuleModel } from "@/models/Module";
 
 export const createCourse = async (req: Request, res: Response) => {
-  const { teamId, title, language, summary, modules } = req.body;
+  const { teamId } = req.params;
+  const { title, language, summary, modules } = req.body;
 
   if (!teamId || !title || !language || !summary || !modules) {
     return res.status(400).send({ error: { message: "Missing params" } });
@@ -40,8 +41,8 @@ export const createCourse = async (req: Request, res: Response) => {
 };
 
 export const updateCourse = async (req: Request, res: Response) => {
-  const { id } = req.params;
-  const { teamId, title, language, summary, modules } = req.body;
+  const { teamId, id } = req.params;
+  const { title, language, summary, modules } = req.body;
 
   if (!id || !teamId || !title || !language || !summary || !modules) {
     return res.status(400).send({ error: { message: "Missing params" } });
@@ -136,7 +137,7 @@ export const getCourses = async (req: Request, res: Response) => {
 
 export const deleteCourse = async (req: Request, res: Response) => {
   try {
-    const { teamId, courseId } = req.body;
+    const { teamId, id: courseId } = req.params;
     if (!teamId || !courseId) {
       return res.status(400).send({ error: { message: "Missing teamId or courseId" } });
     }
@@ -157,7 +158,7 @@ export const deleteCourse = async (req: Request, res: Response) => {
 };
 
 export const duplicateCourse = async (req: Request, res: Response) => {
-  const { teamId, courseId } = req.body;
+  const { teamId, id: courseId } = req.params;
 
   if (!teamId || !courseId) {
     return res.status(400).send({ error: { message: "Missing teamId or courseId" } });

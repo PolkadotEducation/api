@@ -150,7 +150,7 @@ export const updateTeam = async (req: Request, res: Response) => {
 export const deleteTeam = async (req: Request, res: Response) => {
   try {
     const ownerEmail = res.locals?.populatedUser?.email;
-    const { teamId: id } = req.body;
+    const { id } = req.params;
     if (!id) return res.status(404).send({ error: { message: "Missing team's id" } });
 
     const teamId = new ObjectId(id as string);

@@ -99,9 +99,8 @@ describe("Setting API Server up...", () => {
 
       await axios
         .post(
-          `${API_URL}/lesson`,
+          `${API_URL}/lesson/${team._id}`,
           {
-            teamId: team._id,
             title,
             language,
             body,
@@ -134,9 +133,8 @@ describe("Setting API Server up...", () => {
 
       await axios
         .post(
-          `${API_URL}/lesson`,
+          `${API_URL}/lesson/${team._id}`,
           {
-            teamId: team._id,
             title,
             language,
             body,
@@ -205,9 +203,8 @@ describe("Setting API Server up...", () => {
       const updatedLanguage = "english";
 
       await axios.put(
-        `${API_URL}/lesson/${lesson._id}`,
+        `${API_URL}/lesson/${team._id}/${lesson._id}`,
         {
-          teamId: team._id,
           title: updatedTitle,
           body: updatedBody,
           difficulty: updatedDifficulty,
@@ -262,9 +259,8 @@ describe("Setting API Server up...", () => {
 
       await axios
         .put(
-          `${API_URL}/lesson/${initialLesson._id}`,
+          `${API_URL}/lesson/${team._id}/${initialLesson._id}`,
           {
-            teamId: team._id,
             title: updatedTitle,
             body: updatedBody,
             difficulty: updatedDifficulty,
@@ -426,7 +422,7 @@ describe("Setting API Server up...", () => {
       });
 
       await axios
-        .delete(`${API_URL}/lesson`, { headers: adminHeaders, data: { teamId: team._id, lessonId: newLesson._id } })
+        .delete(`${API_URL}/lesson/${team._id}/${newLesson._id}`, { headers: adminHeaders })
         .then((r) => {
           expect(r.data.message).toEqual(`Lesson '${newLesson._id}' deleted`);
         })
@@ -500,6 +496,7 @@ describe("Setting API Server up...", () => {
 
     it("Duplicate lessons (POST /lessons/duplicate)", async () => {
       const lesson1 = await LessonModel.create({
+        teamId: team,
         title: "Original Lesson 1",
         body: "Content of lesson 1",
         difficulty: "easy",
@@ -513,6 +510,7 @@ describe("Setting API Server up...", () => {
       });
 
       const lesson2 = await LessonModel.create({
+        teamId: team,
         title: "Original Lesson 2",
         body: "Content of lesson 2",
         difficulty: "medium",
@@ -526,7 +524,11 @@ describe("Setting API Server up...", () => {
       });
 
       await axios
-        .post(`${API_URL}/lessons/duplicate`, { lessons: [lesson1._id, lesson2._id] }, { headers: adminHeaders })
+        .post(
+          `${API_URL}/lessons/duplicate/${team._id}`,
+          { lessons: [lesson1._id, lesson2._id] },
+          { headers: adminHeaders },
+        )
         .then((r) => {
           expect(r.status).toEqual(200);
           expect(r.data.length).toEqual(2);
@@ -539,7 +541,7 @@ describe("Setting API Server up...", () => {
     });
 
     it("Duplicate lessons missing lessons (POST /lessons/duplicate)", async () => {
-      await axios.post(`${API_URL}/lessons/duplicate`, {}, { headers: adminHeaders }).catch((e) => {
+      await axios.post(`${API_URL}/lessons/duplicate/${team._id}`, {}, { headers: adminHeaders }).catch((e) => {
         expect(e.response.status).toEqual(400);
         expect(e.response.data.error.message).toContain("Missing lessons to duplicate");
       });
@@ -558,9 +560,8 @@ describe("Setting API Server up...", () => {
 
       await axios
         .post(
-          `${API_URL}/lesson`,
+          `${API_URL}/lesson/${team._id}`,
           {
-            teamId: team._id,
             title,
             language,
             body,
@@ -584,9 +585,8 @@ describe("Setting API Server up...", () => {
 
       await axios
         .put(
-          `${API_URL}/lesson/${lesson._id}`,
+          `${API_URL}/lesson/${team._id}/${lesson._id}`,
           {
-            teamId: team._id,
             title,
             language,
             body,
@@ -599,7 +599,7 @@ describe("Setting API Server up...", () => {
         .catch((e) => expect(e.response.status).toEqual(403));
 
       await axios
-        .delete(`${API_URL}/lesson`, { headers, data: { teamId: team._id, moduleId: lesson._id } })
+        .delete(`${API_URL}/lesson/${team._id}/${lesson._id}`, { headers })
         .then(() => {})
         .catch((e) => expect(e.response.status).toEqual(403));
     });

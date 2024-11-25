@@ -103,9 +103,8 @@ describe("Setting API Server up...", () => {
       const moduleTitle = "Module #1";
       await axios
         .post(
-          `${API_URL}/module`,
+          `${API_URL}/module/${team._id}`,
           {
-            teamId: team._id,
             title: moduleTitle,
             lessons: [lesson._id],
           },
@@ -125,9 +124,8 @@ describe("Setting API Server up...", () => {
       const invalidLessonId = "60e4b68f2f8fb814b56fa181";
       await axios
         .post(
-          `${API_URL}/module`,
+          `${API_URL}/module/${team._id}`,
           {
-            teamId: team._id,
             title: moduleTitle,
             lessons: [invalidLessonId],
           },
@@ -174,9 +172,8 @@ describe("Setting API Server up...", () => {
 
       const updatedTitle = "Updated Module";
       await axios.put(
-        `${API_URL}/module/${module._id}`,
+        `${API_URL}/module/${team._id}/${module._id}`,
         {
-          teamId: team._id,
           title: updatedTitle,
           lessons: [lesson1._id, lesson2._id],
         },
@@ -251,7 +248,7 @@ describe("Setting API Server up...", () => {
       const moduleCountBefore = await ModuleModel.countDocuments();
 
       await axios
-        .delete(`${API_URL}/module`, { headers: adminHeaders, data: { teamId: team._id, moduleId: newModule._id } })
+        .delete(`${API_URL}/module/${team._id}/${newModule._id}`, { headers: adminHeaders })
         .then((r) => {
           expect(r.data.message).toEqual(`Module '${newModule._id}' deleted`);
         })
@@ -277,9 +274,8 @@ describe("Setting API Server up...", () => {
 
       await axios
         .post(
-          `${API_URL}/module`,
+          `${API_URL}/module/${team._id}`,
           {
-            teamId: team._id,
             title: "Module Title",
             lessons: [lesson._id],
           },
@@ -296,9 +292,8 @@ describe("Setting API Server up...", () => {
 
       await axios
         .put(
-          `${API_URL}/module/${module._id}`,
+          `${API_URL}/module/${team._id}/${module._id}`,
           {
-            teamId: team._id,
             title: "New Module Title",
             lessons: [lesson._id],
           },
@@ -308,7 +303,7 @@ describe("Setting API Server up...", () => {
         .catch((e) => expect(e.response.status).toEqual(403));
 
       await axios
-        .delete(`${API_URL}/module`, { headers, data: { teamId: team._id, moduleId: module._id } })
+        .delete(`${API_URL}/module/${team._id}/${module._id}`, { headers })
         .then(() => {})
         .catch((e) => expect(e.response.status).toEqual(403));
     });

@@ -114,9 +114,8 @@ describe("Setting API Server up...", () => {
 
       await axios
         .post(
-          `${API_URL}/course`,
+          `${API_URL}/course/${team._id}`,
           {
-            teamId: team._id,
             title: courseTitle,
             language: courseLanguage,
             summary: courseSummary,
@@ -143,9 +142,8 @@ describe("Setting API Server up...", () => {
 
       await axios
         .post(
-          `${API_URL}/course`,
+          `${API_URL}/course/${team._id}`,
           {
-            teamId: team._id,
             title: courseTitle,
             language: courseLanguage,
             summary: courseSummary,
@@ -205,9 +203,8 @@ describe("Setting API Server up...", () => {
       const updatedSummary = "Resumo do curso atualizado";
 
       await axios.put(
-        `${API_URL}/course/${course._id}`,
+        `${API_URL}/course/${team._id}/${course._id}`,
         {
-          teamId: team._id,
           title: updatedTitle,
           language: updatedLanguage,
           summary: updatedSummary,
@@ -396,7 +393,7 @@ describe("Setting API Server up...", () => {
       const courseCountBefore = await CourseModel.countDocuments();
 
       await axios
-        .delete(`${API_URL}/course`, { headers: adminHeaders, data: { teamId: team._id, courseId: newCourse._id } })
+        .delete(`${API_URL}/course/${team._id}/${newCourse._id}`, { headers: adminHeaders })
         .then((r) => {
           expect(r.data.message).toEqual(`Course '${newCourse._id}' deleted`);
         })
@@ -435,7 +432,7 @@ describe("Setting API Server up...", () => {
       });
 
       await axios
-        .post(`${API_URL}/course/duplicate`, { teamId: team._id, courseId: course._id }, { headers: adminHeaders })
+        .post(`${API_URL}/course/duplicate/${team._id}/${course._id}`, {}, { headers: adminHeaders })
         .then((r) => {
           expect(r.data.title).toEqual(`${course.title} (Copy)`);
           expect(r.data.summary).toEqual(course.summary);
@@ -468,9 +465,8 @@ describe("Setting API Server up...", () => {
 
       await axios
         .post(
-          `${API_URL}/course`,
+          `${API_URL}/course/${team._id}`,
           {
-            teamId: team._id,
             title: "Course Title",
             language: "english",
             summary: "Summary",
@@ -491,9 +487,8 @@ describe("Setting API Server up...", () => {
 
       await axios
         .put(
-          `${API_URL}/course/${course._id}`,
+          `${API_URL}/course/${team._id}/${course._id}`,
           {
-            teamId: team._id,
             title: "Course Title",
             language: "english",
             summary: "Summary",
@@ -505,7 +500,7 @@ describe("Setting API Server up...", () => {
         .catch((e) => expect(e.response.status).toEqual(403));
 
       await axios
-        .delete(`${API_URL}/course`, { headers, data: { teamId: team._id, courseId: course._id } })
+        .delete(`${API_URL}/course/${team._id}/${course._id}`, { headers })
         .then(() => {})
         .catch((e) => expect(e.response.status).toEqual(403));
     });
