@@ -1,7 +1,7 @@
 import { getModelForClass, index, prop } from "@typegoose/typegoose";
 import BaseModel from "./BaseModel";
 
-@index({ email: 1, name: 1 }, { unique: true })
+@index({ owner: 1, name: 1 }, { unique: true })
 class Team extends BaseModel {
   // User email (owner)
   @prop({ required: true, type: String })
