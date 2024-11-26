@@ -11,6 +11,8 @@ import { Module, ModuleModel } from "@/models/Module";
 import { Lesson, LessonModel } from "@/models/Lesson";
 import { UserModel } from "@/models/User";
 import { getAuthHeaders } from "./helpers";
+import { Team, TeamModel } from "@/models/Team";
+import { UserTeamModel } from "@/models/UserTeam";
 
 const PORT = 3013;
 const API_URL = `http://0.0.0.0:${PORT}`;
@@ -22,6 +24,7 @@ const loadFixture = (fixture: string) => {
 };
 
 describe("Setting API Server up...", () => {
+  let team: Team;
   let headers: { authorization: string; code: string };
   let adminHeaders: { authorization: string; code: string };
 
@@ -60,6 +63,15 @@ describe("Setting API Server up...", () => {
       isAdmin: true,
       signInType: "Email",
     });
+
+    team = await TeamModel.create({
+      owner: adminEmail,
+      name: "Admin Team",
+      description: "Admin Team Description",
+      picture: "...",
+    });
+    await UserTeamModel.create({ email: adminEmail, teamId: team });
+
     headers = await getAuthHeaders(email, password);
     adminHeaders = await getAuthHeaders(adminEmail, password);
   });
@@ -78,6 +90,7 @@ describe("Setting API Server up...", () => {
   describe("Courses", () => {
     it("Create a Course (POST /course)", async () => {
       const lesson = await LessonModel.create({
+        teamId: team,
         title: "Lesson #1",
         language: "english",
         body: loadFixture("example.md"),
@@ -90,6 +103,7 @@ describe("Setting API Server up...", () => {
       });
 
       const module = await ModuleModel.create({
+        teamId: team,
         title: "Module #1",
         lessons: [lesson._id],
       });
@@ -100,7 +114,7 @@ describe("Setting API Server up...", () => {
 
       await axios
         .post(
-          `${API_URL}/course`,
+          `${API_URL}/course/${team._id}`,
           {
             title: courseTitle,
             language: courseLanguage,
@@ -128,7 +142,7 @@ describe("Setting API Server up...", () => {
 
       await axios
         .post(
-          `${API_URL}/course`,
+          `${API_URL}/course/${team._id}`,
           {
             title: courseTitle,
             language: courseLanguage,
@@ -145,6 +159,7 @@ describe("Setting API Server up...", () => {
 
     it("Update a Course (PUT /course/:id)", async () => {
       const lesson1 = await LessonModel.create({
+        teamId: team,
         title: "Lesson #1",
         language: "english",
         body: loadFixture("example.md"),
@@ -157,6 +172,7 @@ describe("Setting API Server up...", () => {
       });
 
       const lesson2 = await LessonModel.create({
+        teamId: team,
         title: "Lesson #2",
         language: "english",
         body: loadFixture("example.md"),
@@ -169,11 +185,13 @@ describe("Setting API Server up...", () => {
       });
 
       const module = await ModuleModel.create({
+        teamId: team,
         title: "Initial Module",
         lessons: [lesson1._id, lesson2._id],
       });
 
       const course = await CourseModel.create({
+        teamId: team,
         title: "Initial Course",
         language: "english",
         summary: "This is the initial course summary",
@@ -185,7 +203,7 @@ describe("Setting API Server up...", () => {
       const updatedSummary = "Resumo do curso atualizado";
 
       await axios.put(
-        `${API_URL}/course/${course._id}`,
+        `${API_URL}/course/${team._id}/${course._id}`,
         {
           title: updatedTitle,
           language: updatedLanguage,
@@ -196,7 +214,7 @@ describe("Setting API Server up...", () => {
       );
 
       await axios
-        .get(`${API_URL}/course?courseId=${course._id}`, { headers })
+        .get(`${API_URL}/course?courseId=${course._id}`, { headers: adminHeaders })
         .then((r) => {
           expect(r.data.title).toEqual(updatedTitle);
           expect(r.data.language).toEqual(updatedLanguage);
@@ -210,6 +228,7 @@ describe("Setting API Server up...", () => {
 
     it("Get a Course (GET /course)", async () => {
       const lesson = await LessonModel.create({
+        teamId: team,
         title: "Lesson #3",
         language: "english",
         body: loadFixture("example.md"),
@@ -222,11 +241,13 @@ describe("Setting API Server up...", () => {
       });
 
       const module = await ModuleModel.create({
+        teamId: team,
         title: "Module with Lesson",
         lessons: [lesson._id],
       });
 
       const newCourse = await CourseModel.create({
+        teamId: team,
         title: "Course with Module",
         language: "english",
         summary: "This course contains a module",
@@ -234,7 +255,7 @@ describe("Setting API Server up...", () => {
       });
 
       await axios
-        .get(`${API_URL}/course?courseId=${newCourse._id}`, { headers })
+        .get(`${API_URL}/course?courseId=${newCourse._id}`, { headers: adminHeaders })
         .then((r) => {
           expect(r.data.title).toEqual("Course with Module");
           expect(r.data.summary).toEqual("This course contains a module");
@@ -252,6 +273,7 @@ describe("Setting API Server up...", () => {
       await CourseModel.deleteMany({});
 
       const lesson1 = await LessonModel.create({
+        teamId: team,
         title: "Lesson in English #1",
         language: "english",
         body: loadFixture("example.md"),
@@ -264,6 +286,7 @@ describe("Setting API Server up...", () => {
       });
 
       const lesson2 = await LessonModel.create({
+        teamId: team,
         title: "Aula em Português",
         language: "portuguese",
         body: loadFixture("example.md"),
@@ -276,16 +299,19 @@ describe("Setting API Server up...", () => {
       });
 
       const moduleEnglish = await ModuleModel.create({
+        teamId: team,
         title: "Module in English",
         lessons: [lesson1._id],
       });
 
       const modulePortuguese = await ModuleModel.create({
+        teamId: team,
         title: "Módulo em Português",
         lessons: [lesson2._id],
       });
 
       await CourseModel.create({
+        teamId: team,
         title: "Course in English",
         language: "english",
         summary: "This is an English course",
@@ -293,14 +319,22 @@ describe("Setting API Server up...", () => {
       });
 
       await CourseModel.create({
+        teamId: team,
         title: "Curso em Português",
         language: "portuguese",
         summary: "Este é um curso em Português",
         modules: [modulePortuguese._id],
       });
 
+      // Getting all courses from a specific Team
       await axios
-        .get(`${API_URL}/courses?language=english`, { headers })
+        .get(`${API_URL}/courses?teamId=${team._id}`, { headers: adminHeaders })
+        .then((r) => expect(r.data.length).toBe(2))
+        .catch((e) => expect(e).toBeUndefined());
+
+      // Getting all courses from any team but english only
+      await axios
+        .get(`${API_URL}/courses?language=english`, { headers: adminHeaders })
         .then((r) => {
           expect(r.data.length).toBe(1);
           expect(r.data[0].title).toEqual("Course in English");
@@ -310,26 +344,27 @@ describe("Setting API Server up...", () => {
 
     it("Get courses by language with no results (GET /courses?language=french)", async () => {
       await axios
-        .get(`${API_URL}/courses?language=french`, { headers })
+        .get(`${API_URL}/courses?language=french`, { headers: adminHeaders })
         .then(() => {})
         .catch((e) => {
           expect(e.response.status).toEqual(404);
-          expect(e.response.data.error.message).toEqual("No courses found for this language");
+          expect(e.response.data.error.message).toEqual("No courses found for this team and/or language");
         });
     });
 
-    it("Get courses by language without specifying language (GET /courses)", async () => {
+    it("Get courses by language without specifying language nor teamId (GET /courses)", async () => {
       await axios
-        .get(`${API_URL}/courses`, { headers })
+        .get(`${API_URL}/courses`, { headers: adminHeaders })
         .then(() => {})
         .catch((e) => {
           expect(e.response.status).toEqual(400);
-          expect(e.response.data.error.message).toEqual("Missing language");
+          expect(e.response.data.error.message).toEqual("Missing teamId or language");
         });
     });
 
     it("Delete a Course (DELETE /course)", async () => {
       const lesson = await LessonModel.create({
+        teamId: team,
         title: "Lesson #4",
         language: "english",
         body: loadFixture("example.md"),
@@ -342,11 +377,13 @@ describe("Setting API Server up...", () => {
       });
 
       const module = await ModuleModel.create({
+        teamId: team,
         title: "Module to Delete",
         lessons: [lesson._id],
       });
 
       const newCourse = await CourseModel.create({
+        teamId: team,
         title: "Course to Delete",
         language: "english",
         summary: "This course is about to be deleted",
@@ -356,7 +393,7 @@ describe("Setting API Server up...", () => {
       const courseCountBefore = await CourseModel.countDocuments();
 
       await axios
-        .delete(`${API_URL}/course`, { headers: adminHeaders, data: { courseId: newCourse._id } })
+        .delete(`${API_URL}/course/${team._id}/${newCourse._id}`, { headers: adminHeaders })
         .then((r) => {
           expect(r.data.message).toEqual(`Course '${newCourse._id}' deleted`);
         })
@@ -368,6 +405,7 @@ describe("Setting API Server up...", () => {
 
     it("Duplicate a Course (POST /course/duplicate)", async () => {
       const lesson = await LessonModel.create({
+        teamId: team,
         title: "Lesson #5",
         language: "english",
         body: loadFixture("example.md"),
@@ -380,11 +418,13 @@ describe("Setting API Server up...", () => {
       });
 
       const module = await ModuleModel.create({
+        teamId: team,
         title: "Module to Duplicate",
         lessons: [lesson._id],
       });
 
       const course = await CourseModel.create({
+        teamId: team,
         title: "Course to Duplicate",
         language: "english",
         summary: "This course will be duplicated",
@@ -392,7 +432,7 @@ describe("Setting API Server up...", () => {
       });
 
       await axios
-        .post(`${API_URL}/course/duplicate`, { courseId: course._id }, { headers: adminHeaders })
+        .post(`${API_URL}/course/duplicate/${team._id}/${course._id}`, {}, { headers: adminHeaders })
         .then((r) => {
           expect(r.data.title).toEqual(`${course.title} (Copy)`);
           expect(r.data.summary).toEqual(course.summary);
@@ -401,6 +441,68 @@ describe("Setting API Server up...", () => {
           );
         })
         .catch((e) => expect(e).toBeUndefined());
+    });
+
+    it("Should return 403 if no permisson to POST/GET/PUT/DELETE", async () => {
+      const lesson = await LessonModel.create({
+        teamId: team,
+        title: "Lesson #1",
+        language: "english",
+        body: loadFixture("example.md"),
+        difficulty: "easy",
+        challenge: {
+          question: "What is the capital of France?",
+          choices: ["Berlin", "Madrid", "Paris", "Rome"],
+          correctChoice: 2,
+        },
+      });
+
+      const module = await ModuleModel.create({
+        teamId: team,
+        title: "Module to Duplicate",
+        lessons: [lesson._id],
+      });
+
+      await axios
+        .post(
+          `${API_URL}/course/${team._id}`,
+          {
+            title: "Course Title",
+            language: "english",
+            summary: "Summary",
+            modules: [module._id],
+          },
+          { headers },
+        )
+        .then(() => {})
+        .catch((e) => expect(e.response.status).toEqual(403));
+
+      const course = await CourseModel.create({
+        teamId: team,
+        title: "Course Title",
+        language: "english",
+        summary: "Summary",
+        modules: [module._id],
+      });
+
+      await axios
+        .put(
+          `${API_URL}/course/${team._id}/${course._id}`,
+          {
+            title: "Course Title",
+            language: "english",
+            summary: "Summary",
+            modules: [module._id],
+          },
+          { headers },
+        )
+        .then(() => {})
+        .catch((e) => expect(e.response.status).toEqual(403));
+
+      await axios
+        .delete(`${API_URL}/course/${team._id}/${course._id}`, { headers })
+        .then(() => {})
+        .catch((e) => expect(e.response.status).toEqual(403));
     });
   });
 });

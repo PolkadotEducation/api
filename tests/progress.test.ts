@@ -14,6 +14,8 @@ import { ProgressModel } from "@/models/Progress";
 import { UserModel } from "@/models/User";
 import { UserInfo } from "@/types/User";
 import { getAuthHeaders } from "./helpers";
+import { Team, TeamModel } from "@/models/Team";
+import { UserTeamModel } from "@/models/UserTeam";
 
 const PORT = 3014;
 const API_URL = `http://0.0.0.0:${PORT}`;
@@ -26,6 +28,7 @@ const loadFixture = (fixture: string) => {
 };
 
 describe("Setting API Server up...", () => {
+  let team: Team;
   let server: Server;
   beforeAll((done) => {
     const app = express();
@@ -38,6 +41,13 @@ describe("Setting API Server up...", () => {
 
   beforeAll(async () => {
     await mongoDBsetup(MONGODB_DATABASE_NAME);
+    team = await TeamModel.create({
+      owner: "owner@team.com",
+      name: "Admin Team",
+      description: "Admin Team Description",
+      picture: "...",
+    });
+    await UserTeamModel.create({ email: "owner@team.com", teamId: team });
   });
 
   afterAll(async () => {
@@ -75,6 +85,7 @@ describe("Setting API Server up...", () => {
       headers = await getAuthHeaders(email, password);
 
       lesson1 = await LessonModel.create({
+        teamId: team,
         title: "Lesson #1",
         language: "english",
         body: loadFixture("example.md"),
@@ -87,6 +98,7 @@ describe("Setting API Server up...", () => {
       });
 
       lesson2 = await LessonModel.create({
+        teamId: team,
         title: "Lesson #2",
         language: "english",
         body: loadFixture("example.md"),
@@ -99,6 +111,7 @@ describe("Setting API Server up...", () => {
       });
 
       lesson3 = await LessonModel.create({
+        teamId: team,
         title: "Lesson #3",
         language: "english",
         body: loadFixture("example.md"),
@@ -111,6 +124,7 @@ describe("Setting API Server up...", () => {
       });
 
       lesson4 = await LessonModel.create({
+        teamId: team,
         title: "Lesson #4",
         language: "english",
         body: loadFixture("example.md"),
@@ -123,6 +137,7 @@ describe("Setting API Server up...", () => {
       });
 
       lesson5 = await LessonModel.create({
+        teamId: team,
         title: "Lesson #5",
         language: "english",
         body: loadFixture("example.md"),
@@ -135,21 +150,25 @@ describe("Setting API Server up...", () => {
       });
 
       module1 = await ModuleModel.create({
+        teamId: team,
         title: "Initial Module",
         lessons: [lesson1._id, lesson2._id],
       });
 
       module2 = await ModuleModel.create({
+        teamId: team,
         title: "Next Module",
         lessons: [lesson3._id, lesson4._id],
       });
 
       module3 = await ModuleModel.create({
+        teamId: team,
         title: "Final Module",
         lessons: [lesson5._id],
       });
 
       course = await CourseModel.create({
+        teamId: team,
         title: "Initial Course",
         language: "english",
         summary: "This is the initial course summary",

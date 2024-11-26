@@ -1,6 +1,7 @@
-import { getModelForClass, prop, Severity } from "@typegoose/typegoose";
+import { getModelForClass, prop, Ref, Severity } from "@typegoose/typegoose";
 
 import BaseModel from "./BaseModel";
+import { Team } from "./Team";
 
 class Challenge {
   @prop({ required: true, type: String })
@@ -32,6 +33,9 @@ class Reference {
 }
 
 class Lesson extends BaseModel {
+  @prop({ required: true, ref: () => Team })
+  public teamId: Ref<Team>;
+
   @prop({ required: true, type: String })
   public title: string;
 

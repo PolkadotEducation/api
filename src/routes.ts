@@ -17,22 +17,24 @@ import {
   deleteLesson,
   duplicateLessons,
   getLesson,
-  getLessonsByLanguage,
+  getLessons,
   getLessonsSummary,
   updateLesson,
 } from "@/controllers/lessons";
-import { createModule, deleteModule, getModule, updateModule } from "@/controllers/modules";
+import { createModule, deleteModule, getModule, getModules, updateModule } from "@/controllers/modules";
 import {
   createCourse,
   deleteCourse,
   getCourse,
   updateCourse,
   duplicateCourse,
-  getCoursesByLanguage,
+  getCourses,
 } from "@/controllers/courses";
 
 import authMiddleware from "./middlewares/auth";
 import { getCourseProgress, getLessonProgress, getUserXPAndLevel, submitAnswer } from "./controllers/progress";
+import { createTeam, deleteTeam, getTeam, getUserTeams, updateTeam } from "./controllers/teams";
+import teamMiddleware from "./middlewares/team";
 import adminMiddleware from "./middlewares/admin";
 
 const router = (app: Express) => {
@@ -47,28 +49,38 @@ const router = (app: Express) => {
   app.post("/users/login/google", loginUserWithGoogle);
   app.post("/users/login/wallet", loginUserWithWallet);
 
+  // User's teams
+  app.get("/users/teams", [authMiddleware], getUserTeams);
+
+  // Team
+  app.post("/teams", [authMiddleware, adminMiddleware], createTeam);
+  app.get("/teams", [authMiddleware], getTeam);
+  app.put("/teams/:id", [authMiddleware], updateTeam);
+  app.delete("/teams/:id", [authMiddleware], deleteTeam);
+
   // Lessons
-  app.post("/lesson", [authMiddleware, adminMiddleware], createLesson);
+  app.post("/lesson/:teamId", [authMiddleware, teamMiddleware], createLesson);
   app.get("/lesson", [authMiddleware], getLesson);
-  app.get("/lessons", [authMiddleware], getLessonsByLanguage);
-  app.delete("/lesson/:id", [authMiddleware, adminMiddleware], deleteLesson);
-  app.put("/lesson/:id", [authMiddleware, adminMiddleware], updateLesson);
-  app.get("/lessons/summary", [authMiddleware, adminMiddleware], getLessonsSummary);
-  app.post("/lessons/duplicate", [authMiddleware, adminMiddleware], duplicateLessons);
+  app.get("/lessons", [authMiddleware], getLessons);
+  app.delete("/lesson/:teamId/:id", [authMiddleware, teamMiddleware], deleteLesson);
+  app.put("/lesson/:teamId/:id", [authMiddleware, teamMiddleware], updateLesson);
+  app.get("/lessons/summary", [authMiddleware], getLessonsSummary);
+  app.post("/lessons/duplicate/:teamId", [authMiddleware, teamMiddleware], duplicateLessons);
 
   // Modules
-  app.post("/module", [authMiddleware, adminMiddleware], createModule);
+  app.post("/module/:teamId", [authMiddleware, teamMiddleware], createModule);
   app.get("/module", [authMiddleware], getModule);
-  app.delete("/module", [authMiddleware, adminMiddleware], deleteModule);
-  app.put("/module/:id", [authMiddleware, adminMiddleware], updateModule);
+  app.get("/modules", [authMiddleware], getModules);
+  app.delete("/module/:teamId/:id", [authMiddleware, teamMiddleware], deleteModule);
+  app.put("/module/:teamId/:id", [authMiddleware, teamMiddleware], updateModule);
 
   // Courses
-  app.post("/course", [authMiddleware, adminMiddleware], createCourse);
+  app.post("/course/:teamId", [authMiddleware, teamMiddleware], createCourse);
   app.get("/course", [authMiddleware], getCourse);
-  app.get("/courses", [authMiddleware], getCoursesByLanguage);
-  app.delete("/course", [authMiddleware, adminMiddleware], deleteCourse);
-  app.put("/course/:id", [authMiddleware, adminMiddleware], updateCourse);
-  app.post("/course/duplicate", [authMiddleware, adminMiddleware], duplicateCourse);
+  app.get("/courses", [authMiddleware], getCourses);
+  app.delete("/course/:teamId/:id", [authMiddleware, teamMiddleware], deleteCourse);
+  app.put("/course/:teamId/:id", [authMiddleware, teamMiddleware], updateCourse);
+  app.post("/course/duplicate/:teamId/:id", [authMiddleware, teamMiddleware], duplicateCourse);
 
   // Progress
   app.post("/progress", [authMiddleware], submitAnswer);

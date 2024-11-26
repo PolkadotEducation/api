@@ -52,7 +52,7 @@ export const submitAnswer = async (req: Request, res: Response) => {
     }
 
     errorMessage = (e as Error).message;
-    console.error(`[ERROR][submitAnswer] ${JSON.stringify(e)}`);
+    console.error(`[ERROR][submitAnswer] ${e}`);
   }
 
   return res.status(400).send({
@@ -75,7 +75,7 @@ export const getLessonProgress = async (req: Request, res: Response) => {
     const progress = await ProgressModel.find({ courseId, lessonId, userId });
     return res.status(200).send(progress);
   } catch (e) {
-    console.error(`[ERROR][getLessonProgress] ${JSON.stringify(e)}`);
+    console.error(`[ERROR][getLessonProgress] ${e}`);
     return res.status(500).send({ error: { message: "Internal server error" } });
   }
 };
@@ -115,7 +115,7 @@ export const getCourseProgress = async (req: Request, res: Response) => {
       progressPercentage,
     });
   } catch (e) {
-    console.error(`[ERROR][getCourseProgress] ${JSON.stringify(e)}`);
+    console.error(`[ERROR][getCourseProgress] ${e}`);
     return res.status(500).send({ error: { message: "Internal server error" } });
   }
 };
@@ -152,7 +152,7 @@ export const getUserXPAndLevel = async (_req: Request, res: Response) => {
 
     const progress = await ProgressModel.aggregate([
       {
-        $match: { userId: new Types.ObjectId(userId) },
+        $match: { userId: new Types.ObjectId(userId as string) },
       },
       {
         $group: {
@@ -190,7 +190,7 @@ export const getUserXPAndLevel = async (_req: Request, res: Response) => {
 
     return res.status(200).send({ exp, level });
   } catch (e) {
-    console.error(`[ERROR][getUserXPAndLevel] ${JSON.stringify(e)}`);
+    console.error(`[ERROR][getUserXPAndLevel] ${e}`);
     return res.status(500).send({ error: { message: "Internal server error" } });
   }
 };
