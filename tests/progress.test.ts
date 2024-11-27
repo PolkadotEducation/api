@@ -16,6 +16,7 @@ import { UserInfo } from "@/types/User";
 import { getAuthHeaders } from "./helpers";
 import { Team, TeamModel } from "@/models/Team";
 import { UserTeamModel } from "@/models/UserTeam";
+import { getCompletedCoursesByUserId } from "@/controllers/progress";
 
 const PORT = 3014;
 const API_URL = `http://0.0.0.0:${PORT}`;
@@ -539,6 +540,160 @@ describe("Setting API Server up...", () => {
           expect(r.data).toHaveProperty("level");
           expect(r.data.exp).toEqual(125);
           expect(r.data.level).toEqual(0);
+        })
+        .catch((e) => {
+          expect(e).toBeUndefined();
+        });
+    });
+
+    it("should return an array of completed courses for a valid user", async () => {
+      await ProgressModel.create({
+        courseId: course._id,
+        lessonId: lesson1._id,
+        userId: user?.id,
+        choice: lesson1.challenge.correctChoice,
+        isCorrect: true,
+        difficulty: lesson1.difficulty,
+      });
+
+      await ProgressModel.create({
+        courseId: course._id,
+        lessonId: lesson2._id,
+        userId: user?.id,
+        choice: lesson2.challenge.correctChoice,
+        isCorrect: true,
+        difficulty: lesson2.difficulty,
+      });
+
+      await ProgressModel.create({
+        courseId: course._id,
+        lessonId: lesson3._id,
+        userId: user?.id,
+        choice: lesson3.challenge.correctChoice,
+        isCorrect: true,
+        difficulty: lesson3.difficulty,
+      });
+
+      await ProgressModel.create({
+        courseId: course._id,
+        lessonId: lesson4._id,
+        userId: user?.id,
+        choice: lesson4.challenge.correctChoice,
+        isCorrect: true,
+        difficulty: lesson4.difficulty,
+      });
+
+      await ProgressModel.create({
+        courseId: course._id,
+        lessonId: lesson5._id,
+        userId: user?.id,
+        choice: lesson5.challenge.correctChoice,
+        isCorrect: true,
+        difficulty: lesson5.difficulty,
+      });
+
+      const completedCourses = await getCompletedCoursesByUserId(user?.id as string);
+
+      expect(completedCourses).toEqual([{ courseId: course._id, courseTitle: course.title }]);
+    });
+
+    it("should return an empty array since user didnt finished the course", async () => {
+      await ProgressModel.create({
+        courseId: course._id,
+        lessonId: lesson1._id,
+        userId: user?.id,
+        choice: lesson1.challenge.correctChoice,
+        isCorrect: true,
+        difficulty: lesson1.difficulty,
+      });
+
+      await ProgressModel.create({
+        courseId: course._id,
+        lessonId: lesson2._id,
+        userId: user?.id,
+        choice: lesson2.challenge.correctChoice,
+        isCorrect: true,
+        difficulty: lesson2.difficulty,
+      });
+
+      await ProgressModel.create({
+        courseId: course._id,
+        lessonId: lesson3._id,
+        userId: user?.id,
+        choice: lesson3.challenge.correctChoice,
+        isCorrect: true,
+        difficulty: lesson3.difficulty,
+      });
+
+      await ProgressModel.create({
+        courseId: course._id,
+        lessonId: lesson4._id,
+        userId: user?.id,
+        choice: lesson4.challenge.correctChoice,
+        isCorrect: true,
+        difficulty: lesson4.difficulty,
+      });
+
+      // Missing lesson 5
+
+      const completedCourses = await getCompletedCoursesByUserId(user?.id as string);
+
+      expect(completedCourses).toEqual([]);
+    });
+
+    it("Get user completed courses (GET /progress/courses)", async () => {
+      await ProgressModel.create({
+        courseId: course._id,
+        lessonId: lesson1._id,
+        userId: user?.id,
+        choice: 0,
+        isCorrect: true,
+        difficulty: lesson1.difficulty,
+      });
+
+      await ProgressModel.create({
+        courseId: course._id,
+        lessonId: lesson2._id,
+        userId: user?.id,
+        choice: 2,
+        isCorrect: true,
+        difficulty: lesson2.difficulty,
+      });
+
+      await ProgressModel.create({
+        courseId: course._id,
+        lessonId: lesson3._id,
+        userId: user?.id,
+        choice: 2,
+        isCorrect: true,
+        difficulty: lesson3.difficulty,
+      });
+
+      await ProgressModel.create({
+        courseId: course._id,
+        lessonId: lesson4._id,
+        userId: user?.id,
+        choice: 0,
+        isCorrect: true,
+        difficulty: lesson4.difficulty,
+      });
+
+      await ProgressModel.create({
+        courseId: course._id,
+        lessonId: lesson5._id,
+        userId: user?.id,
+        choice: 1,
+        isCorrect: true,
+        difficulty: lesson5.difficulty,
+      });
+
+      await axios
+        .get(`${API_URL}/progress/courses`, { headers })
+        .then((r) => {
+          expect(r.status).toEqual(200);
+          expect(r.data.length).toEqual(1);
+          expect(r.data[0].courseId).toEqual(course._id?.toString());
+          expect(r.data[0].courseTitle).toEqual(course.title);
         })
         .catch((e) => {
           expect(e).toBeUndefined();
