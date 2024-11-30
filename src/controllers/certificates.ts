@@ -49,6 +49,15 @@ export const generateCertificate = async (req: Request, res: Response) => {
       });
     }
 
+    const certificateAlreadyGenerated = await CertificateModel.findOne({ userId, courseId });
+    if (certificateAlreadyGenerated) {
+      return res.status(400).send({
+        error: {
+          message: "Certificate for this course already generated",
+        },
+      });
+    }
+
     const userCompletedCourses = await getCompletedCoursesByUserId(userId.toString());
     const isUserElegibleForCertificate = userCompletedCourses.some(
       (i) => i.courseId.toString() === courseId.toString(),
