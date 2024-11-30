@@ -3,7 +3,7 @@ import { CourseModel } from "@/models/Course";
 import { UserModel } from "@/models/User";
 import { Request, Response } from "express";
 import { getCompletedCoursesByUserId } from "./progress";
-import { ObjectId } from "bson";
+import { ObjectId } from "mongodb";
 
 export const getCertificate = async (req: Request, res: Response) => {
   const { certificateId } = req.params;
