@@ -96,15 +96,8 @@ export const getCertificates = async (req: Request, res: Response) => {
     if (userId) query = { ...query, userId: new ObjectId(userId as string) };
 
     const certificates = await CertificateModel.find(query);
-    if (certificates.length > 0) {
-      return res.status(200).send(certificates);
-    } else {
-      return res.status(404).send({
-        error: {
-          message: "No certificates found for user/course",
-        },
-      });
-    }
+
+    return res.status(200).send(certificates);
   } catch (e) {
     console.error(`[ERROR][getCertificates] ${JSON.stringify(e)}`);
   }
