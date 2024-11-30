@@ -3,9 +3,10 @@ import { CourseModel } from "@/models/Course";
 import { UserModel } from "@/models/User";
 import { Request, Response } from "express";
 import { getCompletedCoursesByUserId } from "./progress";
+import { ObjectId } from "bson";
 
 export const getCertificate = async (req: Request, res: Response) => {
-  const { certificateId } = req.query;
+  const { certificateId } = req.params;
 
   try {
     if (!certificateId) {
@@ -78,6 +79,39 @@ export const generateCertificate = async (req: Request, res: Response) => {
   return res.status(400).send({
     error: {
       message: "Error while creating certificate",
+    },
+  });
+};
+
+export const getCertificates = async (req: Request, res: Response) => {
+  const { courseId, userId } = req.query;
+
+  try {
+    if (!courseId && !userId) {
+      return res.status(400).send({ error: { message: "Missing courseId or userId" } });
+    }
+
+    let query = {};
+    if (courseId) query = { courseId: new ObjectId(courseId as string) };
+    if (userId) query = { ...query, userId: new ObjectId(userId as string) };
+
+    const certificates = await CertificateModel.find(query);
+    if (certificates.length > 0) {
+      return res.status(200).send(certificates);
+    } else {
+      return res.status(404).send({
+        error: {
+          message: "No certificates found for user/course",
+        },
+      });
+    }
+  } catch (e) {
+    console.error(`[ERROR][getCertificates] ${JSON.stringify(e)}`);
+  }
+
+  return res.status(400).send({
+    error: {
+      message: "Certificates not found",
     },
   });
 };

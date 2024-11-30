@@ -310,7 +310,7 @@ describe("Setting API Server up...", () => {
         });
     });
 
-    it("should get user certificate (GET /cerfiticates)", async () => {
+    it("should get certificate by certificateId (GET /cerfiticates/:certificateId)", async () => {
       const certificate = await CertificateModel.create({
         courseId: course._id,
         courseTitle: course.title,
@@ -319,7 +319,7 @@ describe("Setting API Server up...", () => {
       });
 
       await axios
-        .get(`${API_URL}/cerfiticates?certificateId=${certificate._id}`)
+        .get(`${API_URL}/cerfiticates/${certificate._id}`)
         .then((r) => {
           expect(r.data.courseId).toEqual(course._id?.toString());
           expect(r.data.courseTitle).toEqual(course.title);
@@ -332,14 +332,66 @@ describe("Setting API Server up...", () => {
         });
     });
 
-    it("should not get user certificate because certificate not found", async () => {
+    it("should not get certificate because certificate not found", async () => {
       const randomCertificateId = new mongoose.Types.ObjectId();
       await axios
-        .get(`${API_URL}/cerfiticates?certificateId=${randomCertificateId}`)
+        .get(`${API_URL}/cerfiticates/${randomCertificateId}`)
         .then(() => {})
         .catch((e) => {
           expect(e.response.status).toEqual(400);
           expect(e.response.data.error.message).toEqual("Certificate not found");
+        });
+    });
+
+    it("should get certificates by courseId (GET /cerfiticates)", async () => {
+      await CertificateModel.create({
+        courseId: course._id,
+        courseTitle: course.title,
+        userId: user?.id,
+        userName: user?.name,
+      });
+
+      await CertificateModel.create({
+        courseId: course._id,
+        courseTitle: course.title,
+        userId: new mongoose.Types.ObjectId(),
+        userName: "another user name",
+      });
+
+      await axios
+        .get(`${API_URL}/cerfiticates?courseId=${course._id}`)
+        .then((r) => {
+          expect(r.data.length).toEqual(2);
+          expect(r.status).toEqual(200);
+        })
+        .catch((e) => {
+          expect(e).toBeUndefined();
+        });
+    });
+
+    it("should get certificates by userId (GET /cerfiticates)", async () => {
+      await CertificateModel.create({
+        courseId: new mongoose.Types.ObjectId(),
+        courseTitle: "Another course",
+        userId: user?.id,
+        userName: user?.name,
+      });
+
+      await CertificateModel.create({
+        courseId: course._id,
+        courseTitle: course.title,
+        userId: user?.id,
+        userName: user?.name,
+      });
+
+      await axios
+        .get(`${API_URL}/cerfiticates?userId=${user?.id}`)
+        .then((r) => {
+          expect(r.data.length).toEqual(2);
+          expect(r.status).toEqual(200);
+        })
+        .catch((e) => {
+          expect(e).toBeUndefined();
         });
     });
   });
