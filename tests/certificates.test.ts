@@ -359,7 +359,7 @@ describe("Setting API Server up...", () => {
       });
 
       await axios
-        .get(`${API_URL}/cerfiticates?courseId=${course._id}`)
+        .get(`${API_URL}/cerfiticates?courseId=${course._id}`, { headers })
         .then((r) => {
           expect(r.data.length).toEqual(2);
           expect(r.status).toEqual(200);
@@ -385,7 +385,7 @@ describe("Setting API Server up...", () => {
       });
 
       await axios
-        .get(`${API_URL}/cerfiticates?userId=${user?.id}`)
+        .get(`${API_URL}/cerfiticates?userId=${user?.id}`, { headers })
         .then((r) => {
           expect(r.data.length).toEqual(2);
           expect(r.status).toEqual(200);

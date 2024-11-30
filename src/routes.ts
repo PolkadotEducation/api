@@ -99,7 +99,7 @@ const router = (app: Express) => {
   // Certificate
   app.post("/certificates/generate", [authMiddleware], generateCertificate);
   app.get("/cerfiticates/:certificateId", getCertificate);
-  app.get("/cerfiticates", getCertificates);
+  app.get("/cerfiticates", [authMiddleware], getCertificates);
 };
 
 export default router;
