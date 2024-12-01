@@ -32,10 +32,17 @@ import {
 } from "@/controllers/courses";
 
 import authMiddleware from "./middlewares/auth";
-import { getCourseProgress, getLessonProgress, getUserXPAndLevel, submitAnswer } from "./controllers/progress";
 import { createTeam, deleteTeam, getTeam, getUserTeams, updateTeam } from "./controllers/teams";
 import teamMiddleware from "./middlewares/team";
+import {
+  getCompletedCourses,
+  getCourseProgress,
+  getLessonProgress,
+  getUserXPAndLevel,
+  submitAnswer,
+} from "./controllers/progress";
 import adminMiddleware from "./middlewares/admin";
+import { generateCertificate, getCertificate, getCertificates } from "./controllers/certificates";
 
 const router = (app: Express) => {
   // Users
@@ -87,6 +94,12 @@ const router = (app: Express) => {
   app.get("/progress/lesson/:courseId/:lessonId", [authMiddleware], getLessonProgress);
   app.get("/progress/course/:courseId", [authMiddleware], getCourseProgress);
   app.get("/progress/level", [authMiddleware], getUserXPAndLevel);
+  app.get("/progress/courses", [authMiddleware], getCompletedCourses);
+
+  // Certificate
+  app.post("/certificates/generate", [authMiddleware], generateCertificate);
+  app.get("/certificates/:certificateId", getCertificate);
+  app.get("/certificates", [authMiddleware], getCertificates);
 };
 
 export default router;

@@ -1,10 +1,11 @@
 import { Request, Response } from "express";
 import { ProgressModel } from "@/models/Progress";
-import { LessonModel } from "@/models/Lesson";
+import { Lesson, LessonModel } from "@/models/Lesson";
 import { Course, CourseModel } from "@/models/Course";
 import { UserModel } from "@/models/User";
 import { Types } from "mongoose";
 import { MongoError } from "mongodb";
+import { Module } from "@/models/Module";
 
 export const submitAnswer = async (req: Request, res: Response) => {
   const { courseId, lessonId, choice } = req.body;
@@ -191,6 +192,59 @@ export const getUserXPAndLevel = async (_req: Request, res: Response) => {
     return res.status(200).send({ exp, level });
   } catch (e) {
     console.error(`[ERROR][getUserXPAndLevel] ${e}`);
+    return res.status(500).send({ error: { message: "Internal server error" } });
+  }
+};
+
+export const getCompletedCoursesByUserId = async (
+  userId: string,
+): Promise<Array<{ courseId: string; courseTitle: string }>> => {
+  const courses = await CourseModel.find({}).populate<{
+    modules: Array<Module & { lessons: Lesson[] }>;
+  }>({
+    path: "modules",
+    populate: { path: "lessons", model: "Lesson" },
+  });
+
+  const completedCourses: Array<{ courseId: string; courseTitle: string }> = [];
+
+  for (const course of courses) {
+    const allLessonIds = (course.modules ?? []).flatMap((module) =>
+      (module.lessons ?? []).map((lesson) => (typeof lesson === "string" ? lesson : lesson._id.toString())),
+    );
+
+    const userProgress = await ProgressModel.find({
+      courseId: course._id,
+      userId,
+      isCorrect: true,
+      lessonId: { $in: allLessonIds },
+    }).select("lessonId");
+
+    const completedLessonIds = userProgress.map((progress) => progress.lessonId.toString());
+
+    const isCompleted = allLessonIds.every((lessonId) => completedLessonIds.includes(lessonId));
+
+    if (isCompleted) {
+      completedCourses.push({ courseId: course._id, courseTitle: course.title });
+    }
+  }
+
+  return completedCourses;
+};
+
+export const getCompletedCourses = async (_req: Request, res: Response) => {
+  const userId = res.locals?.populatedUser?._id;
+
+  if (!userId) {
+    return res.status(400).send({ error: { message: "Missing userId" } });
+  }
+
+  try {
+    const completedCourses = await getCompletedCoursesByUserId(userId);
+
+    return res.status(200).send(completedCourses);
+  } catch (e) {
+    console.error(`[ERROR][getCompletedCourses] ${JSON.stringify(e)}`);
     return res.status(500).send({ error: { message: "Internal server error" } });
   }
 };
