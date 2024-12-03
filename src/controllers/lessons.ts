@@ -1,15 +1,19 @@
 import { Request, Response } from "express";
+import { ObjectId } from "mongodb";
+
 import { LessonModel } from "@/models/Lesson";
 
 export const createLesson = async (req: Request, res: Response) => {
+  const { teamId } = req.params;
   const { title, language, body, difficulty, challenge, references } = req.body;
-  if (!title || !language || !body || !difficulty || !challenge) {
+  if (!teamId || !title || !language || !body || !difficulty || !challenge) {
     return res.status(400).send({ error: { message: "Missing params" } });
   }
 
   let errorMessage;
   try {
     const newLesson = await LessonModel.create({
+      teamId: new ObjectId(teamId as string),
       title,
       language,
       body,
@@ -20,7 +24,7 @@ export const createLesson = async (req: Request, res: Response) => {
     if (newLesson) return res.status(200).send(newLesson);
   } catch (e) {
     errorMessage = (e as Error).message;
-    console.error(`[ERROR][createLesson] ${JSON.stringify(e)}`);
+    console.error(`[ERROR][createLesson] ${e}`);
   }
 
   return res.status(400).send({
@@ -31,17 +35,17 @@ export const createLesson = async (req: Request, res: Response) => {
 };
 
 export const updateLesson = async (req: Request, res: Response) => {
-  const { id } = req.params;
+  const { teamId, id } = req.params;
   const { title, language, body, difficulty, challenge, references } = req.body;
 
-  if (!id || !title || !language || !body || !difficulty || !challenge) {
+  if (!id || !teamId || !title || !language || !body || !difficulty || !challenge) {
     return res.status(400).send({ error: { message: "Missing params" } });
   }
 
   let errorMessage;
   try {
-    const updatedLesson = await LessonModel.findByIdAndUpdate(
-      id,
+    const updatedLesson = await LessonModel.findOneAndUpdate(
+      { _id: id, teamId: new ObjectId(teamId as string) },
       {
         title,
         language,
@@ -60,7 +64,7 @@ export const updateLesson = async (req: Request, res: Response) => {
     }
   } catch (e) {
     errorMessage = (e as Error).message;
-    console.error(`[ERROR][updateLesson] ${JSON.stringify(e)}`);
+    console.error(`[ERROR][updateLesson] ${e}`);
   }
 
   return res.status(500).send({
@@ -91,7 +95,7 @@ export const getLesson = async (req: Request, res: Response) => {
       return res.status(200).send(lessonResponse);
     }
   } catch (e) {
-    console.error(`[ERROR][getLesson] ${JSON.stringify(e)}`);
+    console.error(`[ERROR][getLesson] ${e}`);
   }
 
   return res.status(400).send({
@@ -101,15 +105,19 @@ export const getLesson = async (req: Request, res: Response) => {
   });
 };
 
-export const getLessonsByLanguage = async (req: Request, res: Response) => {
+export const getLessons = async (req: Request, res: Response) => {
   try {
-    const { language } = req.query;
+    const { teamId, language } = req.query;
 
-    if (!language) {
-      return res.status(400).send({ error: { message: "Missing language" } });
+    if (!teamId && !language) {
+      return res.status(400).send({ error: { message: "Missing teamId or language" } });
     }
 
-    const lessons = await LessonModel.find({ language: language });
+    let query = {};
+    if (teamId) query = { teamId: new ObjectId(teamId as string) };
+    if (language) query = { ...query, language };
+
+    const lessons = await LessonModel.find(query);
 
     if (lessons.length > 0) {
       return res.status(200).send(lessons);
@@ -121,7 +129,7 @@ export const getLessonsByLanguage = async (req: Request, res: Response) => {
       });
     }
   } catch (e) {
-    console.error(`[ERROR][getLessonsByLanguage] ${JSON.stringify(e)}`);
+    console.error(`[ERROR][getLessons] ${e}`);
     return res.status(500).send({
       error: {
         message: JSON.stringify(e),
@@ -130,9 +138,14 @@ export const getLessonsByLanguage = async (req: Request, res: Response) => {
   }
 };
 
-export const getLessonsSummary = async (_req: Request, res: Response) => {
+export const getLessonsSummary = async (req: Request, res: Response) => {
   try {
-    const lessonsSummary = await LessonModel.find().select("_id title language").lean();
+    const { teamId } = req.query;
+
+    let query = {};
+    if (teamId) query = { teamId: new ObjectId(teamId as string) };
+
+    const lessonsSummary = await LessonModel.find(query).select("_id title language").lean();
 
     if (lessonsSummary.length > 0) {
       return res.status(200).send(lessonsSummary);
@@ -140,7 +153,7 @@ export const getLessonsSummary = async (_req: Request, res: Response) => {
       return res.status(204).send();
     }
   } catch (e) {
-    console.error(`[ERROR][getLessonsSummary] ${JSON.stringify(e)}`);
+    console.error(`[ERROR][getLessonsSummary] ${e}`);
     return res.status(500).send({
       error: {
         message: JSON.stringify(e),
@@ -151,17 +164,17 @@ export const getLessonsSummary = async (_req: Request, res: Response) => {
 
 export const deleteLesson = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
-    if (!id) {
-      return res.status(400).send({ error: { message: "Missing lessonId" } });
+    const { teamId, id: lessonId } = req.params;
+    if (!teamId || !lessonId) {
+      return res.status(400).send({ error: { message: "Missing teamId or lessonId" } });
     }
 
-    const result = await LessonModel.deleteOne({ _id: id });
+    const result = await LessonModel.deleteOne({ _id: lessonId, teamId: new ObjectId(teamId as string) });
     if (result?.deletedCount > 0) {
-      return res.status(200).send({ message: `Lesson '${id}' deleted` });
+      return res.status(200).send({ message: `Lesson '${lessonId}' deleted` });
     }
   } catch (e) {
-    console.error(`[ERROR][deleteLesson] ${JSON.stringify(e)}`);
+    console.error(`[ERROR][deleteLesson] ${e}`);
   }
 
   return res.status(400).send({
@@ -169,4 +182,46 @@ export const deleteLesson = async (req: Request, res: Response) => {
       message: "Lesson not deleted",
     },
   });
+};
+
+export const duplicateLessons = async (req: Request, res: Response) => {
+  const { teamId } = req.params;
+  const { lessons } = req.body;
+
+  if (!lessons || lessons.length <= 0) {
+    return res.status(400).send({ error: { message: "Missing lessons to duplicate" } });
+  }
+
+  try {
+    const duplicatedLessonsIds = await Promise.all(
+      lessons.map(async (id: string) => {
+        const existingLesson = await LessonModel.findOne({ _id: id, teamId: new ObjectId(teamId as string) });
+
+        if (!existingLesson) {
+          throw new Error(`Lesson with id ${id} not found`);
+        }
+
+        const duplicatedLesson = await LessonModel.create({
+          teamId: existingLesson.teamId,
+          title: existingLesson.title,
+          language: existingLesson.language,
+          body: existingLesson.body,
+          difficulty: existingLesson.difficulty,
+          challenge: existingLesson.challenge,
+          references: existingLesson.references,
+        });
+
+        return duplicatedLesson._id;
+      }),
+    );
+
+    return res.status(200).send(duplicatedLessonsIds);
+  } catch (e) {
+    console.error(`[ERROR][duplicateLesson] ${JSON.stringify(e)}`);
+    return res.status(500).send({
+      error: {
+        message: (e as Error).message || "Lesson not duplicated",
+      },
+    });
+  }
 };

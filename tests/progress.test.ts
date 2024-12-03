@@ -14,6 +14,9 @@ import { ProgressModel } from "@/models/Progress";
 import { UserModel } from "@/models/User";
 import { UserInfo } from "@/types/User";
 import { getAuthHeaders } from "./helpers";
+import { Team, TeamModel } from "@/models/Team";
+import { UserTeamModel } from "@/models/UserTeam";
+import { getCompletedCoursesByUserId } from "@/controllers/progress";
 
 const PORT = 3014;
 const API_URL = `http://0.0.0.0:${PORT}`;
@@ -26,6 +29,7 @@ const loadFixture = (fixture: string) => {
 };
 
 describe("Setting API Server up...", () => {
+  let team: Team;
   let server: Server;
   beforeAll((done) => {
     const app = express();
@@ -38,6 +42,13 @@ describe("Setting API Server up...", () => {
 
   beforeAll(async () => {
     await mongoDBsetup(MONGODB_DATABASE_NAME);
+    team = await TeamModel.create({
+      owner: "owner@team.com",
+      name: "Admin Team",
+      description: "Admin Team Description",
+      picture: "...",
+    });
+    await UserTeamModel.create({ email: "owner@team.com", teamId: team });
   });
 
   afterAll(async () => {
@@ -75,6 +86,7 @@ describe("Setting API Server up...", () => {
       headers = await getAuthHeaders(email, password);
 
       lesson1 = await LessonModel.create({
+        teamId: team,
         title: "Lesson #1",
         language: "english",
         body: loadFixture("example.md"),
@@ -87,6 +99,7 @@ describe("Setting API Server up...", () => {
       });
 
       lesson2 = await LessonModel.create({
+        teamId: team,
         title: "Lesson #2",
         language: "english",
         body: loadFixture("example.md"),
@@ -99,6 +112,7 @@ describe("Setting API Server up...", () => {
       });
 
       lesson3 = await LessonModel.create({
+        teamId: team,
         title: "Lesson #3",
         language: "english",
         body: loadFixture("example.md"),
@@ -111,6 +125,7 @@ describe("Setting API Server up...", () => {
       });
 
       lesson4 = await LessonModel.create({
+        teamId: team,
         title: "Lesson #4",
         language: "english",
         body: loadFixture("example.md"),
@@ -123,6 +138,7 @@ describe("Setting API Server up...", () => {
       });
 
       lesson5 = await LessonModel.create({
+        teamId: team,
         title: "Lesson #5",
         language: "english",
         body: loadFixture("example.md"),
@@ -135,21 +151,25 @@ describe("Setting API Server up...", () => {
       });
 
       module1 = await ModuleModel.create({
+        teamId: team,
         title: "Initial Module",
         lessons: [lesson1._id, lesson2._id],
       });
 
       module2 = await ModuleModel.create({
+        teamId: team,
         title: "Next Module",
         lessons: [lesson3._id, lesson4._id],
       });
 
       module3 = await ModuleModel.create({
+        teamId: team,
         title: "Final Module",
         lessons: [lesson5._id],
       });
 
       course = await CourseModel.create({
+        teamId: team,
         title: "Initial Course",
         language: "english",
         summary: "This is the initial course summary",
@@ -520,6 +540,160 @@ describe("Setting API Server up...", () => {
           expect(r.data).toHaveProperty("level");
           expect(r.data.exp).toEqual(125);
           expect(r.data.level).toEqual(0);
+        })
+        .catch((e) => {
+          expect(e).toBeUndefined();
+        });
+    });
+
+    it("should return an array of completed courses for a valid user", async () => {
+      await ProgressModel.create({
+        courseId: course._id,
+        lessonId: lesson1._id,
+        userId: user?.id,
+        choice: lesson1.challenge.correctChoice,
+        isCorrect: true,
+        difficulty: lesson1.difficulty,
+      });
+
+      await ProgressModel.create({
+        courseId: course._id,
+        lessonId: lesson2._id,
+        userId: user?.id,
+        choice: lesson2.challenge.correctChoice,
+        isCorrect: true,
+        difficulty: lesson2.difficulty,
+      });
+
+      await ProgressModel.create({
+        courseId: course._id,
+        lessonId: lesson3._id,
+        userId: user?.id,
+        choice: lesson3.challenge.correctChoice,
+        isCorrect: true,
+        difficulty: lesson3.difficulty,
+      });
+
+      await ProgressModel.create({
+        courseId: course._id,
+        lessonId: lesson4._id,
+        userId: user?.id,
+        choice: lesson4.challenge.correctChoice,
+        isCorrect: true,
+        difficulty: lesson4.difficulty,
+      });
+
+      await ProgressModel.create({
+        courseId: course._id,
+        lessonId: lesson5._id,
+        userId: user?.id,
+        choice: lesson5.challenge.correctChoice,
+        isCorrect: true,
+        difficulty: lesson5.difficulty,
+      });
+
+      const completedCourses = await getCompletedCoursesByUserId(user?.id as string);
+
+      expect(completedCourses).toEqual([{ courseId: course._id, courseTitle: course.title }]);
+    });
+
+    it("should return an empty array since user didnt finished the course", async () => {
+      await ProgressModel.create({
+        courseId: course._id,
+        lessonId: lesson1._id,
+        userId: user?.id,
+        choice: lesson1.challenge.correctChoice,
+        isCorrect: true,
+        difficulty: lesson1.difficulty,
+      });
+
+      await ProgressModel.create({
+        courseId: course._id,
+        lessonId: lesson2._id,
+        userId: user?.id,
+        choice: lesson2.challenge.correctChoice,
+        isCorrect: true,
+        difficulty: lesson2.difficulty,
+      });
+
+      await ProgressModel.create({
+        courseId: course._id,
+        lessonId: lesson3._id,
+        userId: user?.id,
+        choice: lesson3.challenge.correctChoice,
+        isCorrect: true,
+        difficulty: lesson3.difficulty,
+      });
+
+      await ProgressModel.create({
+        courseId: course._id,
+        lessonId: lesson4._id,
+        userId: user?.id,
+        choice: lesson4.challenge.correctChoice,
+        isCorrect: true,
+        difficulty: lesson4.difficulty,
+      });
+
+      // Missing lesson 5
+
+      const completedCourses = await getCompletedCoursesByUserId(user?.id as string);
+
+      expect(completedCourses).toEqual([]);
+    });
+
+    it("Get user completed courses (GET /progress/courses)", async () => {
+      await ProgressModel.create({
+        courseId: course._id,
+        lessonId: lesson1._id,
+        userId: user?.id,
+        choice: 0,
+        isCorrect: true,
+        difficulty: lesson1.difficulty,
+      });
+
+      await ProgressModel.create({
+        courseId: course._id,
+        lessonId: lesson2._id,
+        userId: user?.id,
+        choice: 2,
+        isCorrect: true,
+        difficulty: lesson2.difficulty,
+      });
+
+      await ProgressModel.create({
+        courseId: course._id,
+        lessonId: lesson3._id,
+        userId: user?.id,
+        choice: 2,
+        isCorrect: true,
+        difficulty: lesson3.difficulty,
+      });
+
+      await ProgressModel.create({
+        courseId: course._id,
+        lessonId: lesson4._id,
+        userId: user?.id,
+        choice: 0,
+        isCorrect: true,
+        difficulty: lesson4.difficulty,
+      });
+
+      await ProgressModel.create({
+        courseId: course._id,
+        lessonId: lesson5._id,
+        userId: user?.id,
+        choice: 1,
+        isCorrect: true,
+        difficulty: lesson5.difficulty,
+      });
+
+      await axios
+        .get(`${API_URL}/progress/courses`, { headers })
+        .then((r) => {
+          expect(r.status).toEqual(200);
+          expect(r.data.length).toEqual(1);
+          expect(r.data[0].courseId).toEqual(course._id?.toString());
+          expect(r.data[0].courseTitle).toEqual(course.title);
         })
         .catch((e) => {
           expect(e).toBeUndefined();

@@ -7,6 +7,7 @@ import { env } from "@/environment";
 import BaseModel from "./BaseModel";
 import { UserInfo, VerifyUser, RecoverPassword } from "@/types/User";
 import { sendVerificationEmail } from "@/helpers/aws/ses";
+import { getUserTeamInfo } from "@/helpers/team";
 
 const SALT_BUFFER = Buffer.from(env.CRYPTO_SALT, "hex");
 
@@ -144,7 +145,7 @@ class User extends BaseModel implements UserInfo {
     return false;
   }
 
-  public getAuthToken(this: DocumentType<User>, extendAccess = false) {
+  public async getAuthToken(this: DocumentType<User>, extendAccess = false) {
     const secret = env.JWT_SECRET || "HTv9087rtbjy4234";
     const expiresDays = extendAccess ? 14 : 7;
     const data = {
@@ -152,6 +153,7 @@ class User extends BaseModel implements UserInfo {
         id: this._id,
         email: this.email,
         isAdmin: this.isAdmin,
+        teams: await getUserTeamInfo(this.email),
       },
       createdAt: moment().unix(),
       expiresAt: moment().add(expiresDays, "days").unix(),
@@ -184,7 +186,7 @@ class User extends BaseModel implements UserInfo {
 
     user.lastActivity = new Date();
     await user.save();
-    return user.getAuthToken(remember);
+    return await user.getAuthToken(remember);
   }
 }
 
