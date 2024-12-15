@@ -135,6 +135,35 @@ export const getCourses = async (req: Request, res: Response) => {
   }
 };
 
+export const getCoursesSummary = async (req: Request, res: Response) => {
+  try {
+    const { teamId } = req.query;
+    if (!teamId) {
+      return res.status(400).send({ error: { message: "Missing teamId" } });
+    }
+
+    const query = { teamId: new ObjectId(teamId as string) };
+
+    const courses = await CourseModel.find(query);
+    if (courses.length > 0) {
+      return res.status(200).send(courses);
+    } else {
+      return res.status(404).send({
+        error: {
+          message: "No courses found for this team",
+        },
+      });
+    }
+  } catch (e) {
+    console.error(`[ERROR][getCoursesSummary] ${e}`);
+    return res.status(500).send({
+      error: {
+        message: e,
+      },
+    });
+  }
+};
+
 export const deleteCourse = async (req: Request, res: Response) => {
   try {
     const { teamId, id: courseId } = req.params;
@@ -157,32 +186,39 @@ export const deleteCourse = async (req: Request, res: Response) => {
   });
 };
 
-export const duplicateCourse = async (req: Request, res: Response) => {
-  const { teamId, id: courseId } = req.params;
+export const duplicateCourses = async (req: Request, res: Response) => {
+  const { teamId } = req.params;
+  const { courses } = req.body;
 
-  if (!teamId || !courseId) {
-    return res.status(400).send({ error: { message: "Missing teamId or courseId" } });
+  if (!teamId || !courses) {
+    return res.status(400).send({ error: { message: "Missing teamId or courses" } });
   }
 
   try {
-    const existingCourse = await CourseModel.findOne({
-      _id: courseId,
-      teamId: new ObjectId(teamId as string),
-    }).populate("modules");
+    const duplicatedCoursesIds = await Promise.all(
+      courses.map(async (id: string) => {
+        const existingCourse = await CourseModel.findOne({
+          _id: id,
+          teamId: new ObjectId(teamId as string),
+        }).populate("modules");
 
-    if (!existingCourse) {
-      return res.status(404).send({ error: { message: "Course not found" } });
-    }
+        if (!existingCourse) {
+          return res.status(404).send({ error: { message: "Course not found" } });
+        }
 
-    const duplicatedCourse = await CourseModel.create({
-      teamId: existingCourse.teamId,
-      title: `${existingCourse.title} (Copy)`,
-      language: existingCourse.language,
-      summary: existingCourse.summary,
-      modules: existingCourse.modules,
-    });
+        const duplicatedCourse = await CourseModel.create({
+          teamId: existingCourse.teamId,
+          title: existingCourse.title,
+          language: existingCourse.language,
+          summary: existingCourse.summary,
+          modules: existingCourse.modules,
+        });
 
-    return res.status(200).send(duplicatedCourse);
+        return duplicatedCourse._id;
+      }),
+    );
+
+    return res.status(200).send(duplicatedCoursesIds);
   } catch (e) {
     console.error(`[ERROR][duplicateCourse] ${e}`);
     return res.status(500).send({
