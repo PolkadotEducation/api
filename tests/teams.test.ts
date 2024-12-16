@@ -224,6 +224,15 @@ describe("Setting API Server up...", () => {
           expect(r.data.name).toEqual("FooBar");
         })
         .catch((e) => expect(e.status).toEqual(404));
+
+      // Leaving team as User2
+      const user3Headers = await getAuthHeaders(users[2].email, "superSecret");
+      await axios
+        .delete(`${API_URL}/users/teams/${team._id}`, { headers: user3Headers })
+        .then((r) => {
+          expect(r.data.message).toEqual(`User '${users[2].email}' has left ${team._id}`);
+        })
+        .catch((e) => expect(e).toBeUndefined());
     });
 
     it("Delete a Team (DELETE /teams)", async () => {
