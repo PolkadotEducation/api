@@ -3,6 +3,7 @@ import { ObjectId } from "mongodb";
 
 import { CourseModel } from "@/models/Course";
 import { ModuleModel } from "@/models/Module";
+import { LessonModel } from "@/models/Lesson";
 
 export const createCourse = async (req: Request, res: Response) => {
   const { teamId } = req.params;
@@ -13,18 +14,41 @@ export const createCourse = async (req: Request, res: Response) => {
   }
 
   try {
-    const moduleRecords = await ModuleModel.find({ _id: { $in: modules } });
+    const createdModules = await Promise.all(
+      modules.map(async (module: { title: string; lessons: { _id: string; title: string }[] }) => {
+        if (!module.title || !Array.isArray(module.lessons)) {
+          throw new Error("Each module must have a title and a valid lessons array");
+        }
 
-    if (moduleRecords.length !== modules.length) {
-      return res.status(400).send({ error: { message: "Some modules not found" } });
-    }
+        const lessonIds = await Promise.all(
+          module.lessons.map(async (lesson) => {
+            if (!lesson._id) {
+              throw new Error(`Lesson ${lesson.title || "unknown"} is missing an ID`);
+            }
+            const existingLesson = await LessonModel.findById(lesson._id);
+            if (!existingLesson) {
+              throw new Error(`Lesson with ID ${lesson._id} not found`);
+            }
+            return existingLesson._id;
+          }),
+        );
+
+        const newModule = await ModuleModel.create({
+          teamId: new ObjectId(teamId as string),
+          title: module.title,
+          lessons: lessonIds,
+        });
+
+        return newModule._id;
+      }),
+    );
 
     const newCourse = await CourseModel.create({
       teamId: new ObjectId(teamId as string),
       title,
       language,
       summary,
-      modules,
+      modules: createdModules,
     });
 
     if (newCourse) {
@@ -44,31 +68,91 @@ export const updateCourse = async (req: Request, res: Response) => {
   const { teamId, id } = req.params;
   const { title, language, summary, modules } = req.body;
 
-  if (!id || !teamId || !title || !language || !summary || !modules) {
+  if (!teamId || !id || !title || !language || !summary || !modules) {
     return res.status(400).send({ error: { message: "Missing params" } });
   }
 
   try {
-    const moduleRecords = await ModuleModel.find({ _id: { $in: modules } });
-
-    if (moduleRecords.length !== modules.length) {
-      return res.status(400).send({ error: { message: "Some modules not found" } });
+    const existingCourse = await CourseModel.findById(id);
+    if (!existingCourse) {
+      return res.status(404).send({ error: { message: "Course not found" } });
     }
 
-    const updatedCourse = await CourseModel.findOneAndUpdate(
-      { _id: id, teamId: new ObjectId(teamId as string) },
-      { title, language, summary, modules },
-      { new: true, runValidators: true },
+    const updatedModuleIds: string[] = [];
+
+    const updatedModules = await Promise.all(
+      modules.map(async (module: { id?: string; title: string; lessons: { _id: string; title: string }[] }) => {
+        if (!module.title || !Array.isArray(module.lessons)) {
+          throw new Error("Each module must have a title and a valid lessons array");
+        }
+
+        const lessonIds = await Promise.all(
+          module.lessons.map(async (lesson) => {
+            if (!lesson._id) {
+              throw new Error(`Lesson ${lesson.title || "unknown"} is missing an ID`);
+            }
+            const existingLesson = await LessonModel.findById(lesson._id);
+            if (!existingLesson) {
+              throw new Error(`Lesson with ID ${lesson._id} not found`);
+            }
+            return existingLesson._id;
+          }),
+        );
+
+        if (module.id?.startsWith("module")) {
+          const updatedModule = await ModuleModel.findByIdAndUpdate(
+            module.id,
+            { title: module.title, lessons: lessonIds },
+            { new: true },
+          );
+          if (!updatedModule) {
+            throw new Error(`Failed to update module with ID ${module.id}`);
+          }
+          updatedModuleIds.push(updatedModule._id.toString());
+          return updatedModule._id;
+        } else {
+          const newModule = await ModuleModel.create({
+            teamId: new ObjectId(teamId as string),
+            title: module.title,
+            lessons: lessonIds,
+          });
+          updatedModuleIds.push(newModule._id.toString());
+          return newModule._id;
+        }
+      }),
+    );
+
+    const existingModuleIds = existingCourse.modules.map((moduleRef) => {
+      if (typeof moduleRef === "string") {
+        return moduleRef;
+      }
+      return moduleRef._id.toString();
+    });
+    const modulesToDelete = existingModuleIds.filter((moduleId) => !updatedModuleIds.includes(moduleId));
+
+    await Promise.all(
+      modulesToDelete.map(async (moduleId) => {
+        await ModuleModel.findByIdAndDelete(moduleId);
+      }),
+    );
+
+    const updatedCourse = await CourseModel.findByIdAndUpdate(
+      id,
+      {
+        title,
+        language,
+        summary,
+        modules: updatedModules,
+      },
+      { new: true },
     );
 
     if (updatedCourse) {
       return res.status(200).send(updatedCourse);
-    } else {
-      return res.status(404).send({ error: { message: "Course not found" } });
     }
   } catch (e) {
     console.error(`[ERROR][updateCourse] ${e}`);
-    return res.status(500).send({
+    return res.status(400).send({
       error: {
         message: (e as Error).message || "Course not updated",
       },
