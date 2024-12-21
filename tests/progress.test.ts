@@ -536,10 +536,12 @@ describe("Setting API Server up...", () => {
         .get(`${API_URL}/progress/level`, { headers })
         .then((r) => {
           expect(r.status).toEqual(200);
-          expect(r.data).toHaveProperty("exp");
+          expect(r.data).toHaveProperty("xp");
           expect(r.data).toHaveProperty("level");
-          expect(r.data.exp).toEqual(125);
+          expect(r.data).toHaveProperty("xpToNextLevel");
+          expect(r.data.xp).toEqual(125);
           expect(r.data.level).toEqual(0);
+          expect(r.data.xpToNextLevel).toEqual(25);
         })
         .catch((e) => {
           expect(e).toBeUndefined();
