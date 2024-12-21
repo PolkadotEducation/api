@@ -33,7 +33,7 @@ import {
 } from "@/controllers/courses";
 
 import authMiddleware from "./middlewares/auth";
-import { createTeam, deleteTeam, getTeam, getUserTeams, updateTeam } from "./controllers/teams";
+import { createTeam, deleteTeam, getTeams, getUserTeams, leaveTeam, updateTeam } from "./controllers/teams";
 import teamMiddleware from "./middlewares/team";
 import {
   getCompletedCourses,
@@ -59,10 +59,11 @@ const router = (app: Express) => {
 
   // User's teams
   app.get("/users/teams", [authMiddleware], getUserTeams);
+  app.delete("/users/teams/:id", [authMiddleware], leaveTeam);
 
   // Team
   app.post("/teams", [authMiddleware, adminMiddleware], createTeam);
-  app.get("/teams", [authMiddleware], getTeam);
+  app.get("/teams", [authMiddleware], getTeams);
   app.put("/teams/:id", [authMiddleware], updateTeam);
   app.delete("/teams/:id", [authMiddleware], deleteTeam);
 
