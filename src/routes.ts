@@ -27,8 +27,9 @@ import {
   deleteCourse,
   getCourse,
   updateCourse,
-  duplicateCourse,
   getCourses,
+  getCoursesSummary,
+  duplicateCourses,
 } from "@/controllers/courses";
 
 import authMiddleware from "./middlewares/auth";
@@ -88,7 +89,8 @@ const router = (app: Express) => {
   app.get("/courses", [authMiddleware], getCourses);
   app.delete("/course/:teamId/:id", [authMiddleware, teamMiddleware], deleteCourse);
   app.put("/course/:teamId/:id", [authMiddleware, teamMiddleware], updateCourse);
-  app.post("/course/duplicate/:teamId/:id", [authMiddleware, teamMiddleware], duplicateCourse);
+  app.post("/courses/duplicate/:teamId", [authMiddleware, teamMiddleware], duplicateCourses);
+  app.get("/courses/summary", [authMiddleware], getCoursesSummary);
 
   // Progress
   app.post("/progress", [authMiddleware], submitAnswer);
