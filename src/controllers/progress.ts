@@ -137,6 +137,11 @@ const calculateLevel = (exp: number): number => {
   return level;
 };
 
+const calculateXpToNextLevel = (exp: number, currentLevel: number): number => {
+  const nextLevelExp = 10 * Math.pow(currentLevel, 2) + 100 * currentLevel + 150;
+  return nextLevelExp - exp;
+};
+
 export const getUserXPAndLevel = async (_req: Request, res: Response) => {
   const userId = res.locals?.populatedUser?._id;
 
@@ -188,8 +193,9 @@ export const getUserXPAndLevel = async (_req: Request, res: Response) => {
     }
 
     const level = calculateLevel(exp);
+    const xpToNextLevel = calculateXpToNextLevel(exp, level);
 
-    return res.status(200).send({ exp, level });
+    return res.status(200).send({ level, xp: exp, xpToNextLevel });
   } catch (e) {
     console.error(`[ERROR][getUserXPAndLevel] ${e}`);
     return res.status(500).send({ error: { message: "Internal server error" } });
