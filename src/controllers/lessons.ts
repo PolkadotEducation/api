@@ -1,7 +1,8 @@
 import { Request, Response } from "express";
 import { ObjectId } from "mongodb";
 
-import { LessonModel } from "@/models/Lesson";
+import { Lesson, LessonModel } from "@/models/Lesson";
+import { getCache, setCache } from "@/helpers/cache";
 
 export const createLesson = async (req: Request, res: Response) => {
   const { teamId } = req.params;
@@ -80,6 +81,12 @@ export const getLesson = async (req: Request, res: Response) => {
     if (!lessonId) {
       return res.status(400).send({ error: { message: "Missing lessonId" } });
     }
+
+    const cachedLesson = await getCache<Lesson>(`lesson:${lessonId}`);
+    if (cachedLesson) {
+      return res.status(200).send(cachedLesson);
+    }
+
     const lesson = await LessonModel.findOne({ _id: lessonId });
     if (lesson) {
       const lessonRecord = lesson.toObject();
@@ -91,6 +98,8 @@ export const getLesson = async (req: Request, res: Response) => {
         ...lessonRecord,
         challenge: challengeWithoutCorrectChoice,
       };
+
+      await setCache(`lesson:${lessonId}`, lessonResponse);
 
       return res.status(200).send(lessonResponse);
     }

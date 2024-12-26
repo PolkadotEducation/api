@@ -13,6 +13,7 @@ import { UserModel } from "@/models/User";
 import { getAuthHeaders } from "./helpers";
 import { Team, TeamModel } from "@/models/Team";
 import { UserTeamModel } from "@/models/UserTeam";
+import { getCache, setCache } from "@/helpers/cache";
 
 const PORT = 3013;
 const API_URL = `http://0.0.0.0:${PORT}`;
@@ -22,6 +23,11 @@ const loadFixture = (fixture: string) => {
   const filePath = join(__dirname, `fixtures/${fixture}`);
   return readFileSync(filePath, "utf-8");
 };
+
+jest.mock("@/helpers/cache", () => ({
+  getCache: jest.fn(),
+  setCache: jest.fn(),
+}));
 
 describe("Setting API Server up...", () => {
   let team: Team;
@@ -253,6 +259,10 @@ describe("Setting API Server up...", () => {
         summary: "This course contains a module",
         modules: [module._id],
       });
+
+      (getCache as jest.Mock).mockResolvedValue(null);
+
+      (setCache as jest.Mock).mockResolvedValue(null);
 
       await axios
         .get(`${API_URL}/course?courseId=${newCourse._id}`, { headers: adminHeaders })

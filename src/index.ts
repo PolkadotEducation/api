@@ -1,10 +1,10 @@
 import express, { Request, Response } from "express";
 
 import router from "./routes";
-
 import { setupMongoDB } from "./database";
 import { env } from "./environment";
 import corsConfig from "./middlewares/cors.config";
+import { connectRedis } from "./redis";
 
 const app = express();
 
@@ -18,8 +18,17 @@ app.use(corsConfig());
 
 router(app);
 
-app.listen(env.SERVER_PORT, env.SERVER_HOST, async () => {
-  await setupMongoDB();
-  // eslint-disable-next-line no-console
-  console.info(`> Listening at http://${env.SERVER_HOST}:${env.SERVER_PORT}`);
-});
+(async () => {
+  try {
+    await setupMongoDB();
+
+    await connectRedis();
+
+    app.listen(env.SERVER_PORT, env.SERVER_HOST, () => {
+      // eslint-disable-next-line no-console
+      console.info(`> Listening at http://${env.SERVER_HOST}:${env.SERVER_PORT}`);
+    });
+  } catch (err) {
+    console.error("[InitializeError]", err);
+  }
+})();

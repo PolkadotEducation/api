@@ -15,6 +15,10 @@ const JWT_SECRET = process.env.JWT_SECRET || "OR5t0v7yk3z7qw77";
 const AUTH_CODE = process.env.AUTH_CODE || "localAuthCode";
 const CRYPTO_SALT = process.env.CRYPTO_SALT || "0fd1b53ac50026ab7";
 
+// Redis
+const REDIS_URL = process.env.REDIS_URL || "redis://doteducation-redis:6379";
+const REDIS_PASSWORD = process.env.REDIS_PASSWORD || "123123123";
+
 // AWS
 const AWS_SES_REGION = process.env.AWS_SES_REGION || "us-east-1";
 const AWS_SES_ID = process.env.AWS_SES_ID || "123123123";
@@ -38,4 +42,6 @@ export const env = {
   AWS_SES_ID,
   AWS_SES_SOURCE,
   DEBUG,
+  REDIS_URL,
+  REDIS_PASSWORD,
 };

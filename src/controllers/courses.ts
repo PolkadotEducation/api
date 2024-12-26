@@ -1,9 +1,10 @@
 import { Request, Response } from "express";
 import { ObjectId } from "mongodb";
 
-import { CourseModel } from "@/models/Course";
+import { Course, CourseModel } from "@/models/Course";
 import { ModuleModel } from "@/models/Module";
 import { LessonModel } from "@/models/Lesson";
+import { getCache, setCache } from "@/helpers/cache";
 
 export const createCourse = async (req: Request, res: Response) => {
   const { teamId } = req.params;
@@ -167,6 +168,11 @@ export const getCourse = async (req: Request, res: Response) => {
       return res.status(400).send({ error: { message: "Missing courseId" } });
     }
 
+    const cachedCourse = await getCache<Course>(`course:${courseId}`);
+    if (cachedCourse) {
+      return res.status(200).send(cachedCourse);
+    }
+
     const course = await CourseModel.findOne({ _id: courseId }).populate({
       path: "modules",
       populate: {
@@ -174,8 +180,11 @@ export const getCourse = async (req: Request, res: Response) => {
         model: "Lesson",
       },
     });
+
     if (course) {
-      return res.status(200).send(course);
+      const courseRecord = course.toObject();
+      await setCache(`course:${courseId}`, courseRecord);
+      return res.status(200).send(courseRecord);
     }
   } catch (e) {
     console.error(`[ERROR][getCourse] ${e}`);
