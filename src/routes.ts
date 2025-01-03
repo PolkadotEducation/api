@@ -43,7 +43,7 @@ import {
   submitAnswer,
 } from "./controllers/progress";
 import adminMiddleware from "./middlewares/admin";
-import { generateCertificate, getCertificate, getCertificates } from "./controllers/certificates";
+import { generateCertificate, getCertificate, getCertificates, mintCertificate } from "./controllers/certificates";
 
 const router = (app: Express) => {
   // Users
@@ -103,6 +103,7 @@ const router = (app: Express) => {
   app.post("/certificates/generate", [authMiddleware], generateCertificate);
   app.get("/certificates/:certificateId", getCertificate);
   app.get("/certificates", [authMiddleware], getCertificates);
+  app.post("/certificates/mint", [authMiddleware], mintCertificate);
 };
 
 export default router;

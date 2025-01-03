@@ -21,6 +21,11 @@ const AWS_SES_ID = process.env.AWS_SES_ID || "123123123";
 const AWS_SES_SECRET = process.env.AWS_SES_SECRET || "123123123";
 const AWS_SES_SOURCE = process.env.AWS_SES_SOURCE || "email@polkadot.education";
 
+// WEB3 (AccountId: 1ZJTPkCkCF2vC3twZLekXHh4NanXhoSN7WTGYVU2BbbcuWR)
+const SIGNER_MNEMONIC =
+  process.env.SIGNER_MNEMONIC || "essence safe oxygen length dice deal possible tool ensure patrol clay busy";
+const MINT_COLLECTION_ID = parseInt(process.env.MINT_COLLECTION_ID || "45");
+
 // DEBUG/TEST
 const DEBUG = parseInt(process.env.DEBUG || "0");
 
@@ -37,5 +42,7 @@ export const env = {
   AWS_SES_SECRET,
   AWS_SES_ID,
   AWS_SES_SOURCE,
+  SIGNER_MNEMONIC,
+  MINT_COLLECTION_ID,
   DEBUG,
 };
