@@ -142,8 +142,7 @@ export const mintCertificate = async (req: Request, res: Response) => {
       userId: new ObjectId(userId as string),
     };
     const certificate = await CertificateModel.findOne(query);
-    // Certificate exists but was not minted yet (deadline is calculated by the caller)
-    if (certificate && !certificate.mintSpecs.minted) {
+    if (certificate) {
       const mintSpecs: MintSpecs = {
         ...certificate.mintSpecs,
         deadline: parseInt(deadline || "0"),
