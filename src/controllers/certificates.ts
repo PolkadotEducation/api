@@ -74,7 +74,7 @@ export const generateCertificate = async (req: Request, res: Response) => {
       });
     }
 
-    const itemId = (await CertificateModel.countDocuments()) + 1;
+    const itemId = (await CertificateModel.countDocuments({ "mintSpecs.collectionId": env.MINT_COLLECTION_ID })) + 1;
 
     const newCertificate = await CertificateModel.create({
       courseTitle: courseData.title,
@@ -84,6 +84,7 @@ export const generateCertificate = async (req: Request, res: Response) => {
       mintSpecs: {
         collectionId: env.MINT_COLLECTION_ID,
         itemId,
+        owner: env.SIGNER_ACCOUNT_ID,
         deadline: 0,
         minted: false,
       },
