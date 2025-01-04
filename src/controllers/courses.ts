@@ -81,7 +81,7 @@ export const updateCourse = async (req: Request, res: Response) => {
     const updatedModuleIds: string[] = [];
 
     const updatedModules = await Promise.all(
-      modules.map(async (module: { id?: string; title: string; lessons: { _id: string; title: string }[] }) => {
+      modules.map(async (module: { _id?: string; title: string; lessons: { _id: string; title: string }[] }) => {
         if (!module.title || !Array.isArray(module.lessons)) {
           throw new Error("Each module must have a title and a valid lessons array");
         }
@@ -99,14 +99,14 @@ export const updateCourse = async (req: Request, res: Response) => {
           }),
         );
 
-        if (module.id?.startsWith("module")) {
+        if (!module._id?.startsWith("module")) {
           const updatedModule = await ModuleModel.findByIdAndUpdate(
-            module.id,
+            module._id,
             { title: module.title, lessons: lessonIds },
             { new: true },
           );
           if (!updatedModule) {
-            throw new Error(`Failed to update module with ID ${module.id}`);
+            throw new Error(`Failed to update module with ID ${module._id}`);
           }
           updatedModuleIds.push(updatedModule._id.toString());
           return updatedModule._id;
