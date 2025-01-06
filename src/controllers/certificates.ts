@@ -131,11 +131,11 @@ export const getCertificates = async (req: Request, res: Response) => {
 };
 
 export const mintCertificate = async (req: Request, res: Response) => {
-  const { certificateId, deadline } = req.body;
+  const { certificateName, certificateId, deadline } = req.body;
   const userId = res.locals?.populatedUser?._id;
   try {
-    if (!certificateId && !userId && !deadline) {
-      return res.status(400).send({ error: { message: "Missing certificateId, userId or deadline" } });
+    if (!certificateName || !certificateId || !userId || !deadline) {
+      return res.status(400).send({ error: { message: "Missing certificateName, certificateId, userId or deadline" } });
     }
 
     const query = {
@@ -148,7 +148,7 @@ export const mintCertificate = async (req: Request, res: Response) => {
         ...certificate.mintSpecs,
         deadline: parseInt(deadline || "0"),
       };
-      const signature = await signMintPayload(mintSpecs);
+      const signature = await signMintPayload(certificateName, certificateId, mintSpecs);
       return res.status(200).send({ signature });
     }
   } catch (e) {
