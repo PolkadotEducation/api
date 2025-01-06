@@ -17,7 +17,7 @@ import { getAuthHeaders } from "./helpers";
 import { Team, TeamModel } from "@/models/Team";
 import { UserTeamModel } from "@/models/UserTeam";
 import { CertificateModel } from "@/models/Certificate";
-import { cryptoWaitReady, signatureVerify } from "@polkadot/util-crypto";
+import { signatureVerify } from "@polkadot/util-crypto";
 import mongoose from "mongoose";
 import { env } from "@/environment";
 
@@ -398,7 +398,6 @@ describe("Setting API Server up...", () => {
     });
 
     it("Mint - should return valid signature (POST /certificates/mint)", async () => {
-      await cryptoWaitReady();
       const certificate = await CertificateModel.create({
         courseId: new mongoose.Types.ObjectId(),
         courseTitle: "Test Certificate Course",
