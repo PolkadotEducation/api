@@ -148,8 +148,8 @@ export const mintCertificate = async (req: Request, res: Response) => {
         ...certificate.mintSpecs,
         deadline: parseInt(deadline || "0"),
       };
-      const signature = await signMintPayload(certificateName, certificateId, mintSpecs);
-      return res.status(200).send({ signature });
+      const { signature, payload } = await signMintPayload(certificateName, certificateId, mintSpecs);
+      return res.status(200).send({ signature, payload });
     }
   } catch (e) {
     console.error(`[ERROR][mintCertificate] ${JSON.stringify(e)}`);

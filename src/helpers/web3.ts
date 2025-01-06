@@ -50,7 +50,8 @@ export const signMintPayload = async (certificateName: string, certificateId: st
   // onlyAccount: 00
   // deadline:    00000000 -> (blockNumber)
   // mintPrice:   00
-  let payload = toLittleEndianHex32(mintSpecs.collectionId);
+  let payload = "0x";
+  payload += toLittleEndianHex32(mintSpecs.collectionId);
   payload += toLittleEndianHex32(mintSpecs.itemId);
   // Attributes [(key, value)]
   const key = stringToHex(certificateName);
@@ -59,6 +60,7 @@ export const signMintPayload = async (certificateName: string, certificateId: st
   payload += `${(key.length * 2).toString(16)}${key}`;
   payload += `${(value.length * 2).toString(16)}${value}`;
   payload += `0000${toLittleEndianHex32(mintSpecs.deadline)}00`;
-  const signature = await SIGNER.signBytes(fromHex(`0x${payload}`));
-  return uint8ArrayToHexString(signature);
+  const signatureU8a = await SIGNER.signBytes(fromHex(payload));
+  const signature = uint8ArrayToHexString(signatureU8a);
+  return { payload, signature };
 };
