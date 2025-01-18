@@ -107,7 +107,7 @@ const router = (app: Express) => {
   app.post("/certificates/mint", [authMiddleware], mintCertificate);
 
   // Ranking
-  app.get("/ranking", getRanking);
+  app.get("/ranking", [authMiddleware], getRanking);
 };
 
 export default router;
