@@ -337,12 +337,21 @@ describe("Setting API Server up...", () => {
     });
 
     it("Get course progress with no completed lessons (GET /progress/course/:courseId)", async () => {
+      const expectedModulesProgress: Record<string, Record<string, boolean>> = {};
+      [module1, module2, module3].forEach((module) => {
+        const lessonsProgress: Record<string, boolean> = {};
+        module.lessons.forEach((lessonId) => {
+          lessonsProgress[lessonId.toString()] = false;
+        });
+        expectedModulesProgress[module?._id?.toString() || ""] = lessonsProgress;
+      });
       await axios
         .get(`${API_URL}/progress/course/${course._id}`, { headers })
         .then((r) => {
           expect(r.data.totalLessons).toEqual(5);
           expect(r.data.completedLessons).toEqual(0);
           expect(r.data.progressPercentage).toEqual(0);
+          expect(r.data.modulesProgress).toEqual(expectedModulesProgress);
         })
         .catch((e) => {
           expect(e).toBeUndefined();
@@ -359,12 +368,22 @@ describe("Setting API Server up...", () => {
         difficulty: lesson1.difficulty,
       });
 
+      const expectedModulesProgress: Record<string, Record<string, boolean>> = {};
+      [module1, module2, module3].forEach((module) => {
+        const lessonsProgress: Record<string, boolean> = {};
+        module.lessons.forEach((lessonId) => {
+          lessonsProgress[lessonId.toString()] = lessonId === lesson1._id ? true : false;
+        });
+        expectedModulesProgress[module?._id?.toString() || ""] = lessonsProgress;
+      });
+
       await axios
         .get(`${API_URL}/progress/course/${course._id}`, { headers })
         .then((r) => {
           expect(r.data.totalLessons).toEqual(5);
           expect(r.data.completedLessons).toEqual(1);
           expect(r.data.progressPercentage).toEqual(20);
+          expect(r.data.modulesProgress).toEqual(expectedModulesProgress);
         })
         .catch((e) => {
           expect(e).toBeUndefined();
@@ -389,12 +408,22 @@ describe("Setting API Server up...", () => {
         difficulty: lesson2.difficulty,
       });
 
+      const expectedModulesProgress: Record<string, Record<string, boolean>> = {};
+      [module1, module2, module3].forEach((module) => {
+        const lessonsProgress: Record<string, boolean> = {};
+        module.lessons.forEach((lessonId) => {
+          lessonsProgress[lessonId.toString()] = lessonId === lesson1._id ? true : false;
+        });
+        expectedModulesProgress[module?._id?.toString() || ""] = lessonsProgress;
+      });
+
       await axios
         .get(`${API_URL}/progress/course/${course._id}`, { headers })
         .then((r) => {
           expect(r.data.totalLessons).toEqual(5);
           expect(r.data.completedLessons).toEqual(1);
           expect(r.data.progressPercentage).toEqual(20);
+          expect(r.data.modulesProgress).toEqual(expectedModulesProgress);
         })
         .catch((e) => {
           expect(e).toBeUndefined();
@@ -447,6 +476,15 @@ describe("Setting API Server up...", () => {
         difficulty: lesson5.difficulty,
       });
 
+      const expectedModulesProgress: Record<string, Record<string, boolean>> = {};
+      [module1, module2, module3].forEach((module) => {
+        const lessonsProgress: Record<string, boolean> = {};
+        module.lessons.forEach((lessonId) => {
+          lessonsProgress[lessonId.toString()] = true;
+        });
+        expectedModulesProgress[module?._id?.toString() || ""] = lessonsProgress;
+      });
+
       await axios
         .get(`${API_URL}/progress/course/${course._id}`, { headers })
         .then((r) => {
@@ -454,6 +492,7 @@ describe("Setting API Server up...", () => {
           expect(r.data.totalLessons).toEqual(5);
           expect(r.data.completedLessons).toEqual(5);
           expect(r.data.progressPercentage).toEqual(100);
+          expect(r.data.modulesProgress).toEqual(expectedModulesProgress);
         })
         .catch((e) => {
           expect(e).toBeUndefined();

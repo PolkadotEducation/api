@@ -107,13 +107,27 @@ export const getCourseProgress = async (req: Request, res: Response) => {
     // not ideal, but it avoids complex type casting
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const totalLessons = (course.modules as any[]).reduce((sum, module) => sum + (module.lessons as any[]).length, 0);
-    const completedLessons = new Set(progress.map((p) => p.lessonId.toString())).size;
+    const completedLessonsSet = new Set(progress.map((p) => p.lessonId.toString()));
+    const completedLessons = completedLessonsSet.size;
     const progressPercentage = (completedLessons / totalLessons) * 100;
+
+    const modulesProgress: Record<string, Record<string, boolean>> = {};
+    (course.modules as Module[]).forEach((module) => {
+      const moduleId = module?._id?.toString();
+      if (!moduleId) return;
+      modulesProgress[moduleId] = {};
+      (module.lessons as Lesson[]).forEach((lesson) => {
+        const lessonId = lesson?._id?.toString();
+        if (!lessonId) return;
+        modulesProgress[moduleId][lessonId] = completedLessonsSet.has(lessonId);
+      });
+    });
 
     return res.status(200).send({
       totalLessons,
       completedLessons,
       progressPercentage,
+      modulesProgress,
     });
   } catch (e) {
     console.error(`[ERROR][getCourseProgress] ${e}`);
