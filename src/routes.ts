@@ -44,6 +44,7 @@ import {
 } from "./controllers/progress";
 import adminMiddleware from "./middlewares/admin";
 import { generateCertificate, getCertificate, getCertificates, mintCertificate } from "./controllers/certificates";
+import { getRanking } from "./controllers/ranking";
 
 const router = (app: Express) => {
   // Users
@@ -104,6 +105,9 @@ const router = (app: Express) => {
   app.get("/certificates/:certificateId", getCertificate);
   app.get("/certificates", [authMiddleware], getCertificates);
   app.post("/certificates/mint", [authMiddleware], mintCertificate);
+
+  // Ranking
+  app.get("/ranking", getRanking);
 };
 
 export default router;
