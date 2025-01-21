@@ -5,7 +5,7 @@ import * as crypto from "crypto";
 
 import { env } from "@/environment";
 import BaseModel from "./BaseModel";
-import { UserInfo, VerifyUser, RecoverPassword } from "@/types/User";
+import { UserInfo, VerifyUser, RecoverPassword, AchievementsTracker } from "@/types/User";
 import { sendVerificationEmail } from "@/helpers/aws/ses";
 import { getUserTeamInfo } from "@/helpers/team";
 
@@ -48,6 +48,9 @@ class User extends BaseModel implements UserInfo {
 
   @prop({ required: true, enum: ["Email", "Google", "Web3"], type: String, default: "Email" })
   public signInType: string;
+
+  @prop({ required: false, type: Object })
+  public achievementsTracker: AchievementsTracker;
 
   public static async hashPassword(password: string): Promise<string> {
     try {

@@ -10,6 +10,7 @@ export interface UserInfo {
   teams?: TeamInfo[];
   isAdmin: boolean;
   lastActivity: Date;
+  achievementsTracker?: AchievementsTracker;
   verify?: VerifyUser;
   recover?: RecoverPassword;
   createdAt?: Date;
@@ -24,4 +25,14 @@ export type VerifyUser = {
 export type RecoverPassword = {
   token: string;
   date: Date;
+};
+
+export type AchievementsTracker = {
+  loginCounter: number;
+  lastLogin: Date;
+  answerCounter: number;
+  challengeCounter: number;
+  finishOneCourse: boolean;
+  finishOneCourseNoMistakes: boolean;
+  totalFocus: boolean;
 };

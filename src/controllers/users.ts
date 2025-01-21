@@ -6,6 +6,7 @@ import { sendRecoverEmail, sendVerificationEmail } from "@/helpers/aws/ses";
 import { signatureVerify } from "@polkadot/util-crypto";
 import { UserInfo } from "@/types/User";
 import { getUserTeamInfo } from "@/helpers/team";
+import { countLogins } from "@/helpers/achievements";
 
 export const createUser = async (req: Request, res: Response) => {
   try {
@@ -124,6 +125,9 @@ export const getUser = async (_req: Request, res: Response) => {
 
     const user = await UserModel.findOne({ _id: userId });
     if (user) {
+      // Update Login Counter (Achievements).
+      await countLogins(user);
+
       const userInfo: UserInfo = {
         id: user._id,
         email: user.email,
@@ -134,6 +138,7 @@ export const getUser = async (_req: Request, res: Response) => {
         company: user.company,
         isAdmin: user.isAdmin,
         lastActivity: user.lastActivity,
+        achievementsTracker: user.achievementsTracker,
       };
       return res.status(200).send(userInfo);
     }
