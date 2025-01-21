@@ -70,7 +70,7 @@ export const countCorrectAnswers = async (userId: string, isCorrect: boolean) =>
   }
 };
 
-export const finishOneCourse = async (userId: string, noMistakes: boolean) => {
+export const finishOneCourse = async (userId: string, answers: number, mistakes: number) => {
   const user = await UserModel.findOne({ _id: userId });
   if (user) {
     // Be sure that we have at least the default values set.
@@ -79,7 +79,8 @@ export const finishOneCourse = async (userId: string, noMistakes: boolean) => {
     user.achievementsTracker = {
       ...user.achievementsTracker,
       finishOneCourse: true,
-      finishOneCourseNoMistakes: noMistakes,
+      finishOneCourseNoMistakes: user.achievementsTracker.finishOneCourseNoMistakes || mistakes === 0,
+      totalFocus: user.achievementsTracker.totalFocus || ((answers - mistakes) / answers) * 100 >= 90,
     };
 
     await user.save();

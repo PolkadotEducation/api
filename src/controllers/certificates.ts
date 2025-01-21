@@ -93,9 +93,9 @@ export const generateCertificate = async (req: Request, res: Response) => {
     });
 
     // Update Completed Course with/out no mistakes (Achievements).
-    const mistakes = await ProgressModel.find({ courseId, userId, isCorrect: false });
-    const noMistake = mistakes.length ? false : true;
-    await finishOneCourse(userId, noMistake);
+    const answers = await ProgressModel.find({ courseId, userId }).countDocuments();
+    const mistakes = await ProgressModel.find({ courseId, userId, isCorrect: false }).countDocuments();
+    await finishOneCourse(userId, answers, mistakes);
 
     if (newCertificate) {
       return res.status(200).send(newCertificate);
