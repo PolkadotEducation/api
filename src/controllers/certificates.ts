@@ -7,6 +7,8 @@ import { ObjectId } from "mongodb";
 import { signMintPayload } from "@/helpers/web3";
 import { MintSpecs } from "@/types/Mint";
 import { env } from "@/environment";
+import { finishOneCourse } from "@/helpers/achievements";
+import { ProgressModel } from "@/models/Progress";
 
 export const getCertificate = async (req: Request, res: Response) => {
   const { certificateId } = req.params;
@@ -89,6 +91,11 @@ export const generateCertificate = async (req: Request, res: Response) => {
         minted: false,
       },
     });
+
+    // Update Completed Course with/out no mistakes (Achievements).
+    const mistakes = await ProgressModel.find({ courseId, userId, isCorrect: false });
+    const noMistake = mistakes.length ? false : true;
+    await finishOneCourse(userId, noMistake);
 
     if (newCertificate) {
       return res.status(200).send(newCertificate);

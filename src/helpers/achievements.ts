@@ -69,3 +69,19 @@ export const countCorrectAnswers = async (userId: string, isCorrect: boolean) =>
     await user.save();
   }
 };
+
+export const finishOneCourse = async (userId: string, noMistakes: boolean) => {
+  const user = await UserModel.findOne({ _id: userId });
+  if (user) {
+    // Be sure that we have at least the default values set.
+    await setDefaultValues(user);
+
+    user.achievementsTracker = {
+      ...user.achievementsTracker,
+      finishOneCourse: true,
+      finishOneCourseNoMistakes: noMistakes,
+    };
+
+    await user.save();
+  }
+};
