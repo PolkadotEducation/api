@@ -126,7 +126,7 @@ export const getUser = async (_req: Request, res: Response) => {
     const user = await UserModel.findOne({ _id: userId });
     if (user) {
       // Update Login Counter (Achievements).
-      await countLogins(user);
+      await countLogins(userId);
 
       const userInfo: UserInfo = {
         id: user._id,
