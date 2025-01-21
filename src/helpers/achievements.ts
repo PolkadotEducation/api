@@ -4,7 +4,7 @@ import { User } from "@/models/User";
 const setDefaultValues = async (user: DocumentType<User>) => {
   if (!user.achievementsTracker) {
     user.achievementsTracker = {
-      loginCounter: 0,
+      loginCounter: 1,
       lastLogin: new Date(),
       answerCounter: 0,
       challengeCounter: 0,
@@ -33,11 +33,11 @@ export const countLogins = async (user: DocumentType<User>) => {
   const oneDayLogin = loginDate;
   oneDayLogin.setDate(oneDayLogin.getDate() + 1);
 
-  let loginCounter = 0;
+  let loginCounter = 1;
 
   // (case2)
   if (now.getDate() === oneDayLogin.getDate()) loginCounter = user.achievementsTracker.loginCounter + 1;
-  // else (case3) -> loginCounter = 0
+  // else, reset it (case3) -> loginCounter = 1
 
   user.achievementsTracker = {
     ...user.achievementsTracker,
