@@ -646,8 +646,19 @@ describe("Setting API Server up...", () => {
         .get(`${API_URL}/progress/course/summary/${course._id}`, { headers })
         .then((r) => {
           expect(r.status).toEqual(200);
-          console.info(r.data);
-          expect(r.data.courseSummary).toEqual({});
+          expect(r.data.courseSummary.title).toEqual(course.title);
+
+          // 1st module should be completed
+          expect(r.data.courseSummary.modules[0].title).toEqual(module1.title);
+          expect(r.data.courseSummary.modules[0].isCompleted).toEqual(true);
+
+          // 2nd module should be completed
+          expect(r.data.courseSummary.modules[1].title).toEqual(module2.title);
+          expect(r.data.courseSummary.modules[1].isCompleted).toEqual(true);
+
+          // 3rd module should NOT be completed
+          expect(r.data.courseSummary.modules[2].title).toEqual(module3.title);
+          expect(r.data.courseSummary.modules[2].isCompleted).toEqual(false);
         })
         .catch((e) => {
           expect(e).toBeUndefined();
