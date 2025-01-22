@@ -38,6 +38,7 @@ import teamMiddleware from "./middlewares/team";
 import {
   getCompletedCourses,
   getCourseProgress,
+  getCourseSummary,
   getLessonProgress,
   getUserXPAndLevel,
   submitAnswer,
@@ -97,6 +98,7 @@ const router = (app: Express) => {
   app.post("/progress", [authMiddleware], submitAnswer);
   app.get("/progress/lesson/:courseId/:lessonId", [authMiddleware], getLessonProgress);
   app.get("/progress/course/:courseId", [authMiddleware], getCourseProgress);
+  app.get("/progress/course/summary/:courseId", [authMiddleware], getCourseSummary);
   app.get("/progress/level", [authMiddleware], getUserXPAndLevel);
   app.get("/progress/courses", [authMiddleware], getCompletedCourses);
 
