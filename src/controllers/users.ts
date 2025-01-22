@@ -6,7 +6,7 @@ import { sendRecoverEmail, sendVerificationEmail } from "@/helpers/aws/ses";
 import { signatureVerify } from "@polkadot/util-crypto";
 import { UserInfo } from "@/types/User";
 import { getUserTeamInfo } from "@/helpers/team";
-import { countLogins } from "@/helpers/achievements";
+import { countLogins, hasProfilePicture } from "@/helpers/achievements";
 
 export const createUser = async (req: Request, res: Response) => {
   try {
@@ -127,6 +127,9 @@ export const getUser = async (_req: Request, res: Response) => {
     if (user) {
       // Update Login Counter (Achievements).
       await countLogins(userId);
+
+      // Update Profile Picture (Achievements).
+      await hasProfilePicture(userId);
 
       const userInfo: UserInfo = {
         id: user._id,

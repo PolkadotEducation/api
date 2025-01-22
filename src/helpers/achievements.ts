@@ -11,6 +11,7 @@ const setDefaultValues = async (user: DocumentType<User>) => {
       finishOneCourse: false,
       finishOneCourseNoMistakes: false,
       totalFocus: false,
+      profilePicture: false,
     };
     await user.save();
   }
@@ -84,5 +85,20 @@ export const finishOneCourse = async (userId: string, answers: number, mistakes:
     };
 
     await user.save();
+  }
+};
+
+export const hasProfilePicture = async (userId: string) => {
+  const user = await UserModel.findOne({ _id: userId });
+  if (user) {
+    // Be sure that we have at least the default values set.
+    await setDefaultValues(user);
+    if (user.picture && !user.achievementsTracker?.profilePicture) {
+      user.achievementsTracker = {
+        ...user.achievementsTracker,
+        profilePicture: true,
+      };
+      await user.save();
+    }
   }
 };
