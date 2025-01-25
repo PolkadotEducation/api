@@ -174,6 +174,7 @@ describe("Setting API Server up...", () => {
         language: "english",
         summary: "This is the initial course summary",
         modules: [module1._id, module2._id, module3._id],
+        banner: "blackPink",
       });
     });
 
@@ -713,7 +714,9 @@ describe("Setting API Server up...", () => {
 
       const completedCourses = await getCompletedCoursesByUserId(user?.id as string);
 
-      expect(completedCourses).toEqual([{ courseId: course._id, courseTitle: course.title }]);
+      expect(completedCourses).toEqual([
+        { courseId: course._id, courseTitle: course.title, courseBanner: course.banner },
+      ]);
     });
 
     it("should return an empty array since user didnt finished the course", async () => {
@@ -813,6 +816,7 @@ describe("Setting API Server up...", () => {
           expect(r.data.length).toEqual(1);
           expect(r.data[0].courseId).toEqual(course._id?.toString());
           expect(r.data[0].courseTitle).toEqual(course.title);
+          expect(r.data[0].courseBanner).toEqual(course.banner);
         })
         .catch((e) => {
           expect(e).toBeUndefined();

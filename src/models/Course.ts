@@ -19,6 +19,14 @@ class Course extends BaseModel {
 
   @prop({ required: true, type: () => Array<Module>, ref: () => Module })
   public modules: Ref<Module>[];
+
+  @prop({
+    required: true,
+    enum: ["blackPink", "blackPurple", "tetris", "gradient"],
+    type: String,
+    default: "blackPink",
+  })
+  public banner: string;
 }
 
 const CourseModel = getModelForClass(Course);
