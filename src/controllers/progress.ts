@@ -291,7 +291,7 @@ export const getCompletedCoursesByUserId = async (
     populate: { path: "lessons", model: "Lesson" },
   });
 
-  const completedCourses: Array<{ courseId: string; courseTitle: string }> = [];
+  const completedCourses: Array<{ courseId: string; courseTitle: string; courseBanner: string }> = [];
 
   for (const course of courses) {
     const allLessonIds = (course.modules ?? []).flatMap((module) =>
@@ -310,7 +310,7 @@ export const getCompletedCoursesByUserId = async (
     const isCompleted = allLessonIds.every((lessonId) => completedLessonIds.includes(lessonId));
 
     if (isCompleted) {
-      completedCourses.push({ courseId: course._id, courseTitle: course.title });
+      completedCourses.push({ courseId: course._id, courseTitle: course.title, courseBanner: course.banner });
     }
   }
 

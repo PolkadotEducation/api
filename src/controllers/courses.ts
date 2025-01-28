@@ -7,9 +7,9 @@ import { LessonModel } from "@/models/Lesson";
 
 export const createCourse = async (req: Request, res: Response) => {
   const { teamId } = req.params;
-  const { title, language, summary, modules } = req.body;
+  const { title, language, summary, modules, banner } = req.body;
 
-  if (!teamId || !title || !language || !summary || !modules) {
+  if (!teamId || !title || !language || !summary || !modules || !banner) {
     return res.status(400).send({ error: { message: "Missing params" } });
   }
 
@@ -49,6 +49,7 @@ export const createCourse = async (req: Request, res: Response) => {
       language,
       summary,
       modules: createdModules,
+      banner,
     });
 
     if (newCourse) {
@@ -66,9 +67,9 @@ export const createCourse = async (req: Request, res: Response) => {
 
 export const updateCourse = async (req: Request, res: Response) => {
   const { teamId, id } = req.params;
-  const { title, language, summary, modules } = req.body;
+  const { title, language, summary, modules, banner } = req.body;
 
-  if (!teamId || !id || !title || !language || !summary || !modules) {
+  if (!teamId || !id || !title || !language || !summary || !modules || !banner) {
     return res.status(400).send({ error: { message: "Missing params" } });
   }
 
@@ -143,6 +144,7 @@ export const updateCourse = async (req: Request, res: Response) => {
         language,
         summary,
         modules: updatedModules,
+        banner,
       },
       { new: true },
     );
@@ -296,6 +298,7 @@ export const duplicateCourses = async (req: Request, res: Response) => {
           language: existingCourse.language,
           summary: existingCourse.summary,
           modules: existingCourse.modules,
+          banner: existingCourse.banner,
         });
 
         return duplicatedCourse._id;
