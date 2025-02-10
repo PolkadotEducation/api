@@ -7,6 +7,7 @@ import { Types } from "mongoose";
 import { MongoError } from "mongodb";
 import { Module } from "@/models/Module";
 import { calculateExperience, calculateLevel, calculateXpToNextLevel, Difficulty } from "@/helpers/progress";
+import { countCorrectAnswers } from "@/helpers/achievements";
 
 export const submitAnswer = async (req: Request, res: Response) => {
   const { courseId, lessonId, choice } = req.body;
@@ -32,6 +33,8 @@ export const submitAnswer = async (req: Request, res: Response) => {
   if (progress) return res.status(200).send(progress);
 
   const isCorrect = choice === lesson.challenge.correctChoice;
+  // Update Correct Answers Counter (Achievements).
+  await countCorrectAnswers(userId, isCorrect);
 
   let errorMessage;
   try {
