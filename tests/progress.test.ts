@@ -174,6 +174,7 @@ describe("Setting API Server up...", () => {
         language: "english",
         summary: "This is the initial course summary",
         modules: [module1._id, module2._id, module3._id],
+        banner: "blackPink",
       });
     });
 
@@ -587,6 +588,84 @@ describe("Setting API Server up...", () => {
         });
     });
 
+    it("should return a course summary", async () => {
+      await ProgressModel.create({
+        courseId: course._id,
+        lessonId: lesson1._id,
+        userId: user?.id,
+        choice: 0,
+        isCorrect: true,
+        difficulty: lesson1.difficulty,
+      });
+
+      await ProgressModel.create({
+        courseId: course._id,
+        lessonId: lesson2._id,
+        userId: user?.id,
+        choice: 2,
+        isCorrect: true,
+        difficulty: lesson2.difficulty,
+      });
+
+      await ProgressModel.create({
+        courseId: course._id,
+        lessonId: lesson3._id,
+        userId: user?.id,
+        choice: 2,
+        isCorrect: true,
+        difficulty: lesson3.difficulty,
+      });
+
+      await ProgressModel.create({
+        courseId: course._id,
+        lessonId: lesson4._id,
+        userId: user?.id,
+        choice: 1,
+        isCorrect: false,
+        difficulty: lesson4.difficulty,
+      });
+
+      await ProgressModel.create({
+        courseId: course._id,
+        lessonId: lesson4._id,
+        userId: user?.id,
+        choice: 0,
+        isCorrect: true,
+        difficulty: lesson4.difficulty,
+      });
+
+      await ProgressModel.create({
+        courseId: course._id,
+        lessonId: lesson5._id,
+        userId: user?.id,
+        choice: 1,
+        isCorrect: false,
+        difficulty: lesson5.difficulty,
+      });
+
+      await axios
+        .get(`${API_URL}/progress/course/summary/${course._id}`, { headers })
+        .then((r) => {
+          expect(r.status).toEqual(200);
+          expect(r.data.courseSummary.title).toEqual(course.title);
+
+          // 1st module should be completed
+          expect(r.data.courseSummary.modules[0].title).toEqual(module1.title);
+          expect(r.data.courseSummary.modules[0].isCompleted).toEqual(true);
+
+          // 2nd module should be completed
+          expect(r.data.courseSummary.modules[1].title).toEqual(module2.title);
+          expect(r.data.courseSummary.modules[1].isCompleted).toEqual(true);
+
+          // 3rd module should NOT be completed
+          expect(r.data.courseSummary.modules[2].title).toEqual(module3.title);
+          expect(r.data.courseSummary.modules[2].isCompleted).toEqual(false);
+        })
+        .catch((e) => {
+          expect(e).toBeUndefined();
+        });
+    });
+
     it("should return an array of completed courses for a valid user", async () => {
       await ProgressModel.create({
         courseId: course._id,
@@ -635,7 +714,9 @@ describe("Setting API Server up...", () => {
 
       const completedCourses = await getCompletedCoursesByUserId(user?.id as string);
 
-      expect(completedCourses).toEqual([{ courseId: course._id, courseTitle: course.title }]);
+      expect(completedCourses).toEqual([
+        { courseId: course._id, courseTitle: course.title, courseBanner: course.banner },
+      ]);
     });
 
     it("should return an empty array since user didnt finished the course", async () => {
@@ -735,6 +816,7 @@ describe("Setting API Server up...", () => {
           expect(r.data.length).toEqual(1);
           expect(r.data[0].courseId).toEqual(course._id?.toString());
           expect(r.data[0].courseTitle).toEqual(course.title);
+          expect(r.data[0].courseBanner).toEqual(course.banner);
         })
         .catch((e) => {
           expect(e).toBeUndefined();

@@ -177,6 +177,7 @@ describe("Setting API Server up...", () => {
         language: "english",
         summary: "This is the initial course summary",
         modules: [module1._id, module2._id, module3._id],
+        banner: "blackPink",
       });
     });
 

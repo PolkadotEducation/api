@@ -6,6 +6,7 @@ import { UserModel } from "@/models/User";
 import { Types } from "mongoose";
 import { MongoError } from "mongodb";
 import { Module } from "@/models/Module";
+import { calculateExperience, calculateLevel, calculateXpToNextLevel, Difficulty } from "@/helpers/progress";
 import { countCorrectAnswers } from "@/helpers/achievements";
 
 export const submitAnswer = async (req: Request, res: Response) => {
@@ -84,6 +85,90 @@ export const getLessonProgress = async (req: Request, res: Response) => {
   }
 };
 
+export const getCourseSummary = async (req: Request, res: Response) => {
+  const { courseId } = req.params;
+  const userId = res.locals?.populatedUser;
+
+  if (!userId || !courseId) {
+    return res.status(400).send({ error: { message: "Missing params" } });
+  }
+
+  try {
+    const progress = await ProgressModel.aggregate([
+      {
+        $match: { userId: new Types.ObjectId(userId as string), courseId: new Types.ObjectId(courseId) },
+      },
+      {
+        $group: {
+          _id: {
+            lessonId: "$lessonId",
+            difficulty: "$difficulty",
+          },
+          count: { $sum: 1 },
+          correctCount: { $sum: { $cond: ["$isCorrect", 1, 0] } },
+        },
+      },
+      {
+        $project: {
+          lessonId: "$_id.lessonId",
+          difficulty: "$_id.difficulty",
+          correctAtFirstTry: { $cond: [{ $eq: ["$count", 1] }, { $eq: ["$correctCount", 1] }, false] },
+          isCorrect: { $gt: ["$correctCount", 0] },
+          _id: 0,
+        },
+      },
+    ]);
+
+    const course = (await CourseModel.findOne({ _id: courseId }).populate({
+      path: "modules",
+      populate: {
+        path: "lessons",
+        model: "Lesson",
+      },
+    })) as Course;
+
+    if (!course) {
+      return res.status(400).send({ error: { message: "Course not found" } });
+    }
+
+    const progressMap = new Map(progress.map((p) => [String(p.lessonId), p]));
+
+    const courseSummary = {
+      title: course.title,
+      modules: course.modules.map((module) => {
+        const populatedModule = module as Module & { lessons: Lesson[] };
+
+        const lessons = populatedModule.lessons.map((lesson) => {
+          const populatedLesson = lesson as Lesson;
+
+          const progressRecord = progressMap.get(String(populatedLesson._id));
+          const isCompleted = progressRecord?.isCorrect || false;
+          const correctAtFirstTry = progressRecord?.correctAtFirstTry || false;
+
+          return {
+            title: populatedLesson.title,
+            difficulty: populatedLesson.difficulty,
+            expEarned: isCompleted
+              ? calculateExperience(populatedLesson.difficulty as Difficulty, correctAtFirstTry)
+              : 0,
+          };
+        });
+
+        return {
+          title: populatedModule.title,
+          isCompleted: lessons.every((lesson) => lesson.expEarned > 0),
+          lessons,
+        };
+      }),
+    };
+
+    return res.status(200).send({ courseSummary });
+  } catch (e) {
+    console.error(`[ERROR][getCourseSummary] ${e}`);
+    return res.status(500).send({ error: { message: "Internal server error" } });
+  }
+};
+
 export const getCourseProgress = async (req: Request, res: Response) => {
   const { courseId } = req.params;
 
@@ -107,9 +192,10 @@ export const getCourseProgress = async (req: Request, res: Response) => {
       return res.status(400).send({ error: { message: "Course not found" } });
     }
 
-    // not ideal, but it avoids complex type casting
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const totalLessons = (course.modules as any[]).reduce((sum, module) => sum + (module.lessons as any[]).length, 0);
+    const totalLessons = course.modules.reduce((sum, module) => {
+      const populatedModule = module as Module & { lessons: Lesson[] };
+      return sum + populatedModule.lessons.length;
+    }, 0);
     const completedLessonsSet = new Set(progress.map((p) => p.lessonId.toString()));
     const completedLessons = completedLessonsSet.size;
     const progressPercentage = (completedLessons / totalLessons) * 100;
@@ -136,27 +222,6 @@ export const getCourseProgress = async (req: Request, res: Response) => {
     console.error(`[ERROR][getCourseProgress] ${e}`);
     return res.status(500).send({ error: { message: "Internal server error" } });
   }
-};
-
-const EXP_POINTS = {
-  hard: { perfect: 200, withMistakes: 100 },
-  medium: { perfect: 100, withMistakes: 50 },
-  easy: { perfect: 50, withMistakes: 25 },
-};
-
-type Difficulty = keyof typeof EXP_POINTS;
-
-const calculateLevel = (exp: number): number => {
-  let level = 0;
-  while (10 * Math.pow(level, 2) + 100 * level + 150 < exp) {
-    level++;
-  }
-  return level;
-};
-
-const calculateXpToNextLevel = (exp: number, currentLevel: number): number => {
-  const nextLevelExp = 10 * Math.pow(currentLevel, 2) + 100 * currentLevel + 150;
-  return nextLevelExp - exp;
 };
 
 export const getUserXPAndLevel = async (_req: Request, res: Response) => {
@@ -204,7 +269,7 @@ export const getUserXPAndLevel = async (_req: Request, res: Response) => {
     for (const p of progress) {
       if (p.isCorrect) {
         const difficulty = p.difficulty as Difficulty;
-        const points = p.correctAtFirstTry ? EXP_POINTS[difficulty].perfect : EXP_POINTS[difficulty].withMistakes;
+        const points = calculateExperience(difficulty, p.correctAtFirstTry);
         exp += points;
       }
     }
@@ -229,7 +294,7 @@ export const getCompletedCoursesByUserId = async (
     populate: { path: "lessons", model: "Lesson" },
   });
 
-  const completedCourses: Array<{ courseId: string; courseTitle: string }> = [];
+  const completedCourses: Array<{ courseId: string; courseTitle: string; courseBanner: string }> = [];
 
   for (const course of courses) {
     const allLessonIds = (course.modules ?? []).flatMap((module) =>
@@ -248,7 +313,7 @@ export const getCompletedCoursesByUserId = async (
     const isCompleted = allLessonIds.every((lessonId) => completedLessonIds.includes(lessonId));
 
     if (isCompleted) {
-      completedCourses.push({ courseId: course._id, courseTitle: course.title });
+      completedCourses.push({ courseId: course._id, courseTitle: course.title, courseBanner: course.banner });
     }
   }
 
