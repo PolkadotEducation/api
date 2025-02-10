@@ -35,4 +35,5 @@ export type AchievementsTracker = {
   finishOneCourse: boolean;
   finishOneCourseNoMistakes: boolean;
   totalFocus: boolean;
+  profilePicture: boolean;
 };
