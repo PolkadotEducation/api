@@ -8,7 +8,7 @@ import { ChallengeModel } from "@/models/Challenge";
 import { getAuthHeaders } from "./helpers";
 import { UserModel } from "@/models/User";
 
-const PORT = 3013;
+const PORT = 3017;
 const API_URL = `http://0.0.0.0:${PORT}`;
 const MONGODB_DATABASE_NAME = "challengesTestDB";
 
