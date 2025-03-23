@@ -124,16 +124,23 @@ describe("Setting API Server up...", () => {
       expect(response.data.correctChoice).toEqual(updatedData.correctChoice);
     });
 
-    it("Get all Challenges (GET /challenges)", async () => {
+    it("Get all Challenges with specific daily challenge (GET /challenges)", async () => {
       await ChallengeModel.create({
         question: "Test 1",
         choices: ["A", "B", "C"],
         correctChoice: 0,
       });
+
       await ChallengeModel.create({
         question: "Test 2",
         choices: ["X", "Y", "Z", "W"],
         correctChoice: 1,
+      });
+
+      await ChallengeModel.create({
+        question: "Test 3",
+        choices: ["L", "M", "N", "O"],
+        correctChoice: 2,
       });
 
       const response = await axios.get(`${API_URL}/challenges`, {
@@ -141,8 +148,12 @@ describe("Setting API Server up...", () => {
       });
 
       expect(response.status).toBe(200);
-      expect(Array.isArray(response.data)).toBe(true);
-      expect(response.data.length).toBe(2);
+      expect(response.data.challenges.random.length).toBe(3);
+
+      // @TODO: Mock date to test daily challenge
+      // expect(response.data.dailyChallenge.question).toBe("Test 1");
+      // expect(response.data.dailyChallenge.correctChoice).toBe(0);
+      // expect(response.data.dailyChallenge.choices).toEqual(["A", "B", "C"]);
     });
 
     it("Get single Challenge (GET /challenge/:id)", async () => {

@@ -58,8 +58,25 @@ export const updateChallenge = async (req: Request, res: Response) => {
 
 export const getChallenges = async (req: Request, res: Response) => {
   try {
-    const challenges = await ChallengeModel.find();
-    return res.status(200).send(challenges);
+    const totalRows = await ChallengeModel.countDocuments({});
+
+    const today = new Date();
+    const startOfYear = new Date(today.getFullYear(), 0, 0);
+    const diff = today.getTime() - startOfYear.getTime();
+    const oneDay = 1000 * 60 * 60 * 24;
+    const dayOfYear = Math.floor(diff / oneDay);
+
+    const dailyIndex = (dayOfYear * 31 + 17) % totalRows;
+    const dailyChallenge = await ChallengeModel.findOne().skip(dailyIndex).exec();
+
+    const randomChallenges = await ChallengeModel.aggregate([{ $sample: { size: 5 } }]);
+
+    const challenges = {
+      daily: dailyChallenge,
+      random: randomChallenges,
+    };
+
+    return res.status(200).send({ challenges });
   } catch (e) {
     console.error(`[ERROR][getChallenges] ${e}`);
     return res.status(400).send({
