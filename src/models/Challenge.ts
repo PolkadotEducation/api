@@ -11,9 +11,9 @@ class Challenge extends BaseModel {
     type: Array<string>,
     validate: {
       validator: function (v: string[]) {
-        return v.length >= 3 && v.length <= 5;
+        return v.length >= 2 && v.length <= 5;
       },
-      message: "Choices array must contain between 3 and 5 items.",
+      message: "Choices array must contain between 2 and 5 items.",
     },
     allowMixed: Severity.ALLOW,
   })
