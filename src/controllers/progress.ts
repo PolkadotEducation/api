@@ -44,7 +44,7 @@ export const submitAnswer = async (req: Request, res: Response) => {
       userId,
       choice,
       isCorrect,
-      difficulty: lesson.difficulty,
+      difficulty: lesson.challenge.difficulty,
     });
     if (newProgress) return res.status(201).send(newProgress);
   } catch (e) {
@@ -147,9 +147,9 @@ export const getCourseSummary = async (req: Request, res: Response) => {
 
           return {
             title: populatedLesson.title,
-            difficulty: populatedLesson.difficulty,
+            difficulty: populatedLesson.challenge.difficulty,
             expEarned: isCompleted
-              ? calculateExperience(populatedLesson.difficulty as Difficulty, correctAtFirstTry)
+              ? calculateExperience(populatedLesson.challenge.difficulty as Difficulty, correctAtFirstTry)
               : 0,
           };
         });
