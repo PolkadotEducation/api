@@ -2,9 +2,9 @@ import { Request, Response } from "express";
 import { ChallengeModel } from "@/models/Challenge";
 
 export const createChallenge = async (req: Request, res: Response) => {
-  const { question, choices, correctChoice } = req.body;
+  const { question, choices, correctChoice, difficulty } = req.body;
 
-  if (!question || !choices || correctChoice === undefined) {
+  if (!question || !choices || correctChoice === undefined || !difficulty) {
     return res.status(400).send({ error: { message: "Missing required parameters" } });
   }
 
@@ -13,6 +13,7 @@ export const createChallenge = async (req: Request, res: Response) => {
       question,
       choices,
       correctChoice,
+      difficulty,
     });
 
     return res.status(201).send(newChallenge);
@@ -28,16 +29,16 @@ export const createChallenge = async (req: Request, res: Response) => {
 
 export const updateChallenge = async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { question, choices, correctChoice } = req.body;
+  const { question, choices, correctChoice, difficulty } = req.body;
 
-  if (!id || !question || !choices || correctChoice === undefined) {
+  if (!id || !question || !choices || correctChoice === undefined || !difficulty) {
     return res.status(400).send({ error: { message: "Missing required parameters" } });
   }
 
   try {
     const updatedChallenge = await ChallengeModel.findOneAndUpdate(
       { _id: id },
-      { question, choices, correctChoice },
+      { question, choices, correctChoice, difficulty },
       { new: true, runValidators: true },
     );
 

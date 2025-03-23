@@ -5,8 +5,8 @@ import { LessonModel } from "@/models/Lesson";
 
 export const createLesson = async (req: Request, res: Response) => {
   const { teamId } = req.params;
-  const { title, language, body, difficulty, challenge, references } = req.body;
-  if (!teamId || !title || !language || !body || !difficulty || !challenge) {
+  const { title, language, body, challenge, references } = req.body;
+  if (!teamId || !title || !language || !body) {
     return res.status(400).send({ error: { message: "Missing params" } });
   }
 
@@ -17,7 +17,6 @@ export const createLesson = async (req: Request, res: Response) => {
       title,
       language,
       body,
-      difficulty,
       challenge,
       references,
     });
@@ -36,9 +35,9 @@ export const createLesson = async (req: Request, res: Response) => {
 
 export const updateLesson = async (req: Request, res: Response) => {
   const { teamId, id } = req.params;
-  const { title, language, body, difficulty, challenge, references } = req.body;
+  const { title, language, body, challenge, references } = req.body;
 
-  if (!id || !teamId || !title || !language || !body || !difficulty || !challenge) {
+  if (!id || !teamId || !title || !language || !body || !challenge) {
     return res.status(400).send({ error: { message: "Missing params" } });
   }
 
@@ -50,7 +49,6 @@ export const updateLesson = async (req: Request, res: Response) => {
         title,
         language,
         body,
-        difficulty,
         challenge,
         references,
       },
@@ -206,7 +204,6 @@ export const duplicateLessons = async (req: Request, res: Response) => {
           title: existingLesson.title,
           language: existingLesson.language,
           body: existingLesson.body,
-          difficulty: existingLesson.difficulty,
           challenge: existingLesson.challenge,
           references: existingLesson.references,
         });

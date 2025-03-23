@@ -78,6 +78,9 @@ describe("Setting API Server up...", () => {
 
   afterAll(async () => {
     await LessonModel.deleteMany({});
+    await UserModel.deleteMany({});
+    await TeamModel.deleteMany({});
+    await UserTeamModel.deleteMany({});
   });
 
   afterAll(async () => {
@@ -90,11 +93,11 @@ describe("Setting API Server up...", () => {
       const title = "Lesson #1";
       const language = "english";
       const body = loadFixture("example.md");
-      const difficulty = "easy";
       const challenge = {
         question: "What is the capital of France?",
         choices: ["Berlin", "Madrid", "Paris", "Rome"],
         correctChoice: 2,
+        difficulty: "easy",
       };
 
       await axios
@@ -104,7 +107,6 @@ describe("Setting API Server up...", () => {
             title,
             language,
             body,
-            difficulty,
             challenge,
           },
           { headers: adminHeaders },
@@ -113,7 +115,7 @@ describe("Setting API Server up...", () => {
           expect(r.data.title).toEqual(title);
           expect(r.data.language).toEqual(language);
           expect(r.data.body).toEqual(body);
-          expect(r.data.difficulty).toEqual(difficulty);
+          expect(r.data.challenge.difficulty).toEqual(challenge.difficulty);
           expect(r.data.challenge).toEqual(expect.objectContaining(challenge));
           expect(r.data.references).toEqual([]);
         })
@@ -124,11 +126,11 @@ describe("Setting API Server up...", () => {
       const title = "Lesson #1";
       const language = "english";
       const body = loadFixture("example.md");
-      const difficulty = "easy";
       const invalidChallenge = {
         question: "What is the capital of France?",
-        choices: ["Paris", "Rome"],
+        choices: ["Paris"],
         correctChoice: 0,
+        difficulty: "easy",
       };
 
       await axios
@@ -138,7 +140,6 @@ describe("Setting API Server up...", () => {
             title,
             language,
             body,
-            difficulty,
             challenge: invalidChallenge,
           },
           { headers: adminHeaders },
@@ -146,7 +147,7 @@ describe("Setting API Server up...", () => {
         .then(() => {})
         .catch((e) => {
           expect(e.response.data.error.message).toContain(
-            "Lesson validation failed: challenge.choices: Choices array must contain between 3 and 5 items.",
+            "Lesson validation failed: challenge.choices: Choices array must contain between 2 and 5 items.",
           );
         });
     });
@@ -154,12 +155,12 @@ describe("Setting API Server up...", () => {
     it("Update a Lesson (PUT /lesson/:id)", async () => {
       const title = "Lesson #2";
       const body = loadFixture("example.md");
-      const difficulty = "hard";
       const language = "english";
       const challenge = {
         question: "What is the capital of Lesotho?",
         choices: ["Maseru", "Gaborone", "Mbabane", "Lilongwe"],
         correctChoice: 0,
+        difficulty: "hard",
       };
       const references = [
         {
@@ -176,7 +177,6 @@ describe("Setting API Server up...", () => {
         teamId: team,
         title,
         body,
-        difficulty,
         challenge,
         references,
         language,
@@ -184,11 +184,11 @@ describe("Setting API Server up...", () => {
 
       const updatedTitle = "Updated Lesson #2";
       const updatedBody = loadFixture("updated-example.md");
-      const updatedDifficulty = "medium";
       const updatedChallenge = {
         question: "What is the capital of Botswana?",
         choices: ["Gaborone", "Maseru", "Mbabane", "Lilongwe"],
         correctChoice: 0,
+        difficulty: "medium",
       };
       const updatedReferences = [
         {
@@ -207,8 +207,8 @@ describe("Setting API Server up...", () => {
         {
           title: updatedTitle,
           body: updatedBody,
-          difficulty: updatedDifficulty,
           challenge: updatedChallenge,
+          difficulty: updatedChallenge.difficulty,
           references: updatedReferences,
           language: updatedLanguage,
         },
@@ -220,7 +220,7 @@ describe("Setting API Server up...", () => {
         .then((r) => {
           expect(r.data.title).toEqual(updatedTitle);
           expect(r.data.body).toEqual(updatedBody);
-          expect(r.data.difficulty).toEqual(updatedDifficulty);
+          expect(r.data.challenge.difficulty).toEqual(updatedChallenge.difficulty);
           expect(r.data.references[0]).toEqual(expect.objectContaining(updatedReferences[0]));
           expect(r.data.references[1]).toEqual(expect.objectContaining(updatedReferences[1]));
           expect(r.data.language).toEqual(updatedLanguage);
@@ -231,11 +231,11 @@ describe("Setting API Server up...", () => {
     it("Update a Lesson with not enough choices returns error (PUT /lesson/:id)", async () => {
       const initialTitle = "Initial Lesson";
       const initialBody = loadFixture("example.md");
-      const initialDifficulty = "easy";
       const initialChallenge = {
         question: "What is the capital of Germany?",
         choices: ["Berlin", "Munich", "Frankfurt"],
         correctChoice: 0,
+        difficulty: "easy",
       };
       const language = "english";
 
@@ -243,18 +243,17 @@ describe("Setting API Server up...", () => {
         teamId: team,
         title: initialTitle,
         body: initialBody,
-        difficulty: initialDifficulty,
         challenge: initialChallenge,
         language,
       });
 
       const updatedTitle = "Lesson #1";
       const updatedBody = loadFixture("updated-example.md");
-      const updatedDifficulty = "easy";
       const invalidChallenge = {
         question: "What is the capital of France?",
-        choices: ["Paris", "Rome"],
+        choices: ["Paris"],
         correctChoice: 0,
+        difficulty: "easy",
       };
 
       await axios
@@ -263,7 +262,6 @@ describe("Setting API Server up...", () => {
           {
             title: updatedTitle,
             body: updatedBody,
-            difficulty: updatedDifficulty,
             challenge: invalidChallenge,
             language,
           },
@@ -272,7 +270,7 @@ describe("Setting API Server up...", () => {
         .then(() => {})
         .catch((e) => {
           expect(e.response.data.error.message).toContain(
-            "Validation failed: challenge.choices: Choices array must contain between 3 and 5 items.",
+            "Validation failed: challenge.choices: Choices array must contain between 2 and 5 items.",
           );
         });
     });
@@ -280,11 +278,11 @@ describe("Setting API Server up...", () => {
     it("Get a Lesson (GET /lesson)", async () => {
       const title = "Aula #2";
       const body = loadFixture("example.md");
-      const difficulty = "hard";
       const language = "portuguese";
       const challenge = {
         question: "Qual é a capital do Lesoto?",
         choices: ["Maseru", "Gaborone", "Mbabane", "Lilongwe"],
+        difficulty: "hard",
         correctChoice: 0,
       };
       const references = [
@@ -302,7 +300,6 @@ describe("Setting API Server up...", () => {
         teamId: team,
         title,
         body,
-        difficulty,
         challenge,
         references,
         language,
@@ -313,7 +310,7 @@ describe("Setting API Server up...", () => {
         .then((r) => {
           expect(r.data.title).toEqual(title);
           expect(r.data.body).toEqual(body);
-          expect(r.data.difficulty).toEqual(difficulty);
+          expect(r.data.challenge.difficulty).toEqual(challenge.difficulty);
           expect(r.data.references[0]).toEqual(expect.objectContaining(references[0]));
           expect(r.data.references[1]).toEqual(expect.objectContaining(references[1]));
           expect(r.data.language).toEqual(language);
@@ -329,36 +326,36 @@ describe("Setting API Server up...", () => {
           teamId: team,
           title: "Lesson in English #1",
           body: "This is the body of lesson 1 in English.",
-          difficulty: "easy",
           language: "english",
           challenge: {
             question: "What is the capital of England?",
             choices: ["London", "Paris", "Berlin", "Rome"],
             correctChoice: 0,
+            difficulty: "easy",
           },
         },
         {
           teamId: team,
           title: "Lesson in English #2",
           body: "This is the body of lesson 2 in English.",
-          difficulty: "easy",
           language: "english",
           challenge: {
             question: "What is the capital of the USA?",
             choices: ["Washington D.C.", "New York", "Los Angeles", "Chicago"],
             correctChoice: 0,
+            difficulty: "easy",
           },
         },
         {
           teamId: team,
           title: "Lição em Português",
           body: "Este é o corpo da lição em Português.",
-          difficulty: "easy",
           language: "portuguese",
           challenge: {
             question: "Qual é a capital do Brasil?",
             choices: ["Rio de Janeiro", "São Paulo", "Brasília", "Salvador"],
             correctChoice: 2,
+            difficulty: "easy",
           },
         },
       ];
@@ -404,19 +401,18 @@ describe("Setting API Server up...", () => {
     it("Delete a Lesson (DELETE /lesson)", async () => {
       const title = "Aula #3";
       const body = loadFixture("example.md");
-      const difficulty = "medium";
       const language = "spanish";
       const challenge = {
         question: "¿Cuál es la capital de Kenia?",
         choices: ["Lagos", "Cairo", "Nairobi", "Addis Ababa"],
         correctChoice: 2,
+        difficulty: "medium",
       };
 
       const newLesson = await LessonModel.create({
         teamId: team,
         title,
         body,
-        difficulty,
         challenge,
         language,
       });
@@ -437,36 +433,36 @@ describe("Setting API Server up...", () => {
           teamId: team,
           title: "Lesson in English #1",
           body: "This is the body of lesson 1 in English.",
-          difficulty: "easy",
           language: "english",
           challenge: {
             question: "What is the capital of England?",
             choices: ["London", "Paris", "Berlin", "Rome"],
             correctChoice: 0,
+            difficulty: "easy",
           },
         },
         {
           teamId: team,
           title: "Lesson in English #2",
           body: "This is the body of lesson 2 in English.",
-          difficulty: "easy",
           language: "english",
           challenge: {
             question: "What is the capital of the USA?",
             choices: ["Washington D.C.", "New York", "Los Angeles", "Chicago"],
             correctChoice: 0,
+            difficulty: "easy",
           },
         },
         {
           teamId: team,
           title: "Lição em Português",
           body: "Este é o corpo da lição em Português.",
-          difficulty: "easy",
           language: "portuguese",
           challenge: {
             question: "Qual é a capital do Brasil?",
             choices: ["Rio de Janeiro", "São Paulo", "Brasília", "Salvador"],
             correctChoice: 2,
+            difficulty: "easy",
           },
         },
       ];
@@ -499,12 +495,12 @@ describe("Setting API Server up...", () => {
         teamId: team,
         title: "Original Lesson 1",
         body: "Content of lesson 1",
-        difficulty: "easy",
         language: "english",
         challenge: {
           question: "What is the capital of England?",
           choices: ["London", "Paris", "Berlin", "Rome"],
           correctChoice: 0,
+          difficulty: "easy",
         },
         references: [],
       });
@@ -513,12 +509,12 @@ describe("Setting API Server up...", () => {
         teamId: team,
         title: "Original Lesson 2",
         body: "Content of lesson 2",
-        difficulty: "medium",
         language: "english",
         challenge: {
           question: "What is the capital of the USA?",
           choices: ["Washington D.C.", "New York", "Los Angeles", "Chicago"],
           correctChoice: 0,
+          difficulty: "medium",
         },
         references: [],
       });
@@ -551,11 +547,11 @@ describe("Setting API Server up...", () => {
       const title = "Lesson #X";
       const language = "english";
       const body = loadFixture("example.md");
-      const difficulty = "easy";
       const challenge = {
         question: "What is the capital of France?",
         choices: ["Berlin", "Madrid", "Paris", "Rome"],
         correctChoice: 2,
+        difficulty: "easy",
       };
 
       await axios
@@ -565,7 +561,6 @@ describe("Setting API Server up...", () => {
             title,
             language,
             body,
-            difficulty,
             challenge,
           },
           { headers },
@@ -577,7 +572,6 @@ describe("Setting API Server up...", () => {
         teamId: team,
         title,
         body,
-        difficulty,
         challenge,
         references: [],
         language,
@@ -590,7 +584,6 @@ describe("Setting API Server up...", () => {
             title,
             language,
             body,
-            difficulty,
             challenge,
           },
           { headers },

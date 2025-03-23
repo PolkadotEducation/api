@@ -21,6 +21,9 @@ class Challenge extends BaseModel {
 
   @prop({ required: true, type: Number })
   public correctChoice: number;
+
+  @prop({ required: true, enum: ["easy", "medium", "hard"], type: String })
+  public difficulty: string;
 }
 
 const ChallengeModel = getModelForClass(Challenge);

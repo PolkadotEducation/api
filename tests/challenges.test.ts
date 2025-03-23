@@ -57,6 +57,11 @@ describe("Setting API Server up...", () => {
     regularHeaders = await getAuthHeaders(regularEmail, "password");
   });
 
+  afterAll(async () => {
+    await ChallengeModel.deleteMany({});
+    await UserModel.deleteMany({});
+  });
+
   afterEach(async () => {
     await ChallengeModel.deleteMany({});
   });
@@ -72,6 +77,7 @@ describe("Setting API Server up...", () => {
         question: "What is 2 + 2?",
         choices: ["3", "4", "5", "6"],
         correctChoice: 1,
+        difficulty: "easy",
       };
 
       const response = await axios.post(`${API_URL}/challenge`, challengeData, { headers: adminHeaders });
@@ -80,6 +86,7 @@ describe("Setting API Server up...", () => {
       expect(response.data.question).toEqual(challengeData.question);
       expect(response.data.choices).toEqual(challengeData.choices);
       expect(response.data.correctChoice).toEqual(challengeData.correctChoice);
+      expect(response.data.difficulty).toEqual(challengeData.difficulty);
     });
 
     it("Create Challenge with invalid choices length returns error", async () => {
@@ -87,6 +94,7 @@ describe("Setting API Server up...", () => {
         question: "Test question",
         choices: ["1"],
         correctChoice: 0,
+        difficulty: "easy",
       };
 
       await expect(
@@ -108,12 +116,14 @@ describe("Setting API Server up...", () => {
         question: "Old question",
         choices: ["A", "B", "C", "D"],
         correctChoice: 0,
+        difficulty: "medium",
       });
 
       const updatedData = {
         question: "New question",
         choices: ["X", "Y", "Z", "W"],
         correctChoice: 2,
+        difficulty: "hard",
       };
 
       const response = await axios.put(`${API_URL}/challenge/${challenge._id}`, updatedData, { headers: adminHeaders });
@@ -129,18 +139,21 @@ describe("Setting API Server up...", () => {
         question: "Test 1",
         choices: ["A", "B", "C"],
         correctChoice: 0,
+        difficulty: "easy",
       });
 
       await ChallengeModel.create({
         question: "Test 2",
         choices: ["X", "Y", "Z", "W"],
         correctChoice: 1,
+        difficulty: "medium",
       });
 
       await ChallengeModel.create({
         question: "Test 3",
         choices: ["L", "M", "N", "O"],
         correctChoice: 2,
+        difficulty: "hard",
       });
 
       const response = await axios.get(`${API_URL}/challenges`, {
@@ -161,6 +174,7 @@ describe("Setting API Server up...", () => {
         question: "Single test",
         choices: ["1", "2", "3", "4"],
         correctChoice: 2,
+        difficulty: "easy",
       });
 
       const response = await axios.get(`${API_URL}/challenge/${challenge._id}`, { headers: adminHeaders });
@@ -176,6 +190,7 @@ describe("Setting API Server up...", () => {
         question: "To be deleted",
         choices: ["A", "B", "C"],
         correctChoice: 0,
+        difficulty: "easy",
       });
 
       const countBefore = await ChallengeModel.countDocuments();
@@ -220,6 +235,7 @@ describe("Setting API Server up...", () => {
         question: "Test",
         choices: ["A", "B", "C"],
         correctChoice: 0,
+        difficulty: "easy",
       };
 
       await expect(

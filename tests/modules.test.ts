@@ -92,11 +92,11 @@ describe("Setting API Server up...", () => {
         title: "Lesson #1",
         language: "english",
         body: loadFixture("example.md"),
-        difficulty: "easy",
         challenge: {
           question: "What is the capital of France?",
           choices: ["Berlin", "Madrid", "Paris", "Rome"],
           correctChoice: 2,
+          difficulty: "easy",
         },
       });
 
@@ -143,11 +143,11 @@ describe("Setting API Server up...", () => {
         title: "Lesson #1",
         language: "english",
         body: loadFixture("example.md"),
-        difficulty: "easy",
         challenge: {
           question: "What is the capital of Germany?",
           choices: ["Berlin", "Munich", "Frankfurt"],
           correctChoice: 0,
+          difficulty: "easy",
         },
       });
 
@@ -156,11 +156,11 @@ describe("Setting API Server up...", () => {
         title: "Lesson #2",
         language: "english",
         body: loadFixture("example.md"),
-        difficulty: "easy",
         challenge: {
           question: "What is the capital of Italy?",
           choices: ["Rome", "Milan", "Naples"],
           correctChoice: 0,
+          difficulty: "easy",
         },
       });
 
@@ -200,11 +200,11 @@ describe("Setting API Server up...", () => {
         title: "Lesson #3",
         language: "english",
         body: loadFixture("example.md"),
-        difficulty: "easy",
         challenge: {
           question: "What is the capital of Japan?",
           choices: ["Tokyo", "Kyoto", "Osaka"],
           correctChoice: 0,
+          difficulty: "easy",
         },
       });
 
@@ -231,11 +231,11 @@ describe("Setting API Server up...", () => {
         title: "Lesson #4",
         language: "english",
         body: loadFixture("example.md"),
-        difficulty: "hard",
         challenge: {
           question: "What is the capital of Kenya?",
           choices: ["Lagos", "Cairo", "Nairobi", "Addis Ababa"],
           correctChoice: 2,
+          difficulty: "hard",
         },
       });
 
@@ -264,11 +264,11 @@ describe("Setting API Server up...", () => {
         title: "Lesson #1",
         language: "english",
         body: loadFixture("example.md"),
-        difficulty: "easy",
         challenge: {
           question: "What is the capital of France?",
           choices: ["Berlin", "Madrid", "Paris", "Rome"],
           correctChoice: 2,
+          difficulty: "easy",
         },
       });
 
