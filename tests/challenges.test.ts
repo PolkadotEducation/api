@@ -85,7 +85,7 @@ describe("Setting API Server up...", () => {
     it("Create Challenge with invalid choices length returns error", async () => {
       const invalidChallenge = {
         question: "Test question",
-        choices: ["1", "2"],
+        choices: ["1"],
         correctChoice: 0,
       };
 
@@ -96,7 +96,7 @@ describe("Setting API Server up...", () => {
           status: 400,
           data: {
             error: {
-              message: expect.stringContaining("Choices array must contain between 3 and 5 items"),
+              message: expect.stringContaining("Choices array must contain between 2 and 5 items"),
             },
           },
         },
