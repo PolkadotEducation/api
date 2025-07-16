@@ -40,10 +40,9 @@ jobs:
           echo "SERVER_PORT=${{ vars.PORT }}" >> .env
           echo "JWT_SECRET=${{ vars.JWT_SECRET }}" >> .env
           echo "MONGODB_URI=${{ vars.MONGODB_URI }}" >> .env
-          echo "AWS_SES_REGION=${{ vars.AWS_REGION }}" >> .env
-          echo "AWS_SES_ID=${{ secrets.AWS_SES_ID }}" >> .env
-          echo "AWS_SES_SECRET=${{ secrets.AWS_SES_SECRET }}" >> .env
-          echo "AWS_SES_SOURCE=${{ vars.APAWS_SES_SOURCEP_URL }}" >> .env
+          echo "BREVO_API_KEY=${{ secrets.BREVO_API_KEY }}" >> .env
+          echo "BREVO_FROM_EMAIL=${{ vars.BREVO_FROM_EMAIL }}" >> .env
+          echo "BREVO_FROM_NAME=${{ vars.BREVO_FROM_NAME }}" >> .env
           echo "APP_URL=${{ vars.APP_URL }}" >> .env
           echo "" >> .env
 
