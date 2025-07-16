@@ -3,6 +3,7 @@ import type { Ref } from "@typegoose/typegoose";
 import BaseModel from "./BaseModel";
 import { Course } from "./Course";
 import { User } from "./User";
+import { MintSpecs } from "@/types/Mint";
 
 @index({ lessonId: 1, courseId: 1, userId: 1 }, { unique: true })
 class Certificate extends BaseModel {
@@ -20,6 +21,9 @@ class Certificate extends BaseModel {
 
   @prop({ required: false, type: Number })
   public courseDuration: number;
+
+  @prop({ required: false, type: Object })
+  public mintSpecs: MintSpecs;
 }
 
 const CertificateModel = getModelForClass(Certificate);

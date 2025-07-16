@@ -17,7 +17,9 @@ import { getAuthHeaders } from "./helpers";
 import { Team, TeamModel } from "@/models/Team";
 import { UserTeamModel } from "@/models/UserTeam";
 import { CertificateModel } from "@/models/Certificate";
+import { signatureVerify } from "@polkadot/util-crypto";
 import mongoose from "mongoose";
+import { env } from "@/environment";
 
 const PORT = 3016;
 const API_URL = `http://0.0.0.0:${PORT}`;
@@ -175,6 +177,7 @@ describe("Setting API Server up...", () => {
         language: "english",
         summary: "This is the initial course summary",
         modules: [module1._id, module2._id, module3._id],
+        banner: "blackPink",
       });
     });
 
@@ -388,6 +391,31 @@ describe("Setting API Server up...", () => {
         .get(`${API_URL}/certificates?userId=${user?.id}`, { headers })
         .then((r) => {
           expect(r.data.length).toEqual(2);
+          expect(r.status).toEqual(200);
+        })
+        .catch((e) => {
+          expect(e).toBeUndefined();
+        });
+    });
+
+    it("Mint - should return valid signature (POST /certificates/mint)", async () => {
+      const certificate = await CertificateModel.create({
+        courseId: new mongoose.Types.ObjectId(),
+        courseTitle: "Test Certificate Course",
+        userId: user?.id,
+        userName: user?.name,
+      });
+
+      await axios
+        .post(
+          `${API_URL}/certificates/mint`,
+          { certificateName: "Polkadot Education - Test Certificate", certificateId: certificate._id, deadline: 1_000 },
+          { headers },
+        )
+        .then((r) => {
+          const { payload, signature } = r.data;
+          const { isValid } = signatureVerify(payload, signature, env.SIGNER_ACCOUNT_ID);
+          expect(isValid).toEqual(true);
           expect(r.status).toEqual(200);
         })
         .catch((e) => {

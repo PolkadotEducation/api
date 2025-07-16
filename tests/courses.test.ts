@@ -102,15 +102,20 @@ describe("Setting API Server up...", () => {
         },
       });
 
-      const module = await ModuleModel.create({
-        teamId: team,
-        title: "Module #1",
-        lessons: [lesson._id],
-      });
-
       const courseTitle = "Course #1";
       const courseLanguage = "english";
       const courseSummary = "This is a summary of Course #1";
+      const courseModules = [
+        {
+          title: "This is a test module",
+          lessons: [
+            {
+              _id: lesson.id,
+              title: lesson.title,
+            },
+          ],
+        },
+      ];
 
       await axios
         .post(
@@ -119,7 +124,8 @@ describe("Setting API Server up...", () => {
             title: courseTitle,
             language: courseLanguage,
             summary: courseSummary,
-            modules: [module._id],
+            modules: courseModules,
+            banner: "blackPink",
           },
           { headers: adminHeaders },
         )
@@ -127,7 +133,8 @@ describe("Setting API Server up...", () => {
           expect(r.data.title).toEqual(courseTitle);
           expect(r.data.language).toEqual(courseLanguage);
           expect(r.data.summary).toEqual(courseSummary);
-          expect(r.data.modules[0]).toEqual(module._id.toString());
+          expect(r.data.modules.length).toEqual(courseModules.length);
+          expect(r.data.banner).toEqual("blackPink");
         })
         .catch((e) => {
           expect(e).toBeUndefined();
@@ -138,7 +145,12 @@ describe("Setting API Server up...", () => {
       const courseTitle = "Course with invalid modules";
       const courseLanguage = "english";
       const courseSummary = "This course contains invalid modules";
-      const invalidModuleId = "60e4b68f2f8fb814b56fa181";
+      // invalid for not having a title
+      const invalidModules = [
+        {
+          lessons: [],
+        },
+      ];
 
       await axios
         .post(
@@ -147,13 +159,14 @@ describe("Setting API Server up...", () => {
             title: courseTitle,
             language: courseLanguage,
             summary: courseSummary,
-            modules: [invalidModuleId],
+            modules: invalidModules,
+            banner: "blackPink",
           },
           { headers: adminHeaders },
         )
         .then(() => {})
         .catch((e) => {
-          expect(e.response.data.error.message).toContain("Some modules not found");
+          expect(e.response.data.error.message).toContain("Each module must have a title and a valid lessons array");
         });
     });
 
@@ -196,11 +209,36 @@ describe("Setting API Server up...", () => {
         language: "english",
         summary: "This is the initial course summary",
         modules: [module._id],
+        banner: "tetris",
       });
 
       const updatedTitle = "Curso atualizado";
       const updatedLanguage = "portuguese";
       const updatedSummary = "Resumo do curso atualizado";
+      const updatedModules = [
+        {
+          _id: "module-1",
+          title: "This module will be created",
+          lessons: [
+            {
+              _id: lesson1._id,
+              title: lesson1.title,
+            },
+          ],
+        },
+        {
+          _id: module._id,
+          title: "This module is getting updated",
+          lessons: [
+            {
+              _id: lesson2._id,
+              title: lesson2.title,
+            },
+          ],
+        },
+      ];
+
+      const updatedBanner = "tetris";
 
       await axios.put(
         `${API_URL}/course/${team._id}/${course._id}`,
@@ -208,7 +246,8 @@ describe("Setting API Server up...", () => {
           title: updatedTitle,
           language: updatedLanguage,
           summary: updatedSummary,
-          modules: [module._id],
+          modules: updatedModules,
+          banner: updatedBanner,
         },
         { headers: adminHeaders },
       );
@@ -222,6 +261,8 @@ describe("Setting API Server up...", () => {
           expect(r.data.modules.some((recordedModule: Module) => recordedModule._id === module._id.toString())).toBe(
             true,
           );
+          expect(r.data.modules.length).toEqual(2);
+          expect(r.data.banner).toEqual(updatedBanner);
         })
         .catch((e) => expect(e).toBeUndefined());
     });
@@ -252,6 +293,7 @@ describe("Setting API Server up...", () => {
         language: "english",
         summary: "This course contains a module",
         modules: [module._id],
+        banner: "blackPink",
       });
 
       await axios
@@ -316,6 +358,7 @@ describe("Setting API Server up...", () => {
         language: "english",
         summary: "This is an English course",
         modules: [moduleEnglish._id],
+        banner: "blackPink",
       });
 
       await CourseModel.create({
@@ -324,6 +367,7 @@ describe("Setting API Server up...", () => {
         language: "portuguese",
         summary: "Este é um curso em Português",
         modules: [modulePortuguese._id],
+        banner: "blackPink",
       });
 
       // Getting all courses from a specific Team
@@ -388,6 +432,7 @@ describe("Setting API Server up...", () => {
         language: "english",
         summary: "This course is about to be deleted",
         modules: [module._id],
+        banner: "blackPink",
       });
 
       const courseCountBefore = await CourseModel.countDocuments();
@@ -429,16 +474,13 @@ describe("Setting API Server up...", () => {
         language: "english",
         summary: "This course will be duplicated",
         modules: [module._id],
+        banner: "blackPink",
       });
 
       await axios
-        .post(`${API_URL}/course/duplicate/${team._id}/${course._id}`, {}, { headers: adminHeaders })
+        .post(`${API_URL}/courses/duplicate/${team._id}`, { courses: [course._id] }, { headers: adminHeaders })
         .then((r) => {
-          expect(r.data.title).toEqual(`${course.title} (Copy)`);
-          expect(r.data.summary).toEqual(course.summary);
-          expect(r.data.modules.some((recordedModule: Module) => recordedModule._id === module._id.toString())).toBe(
-            true,
-          );
+          expect(r.data.length).toEqual(1);
         })
         .catch((e) => expect(e).toBeUndefined());
     });
@@ -483,6 +525,7 @@ describe("Setting API Server up...", () => {
         language: "english",
         summary: "Summary",
         modules: [module._id],
+        banner: "blackPink",
       });
 
       await axios

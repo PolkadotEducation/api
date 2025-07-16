@@ -41,16 +41,23 @@ export const createTeam = async (req: Request, res: Response) => {
   });
 };
 
-export const getTeam = async (req: Request, res: Response) => {
+export const getTeams = async (req: Request, res: Response) => {
   try {
     const { teamId: id } = req.query;
-    if (!id) return res.status(400).send({ error: { message: "Missing team's id" } });
-
-    const teamId = new ObjectId(id as string);
-    const team = await TeamModel.findOne({ _id: teamId }).lean();
-    const members = (await UserTeamModel.find({ teamId })).map((m) => m.email);
-
-    if (team) return res.status(200).send({ ...team, members });
+    if (id) {
+      const teamId = new ObjectId(id as string);
+      const team = await TeamModel.findOne({ _id: teamId }).lean();
+      const members = (await UserTeamModel.find({ teamId })).map((m) => m.email);
+      if (team) return res.status(200).send({ ...team, id: team._id, members });
+    } else {
+      const teams = [];
+      const storedTeams = await TeamModel.find().lean();
+      for (const team of storedTeams) {
+        const members = (await UserTeamModel.find({ teamId: team._id })).map((m) => m.email);
+        teams.push({ ...team, id: team._id, members });
+      }
+      return res.status(200).send(teams);
+    }
   } catch (e) {
     console.error(`[ERROR][getTeam] ${e}`);
   }
@@ -95,13 +102,14 @@ export const updateTeam = async (req: Request, res: Response) => {
   try {
     const ownerEmail = res.locals?.populatedUser?.email;
     const { id } = req.params;
+    if (!id) return res.status(404).send({ error: { message: "Missing team's id" } });
     // owner: new owner email
     // addMembers: email[] (to be added)
     // remMembers: email[] (to be removed)
     const { name, description, picture, owner, addMembers, remMembers } = req.body;
 
     const team = await TeamModel.findOne({ _id: new ObjectId(id as string), owner: ownerEmail });
-    if (!id || !team) return res.status(404).send({ error: { message: "Team not found" } });
+    if (!team) return res.status(404).send({ error: { message: "Team not found" } });
 
     if (name) team.name = name;
     if (description) team.description = description;
@@ -155,7 +163,11 @@ export const deleteTeam = async (req: Request, res: Response) => {
 
     const teamId = new ObjectId(id as string);
     const result = await TeamModel.deleteOne({ _id: teamId, owner: ownerEmail });
-    if (result?.deletedCount > 0) return res.status(200).send({ message: `Team '${teamId}' deleted` });
+    if (result?.deletedCount > 0) {
+      // Deleting all entries from UserTeam
+      await UserTeamModel.deleteMany({ teamId });
+      return res.status(200).send({ message: `Team '${teamId}' deleted` });
+    }
   } catch (e) {
     console.error(`[ERROR][deleteTeam] ${e}`);
   }
@@ -163,6 +175,32 @@ export const deleteTeam = async (req: Request, res: Response) => {
   return res.status(400).send({
     error: {
       message: "Team not deleted",
+    },
+  });
+};
+
+export const leaveTeam = async (req: Request, res: Response) => {
+  try {
+    const email = res.locals?.populatedUser?.email;
+    const { id } = req.params;
+    if (!id) return res.status(404).send({ error: { message: "Missing team's id" } });
+
+    const teamId = new ObjectId(id as string);
+    const team = await TeamModel.findOne({ _id: teamId });
+    if (!team) return res.status(404).send({ error: { message: "Team not found" } });
+    if (email === team.owner) return res.status(400).send({ error: { message: "Team owner can not leave" } });
+
+    const result = await UserTeamModel.deleteOne({ teamId, email });
+    if (result?.deletedCount > 0) {
+      return res.status(200).send({ message: `User '${email}' has left ${teamId}` });
+    }
+  } catch (e) {
+    console.error(`[ERROR][leaveTeam] ${e}`);
+  }
+
+  return res.status(400).send({
+    error: {
+      message: "User is not a member of the team",
     },
   });
 };

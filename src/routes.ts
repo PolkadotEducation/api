@@ -27,22 +27,25 @@ import {
   deleteCourse,
   getCourse,
   updateCourse,
-  duplicateCourse,
   getCourses,
+  getCoursesSummary,
+  duplicateCourses,
 } from "@/controllers/courses";
 
 import authMiddleware from "./middlewares/auth";
-import { createTeam, deleteTeam, getTeam, getUserTeams, updateTeam } from "./controllers/teams";
+import { createTeam, deleteTeam, getTeams, getUserTeams, leaveTeam, updateTeam } from "./controllers/teams";
 import teamMiddleware from "./middlewares/team";
 import {
   getCompletedCourses,
   getCourseProgress,
+  getCourseSummary,
   getLessonProgress,
   getUserXPAndLevel,
   submitAnswer,
 } from "./controllers/progress";
 import adminMiddleware from "./middlewares/admin";
-import { generateCertificate, getCertificate, getCertificates } from "./controllers/certificates";
+import { generateCertificate, getCertificate, getCertificates, mintCertificate } from "./controllers/certificates";
+import { getRanking } from "./controllers/ranking";
 
 const router = (app: Express) => {
   // Users
@@ -58,10 +61,11 @@ const router = (app: Express) => {
 
   // User's teams
   app.get("/users/teams", [authMiddleware], getUserTeams);
+  app.delete("/users/teams/:id", [authMiddleware], leaveTeam);
 
   // Team
   app.post("/teams", [authMiddleware, adminMiddleware], createTeam);
-  app.get("/teams", [authMiddleware], getTeam);
+  app.get("/teams", [authMiddleware], getTeams);
   app.put("/teams/:id", [authMiddleware], updateTeam);
   app.delete("/teams/:id", [authMiddleware], deleteTeam);
 
@@ -87,12 +91,14 @@ const router = (app: Express) => {
   app.get("/courses", [authMiddleware], getCourses);
   app.delete("/course/:teamId/:id", [authMiddleware, teamMiddleware], deleteCourse);
   app.put("/course/:teamId/:id", [authMiddleware, teamMiddleware], updateCourse);
-  app.post("/course/duplicate/:teamId/:id", [authMiddleware, teamMiddleware], duplicateCourse);
+  app.post("/courses/duplicate/:teamId", [authMiddleware, teamMiddleware], duplicateCourses);
+  app.get("/courses/summary", [authMiddleware], getCoursesSummary);
 
   // Progress
   app.post("/progress", [authMiddleware], submitAnswer);
   app.get("/progress/lesson/:courseId/:lessonId", [authMiddleware], getLessonProgress);
   app.get("/progress/course/:courseId", [authMiddleware], getCourseProgress);
+  app.get("/progress/course/summary/:courseId", [authMiddleware], getCourseSummary);
   app.get("/progress/level", [authMiddleware], getUserXPAndLevel);
   app.get("/progress/courses", [authMiddleware], getCompletedCourses);
 
@@ -100,6 +106,10 @@ const router = (app: Express) => {
   app.post("/certificates/generate", [authMiddleware], generateCertificate);
   app.get("/certificates/:certificateId", getCertificate);
   app.get("/certificates", [authMiddleware], getCertificates);
+  app.post("/certificates/mint", [authMiddleware], mintCertificate);
+
+  // Ranking
+  app.get("/ranking", [authMiddleware], getRanking);
 };
 
 export default router;

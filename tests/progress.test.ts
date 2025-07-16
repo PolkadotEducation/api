@@ -174,6 +174,7 @@ describe("Setting API Server up...", () => {
         language: "english",
         summary: "This is the initial course summary",
         modules: [module1._id, module2._id, module3._id],
+        banner: "blackPink",
       });
     });
 
@@ -337,12 +338,21 @@ describe("Setting API Server up...", () => {
     });
 
     it("Get course progress with no completed lessons (GET /progress/course/:courseId)", async () => {
+      const expectedModulesProgress: Record<string, Record<string, boolean>> = {};
+      [module1, module2, module3].forEach((module) => {
+        const lessonsProgress: Record<string, boolean> = {};
+        module.lessons.forEach((lessonId) => {
+          lessonsProgress[lessonId.toString()] = false;
+        });
+        expectedModulesProgress[module?._id?.toString() || ""] = lessonsProgress;
+      });
       await axios
         .get(`${API_URL}/progress/course/${course._id}`, { headers })
         .then((r) => {
           expect(r.data.totalLessons).toEqual(5);
           expect(r.data.completedLessons).toEqual(0);
           expect(r.data.progressPercentage).toEqual(0);
+          expect(r.data.modulesProgress).toEqual(expectedModulesProgress);
         })
         .catch((e) => {
           expect(e).toBeUndefined();
@@ -359,12 +369,22 @@ describe("Setting API Server up...", () => {
         difficulty: lesson1.difficulty,
       });
 
+      const expectedModulesProgress: Record<string, Record<string, boolean>> = {};
+      [module1, module2, module3].forEach((module) => {
+        const lessonsProgress: Record<string, boolean> = {};
+        module.lessons.forEach((lessonId) => {
+          lessonsProgress[lessonId.toString()] = lessonId === lesson1._id ? true : false;
+        });
+        expectedModulesProgress[module?._id?.toString() || ""] = lessonsProgress;
+      });
+
       await axios
         .get(`${API_URL}/progress/course/${course._id}`, { headers })
         .then((r) => {
           expect(r.data.totalLessons).toEqual(5);
           expect(r.data.completedLessons).toEqual(1);
           expect(r.data.progressPercentage).toEqual(20);
+          expect(r.data.modulesProgress).toEqual(expectedModulesProgress);
         })
         .catch((e) => {
           expect(e).toBeUndefined();
@@ -389,12 +409,22 @@ describe("Setting API Server up...", () => {
         difficulty: lesson2.difficulty,
       });
 
+      const expectedModulesProgress: Record<string, Record<string, boolean>> = {};
+      [module1, module2, module3].forEach((module) => {
+        const lessonsProgress: Record<string, boolean> = {};
+        module.lessons.forEach((lessonId) => {
+          lessonsProgress[lessonId.toString()] = lessonId === lesson1._id ? true : false;
+        });
+        expectedModulesProgress[module?._id?.toString() || ""] = lessonsProgress;
+      });
+
       await axios
         .get(`${API_URL}/progress/course/${course._id}`, { headers })
         .then((r) => {
           expect(r.data.totalLessons).toEqual(5);
           expect(r.data.completedLessons).toEqual(1);
           expect(r.data.progressPercentage).toEqual(20);
+          expect(r.data.modulesProgress).toEqual(expectedModulesProgress);
         })
         .catch((e) => {
           expect(e).toBeUndefined();
@@ -447,6 +477,15 @@ describe("Setting API Server up...", () => {
         difficulty: lesson5.difficulty,
       });
 
+      const expectedModulesProgress: Record<string, Record<string, boolean>> = {};
+      [module1, module2, module3].forEach((module) => {
+        const lessonsProgress: Record<string, boolean> = {};
+        module.lessons.forEach((lessonId) => {
+          lessonsProgress[lessonId.toString()] = true;
+        });
+        expectedModulesProgress[module?._id?.toString() || ""] = lessonsProgress;
+      });
+
       await axios
         .get(`${API_URL}/progress/course/${course._id}`, { headers })
         .then((r) => {
@@ -454,6 +493,7 @@ describe("Setting API Server up...", () => {
           expect(r.data.totalLessons).toEqual(5);
           expect(r.data.completedLessons).toEqual(5);
           expect(r.data.progressPercentage).toEqual(100);
+          expect(r.data.modulesProgress).toEqual(expectedModulesProgress);
         })
         .catch((e) => {
           expect(e).toBeUndefined();
@@ -536,10 +576,90 @@ describe("Setting API Server up...", () => {
         .get(`${API_URL}/progress/level`, { headers })
         .then((r) => {
           expect(r.status).toEqual(200);
-          expect(r.data).toHaveProperty("exp");
+          expect(r.data).toHaveProperty("xp");
           expect(r.data).toHaveProperty("level");
-          expect(r.data.exp).toEqual(125);
+          expect(r.data).toHaveProperty("xpToNextLevel");
+          expect(r.data.xp).toEqual(125);
           expect(r.data.level).toEqual(0);
+          expect(r.data.xpToNextLevel).toEqual(25);
+        })
+        .catch((e) => {
+          expect(e).toBeUndefined();
+        });
+    });
+
+    it("should return a course summary", async () => {
+      await ProgressModel.create({
+        courseId: course._id,
+        lessonId: lesson1._id,
+        userId: user?.id,
+        choice: 0,
+        isCorrect: true,
+        difficulty: lesson1.difficulty,
+      });
+
+      await ProgressModel.create({
+        courseId: course._id,
+        lessonId: lesson2._id,
+        userId: user?.id,
+        choice: 2,
+        isCorrect: true,
+        difficulty: lesson2.difficulty,
+      });
+
+      await ProgressModel.create({
+        courseId: course._id,
+        lessonId: lesson3._id,
+        userId: user?.id,
+        choice: 2,
+        isCorrect: true,
+        difficulty: lesson3.difficulty,
+      });
+
+      await ProgressModel.create({
+        courseId: course._id,
+        lessonId: lesson4._id,
+        userId: user?.id,
+        choice: 1,
+        isCorrect: false,
+        difficulty: lesson4.difficulty,
+      });
+
+      await ProgressModel.create({
+        courseId: course._id,
+        lessonId: lesson4._id,
+        userId: user?.id,
+        choice: 0,
+        isCorrect: true,
+        difficulty: lesson4.difficulty,
+      });
+
+      await ProgressModel.create({
+        courseId: course._id,
+        lessonId: lesson5._id,
+        userId: user?.id,
+        choice: 1,
+        isCorrect: false,
+        difficulty: lesson5.difficulty,
+      });
+
+      await axios
+        .get(`${API_URL}/progress/course/summary/${course._id}`, { headers })
+        .then((r) => {
+          expect(r.status).toEqual(200);
+          expect(r.data.courseSummary.title).toEqual(course.title);
+
+          // 1st module should be completed
+          expect(r.data.courseSummary.modules[0].title).toEqual(module1.title);
+          expect(r.data.courseSummary.modules[0].isCompleted).toEqual(true);
+
+          // 2nd module should be completed
+          expect(r.data.courseSummary.modules[1].title).toEqual(module2.title);
+          expect(r.data.courseSummary.modules[1].isCompleted).toEqual(true);
+
+          // 3rd module should NOT be completed
+          expect(r.data.courseSummary.modules[2].title).toEqual(module3.title);
+          expect(r.data.courseSummary.modules[2].isCompleted).toEqual(false);
         })
         .catch((e) => {
           expect(e).toBeUndefined();
@@ -594,7 +714,9 @@ describe("Setting API Server up...", () => {
 
       const completedCourses = await getCompletedCoursesByUserId(user?.id as string);
 
-      expect(completedCourses).toEqual([{ courseId: course._id, courseTitle: course.title }]);
+      expect(completedCourses).toEqual([
+        { courseId: course._id, courseTitle: course.title, courseBanner: course.banner },
+      ]);
     });
 
     it("should return an empty array since user didnt finished the course", async () => {
@@ -694,6 +816,7 @@ describe("Setting API Server up...", () => {
           expect(r.data.length).toEqual(1);
           expect(r.data[0].courseId).toEqual(course._id?.toString());
           expect(r.data[0].courseTitle).toEqual(course.title);
+          expect(r.data[0].courseBanner).toEqual(course.banner);
         })
         .catch((e) => {
           expect(e).toBeUndefined();

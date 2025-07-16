@@ -5,6 +5,7 @@ import router from "./routes";
 import { setupMongoDB } from "./database";
 import { env } from "./environment";
 import corsConfig from "./middlewares/cors.config";
+import { scheduleRankingUpdate } from "./tasks/scheduleRankingUpdate";
 
 const app = express();
 
@@ -22,4 +23,7 @@ app.listen(env.SERVER_PORT, env.SERVER_HOST, async () => {
   await setupMongoDB();
   // eslint-disable-next-line no-console
   console.info(`> Listening at http://${env.SERVER_HOST}:${env.SERVER_PORT}`);
+  scheduleRankingUpdate();
+  // eslint-disable-next-line no-console
+  console.info("Ranking Schedule initiated");
 });
