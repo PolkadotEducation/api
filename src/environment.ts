@@ -15,11 +15,10 @@ const JWT_SECRET = process.env.JWT_SECRET || "OR5t0v7yk3z7qw77";
 const AUTH_CODE = process.env.AUTH_CODE || "localAuthCode";
 const CRYPTO_SALT = process.env.CRYPTO_SALT || "0fd1b53ac50026ab7";
 
-// AWS
-const AWS_SES_REGION = process.env.AWS_SES_REGION || "us-east-1";
-const AWS_SES_ID = process.env.AWS_SES_ID || "123123123";
-const AWS_SES_SECRET = process.env.AWS_SES_SECRET || "123123123";
-const AWS_SES_SOURCE = process.env.AWS_SES_SOURCE || "email@polkadot.education";
+// BREVO
+const BREVO_API_KEY = process.env.BREVO_API_KEY || "your-brevo-api-key";
+const BREVO_FROM_EMAIL = process.env.BREVO_FROM_EMAIL || "email@polkadot.education";
+const BREVO_FROM_NAME = process.env.BREVO_FROM_NAME || "Polkadot Education";
 
 // WEB3
 const SIGNER_ACCOUNT_ID = process.env.SIGNER_ACCOUNT_ID || "1ZJTPkCkCF2vC3twZLekXHh4NanXhoSN7WTGYVU2BbbcuWR";
@@ -39,10 +38,9 @@ export const env = {
   JWT_SECRET,
   AUTH_CODE,
   CRYPTO_SALT,
-  AWS_SES_REGION,
-  AWS_SES_SECRET,
-  AWS_SES_ID,
-  AWS_SES_SOURCE,
+  BREVO_API_KEY,
+  BREVO_FROM_EMAIL,
+  BREVO_FROM_NAME,
   SIGNER_ACCOUNT_ID,
   SIGNER_MNEMONIC,
   MINT_COLLECTION_ID,
