@@ -6,7 +6,7 @@ import * as crypto from "crypto";
 import { env } from "@/environment";
 import BaseModel from "./BaseModel";
 import { UserInfo, VerifyUser, RecoverPassword, AchievementsTracker } from "@/types/User";
-import { sendVerificationEmail } from "@/helpers/aws/ses";
+import { sendVerificationEmail } from "@/helpers/mail/brevo";
 import { getUserTeamInfo } from "@/helpers/team";
 
 const SALT_BUFFER = Buffer.from(env.CRYPTO_SALT, "hex");

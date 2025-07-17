@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import * as crypto from "crypto";
 
 import { UserModel } from "@/models/User";
-import { sendRecoverEmail, sendVerificationEmail } from "@/helpers/aws/ses";
+import { sendRecoverEmail, sendVerificationEmail } from "@/helpers/mail/brevo";
 import { signatureVerify } from "@polkadot/util-crypto";
 import { UserInfo } from "@/types/User";
 import { getUserTeamInfo } from "@/helpers/team";
