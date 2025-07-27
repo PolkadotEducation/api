@@ -21,6 +21,12 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ github.event_name == 'push' && 'production' || 'test' }}
 
+    services:
+      mongodb:
+        image: mongo:7.0.5-jammy
+        ports:
+          - 27017:27017
+
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -42,6 +48,7 @@ jobs:
           echo "BREVO_FROM_EMAIL=${{ vars.BREVO_FROM_EMAIL }}" >> .env
           echo "BREVO_FROM_NAME=${{ vars.BREVO_FROM_NAME }}" >> .env
           echo "SENTRY_DSN=${{ secrets.SENTRY_DSN }}" >> .env
+          echo "MONGODB_URI=${{ vars.MONGODB_URI }}" >> .env
           echo "APP_URL=${{ vars.APP_URL }}" >> .env
           echo "" >> .env
 
