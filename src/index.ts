@@ -1,3 +1,6 @@
+import "./instrument.js";
+import * as Sentry from "@sentry/node";
+
 import express, { Request, Response } from "express";
 
 import router from "./routes";
@@ -8,6 +11,7 @@ import corsConfig from "./middlewares/cors.config";
 import { scheduleRankingUpdate } from "./tasks/scheduleRankingUpdate";
 
 const app = express();
+Sentry.setupExpressErrorHandler(app);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
