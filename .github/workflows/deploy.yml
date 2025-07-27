@@ -44,7 +44,6 @@ jobs:
           echo "SERVER_HOST=${{ vars.HOST }}" >> .env
           echo "SERVER_PORT=${{ vars.PORT }}" >> .env
           echo "JWT_SECRET=${{ vars.JWT_SECRET }}" >> .env
-          echo "MONGODB_URI=${{ vars.MONGODB_URI }}" >> .env
           echo "BREVO_API_KEY=${{ secrets.BREVO_API_KEY }}" >> .env
           echo "BREVO_FROM_EMAIL=${{ vars.BREVO_FROM_EMAIL }}" >> .env
           echo "BREVO_FROM_NAME=${{ vars.BREVO_FROM_NAME }}" >> .env
