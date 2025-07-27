@@ -18,6 +18,9 @@ app.use(express.urlencoded({ extended: true }));
 
 // Health check
 app.get("/status", (_req: Request, res: Response) => res.status(200).json({ type: "success" }));
+app.get("/debug-sentry", function mainHandler(_req, _res) {
+  throw new Error("My first Sentry error!");
+});
 
 app.use(corsConfig());
 

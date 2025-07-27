@@ -3,11 +3,9 @@ name: CI/CD workflow
 on:
   pull_request:
     branches:
-      - develop
       - main
   push:
     branches:
-      - develop
       - main
 
 permissions:
@@ -21,7 +19,7 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    environment: ${{ github.event.pull_request.base.ref || github.ref_name }}
+    environment: ${{ github.event_name == 'push' && 'production' || 'test' }}
 
     steps:
       - name: Checkout
@@ -43,6 +41,7 @@ jobs:
           echo "BREVO_API_KEY=${{ secrets.BREVO_API_KEY }}" >> .env
           echo "BREVO_FROM_EMAIL=${{ vars.BREVO_FROM_EMAIL }}" >> .env
           echo "BREVO_FROM_NAME=${{ vars.BREVO_FROM_NAME }}" >> .env
+          echo "SENTRY_DSN=${{ secrets.SENTRY_DSN }}" >> .env
           echo "APP_URL=${{ vars.APP_URL }}" >> .env
           echo "" >> .env
 
@@ -50,13 +49,13 @@ jobs:
         run: bun i
 
       - name: Format
-        run: bun run format
+        run: bun format
 
       - name: Lint
-        run: bun run lint
+        run: bun lint
 
       - name: Test
-        run: bun run test
+        run: bun test
 
       - name: Build
-        run: bun run build
+        run: bun build
