@@ -11,7 +11,6 @@ import corsConfig from "./middlewares/cors.config";
 import { scheduleRankingUpdate } from "./tasks/scheduleRankingUpdate";
 
 const app = express();
-Sentry.setupExpressErrorHandler(app);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -25,6 +24,8 @@ app.get("/debug-sentry", function mainHandler(_req, _res) {
 app.use(corsConfig());
 
 router(app);
+
+Sentry.setupExpressErrorHandler(app);
 
 app.listen(env.SERVER_PORT, env.SERVER_HOST, async () => {
   const db = `doteducation-${env.NODE_ENV}`;
