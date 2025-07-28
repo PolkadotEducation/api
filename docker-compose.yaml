@@ -1,0 +1,28 @@
+services:
+  doteducation-standalone-mongodb:
+    image: mongo:7.0.5-jammy
+    attach: false
+    ports:
+      - 27017:27017
+    networks:
+      - doteducation-standalone-network
+
+  doteducation-standalone-api:
+    image: oven/bun:1.1.29
+    ports:
+      - 4000:4000
+    volumes:
+      - ./:/usr/api
+    env_file:
+      - ./.env
+    command: >
+      bash -c "cd /usr/api &&
+        bun i &&
+        bun dev"
+    depends_on:
+      - doteducation-standalone-mongodb
+    networks:
+      - doteducation-standalone-network
+networks:
+  doteducation-standalone-network:
+    driver: bridge

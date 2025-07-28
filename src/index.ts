@@ -27,9 +27,12 @@ app.use(corsConfig());
 router(app);
 
 app.listen(env.SERVER_PORT, env.SERVER_HOST, async () => {
-  await setupMongoDB();
+  const db = `doteducation-${env.NODE_ENV}`;
+  await setupMongoDB(db);
+
   // eslint-disable-next-line no-console
   console.info(`> Listening at http://${env.SERVER_HOST}:${env.SERVER_PORT}`);
+
   scheduleRankingUpdate();
   // eslint-disable-next-line no-console
   console.info("Ranking Schedule initiated");

@@ -4,10 +4,7 @@
   "main": "dist/index.js",
   "scripts": {
     "dev": "nodemon",
-    "test": "bun run test:mongodb:setup; NODE_ENV=test jest $TEST_FILE; bun run test:mongodb:rm",
-    "test:mongodb:setup": "bun run test:mongodb:rm; bun run test:mongodb:run",
-    "test:mongodb:rm": "docker rm -f doteducation-mongodb-test",
-    "test:mongodb:run": "docker run --name doteducation-mongodb-test -p 27777:27017 -dti mongo:7.0.5-jammy",
+    "test": "NODE_ENV=test jest $TEST_FILE",
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
     "format": "prettier --check .",
