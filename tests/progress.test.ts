@@ -89,6 +89,7 @@ describe("Setting API Server up...", () => {
         teamId: team,
         title: "Lesson #1",
         language: "english",
+        slug: "lesson-1-progress",
         body: loadFixture("example.md"),
         difficulty: "easy",
         challenge: {
@@ -102,6 +103,7 @@ describe("Setting API Server up...", () => {
         teamId: team,
         title: "Lesson #2",
         language: "english",
+        slug: "lesson-2-progress",
         body: loadFixture("example.md"),
         difficulty: "easy",
         challenge: {
@@ -115,6 +117,7 @@ describe("Setting API Server up...", () => {
         teamId: team,
         title: "Lesson #3",
         language: "english",
+        slug: "lesson-3-progress",
         body: loadFixture("example.md"),
         difficulty: "medium",
         challenge: {
@@ -128,6 +131,7 @@ describe("Setting API Server up...", () => {
         teamId: team,
         title: "Lesson #4",
         language: "english",
+        slug: "lesson-4-progress",
         body: loadFixture("example.md"),
         difficulty: "hard",
         challenge: {
@@ -141,6 +145,7 @@ describe("Setting API Server up...", () => {
         teamId: team,
         title: "Lesson #5",
         language: "english",
+        slug: "lesson-5-progress",
         body: loadFixture("example.md"),
         difficulty: "hard",
         challenge: {

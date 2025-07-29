@@ -1,4 +1,4 @@
-import { getModelForClass, prop, Ref, Severity } from "@typegoose/typegoose";
+import { getModelForClass, prop, Ref, Severity, index } from "@typegoose/typegoose";
 
 import BaseModel from "./BaseModel";
 import { Team } from "./Team";
@@ -32,6 +32,7 @@ class Reference {
   public link: string;
 }
 
+@index({ slug: 1, language: 1 }, { unique: true })
 class Lesson extends BaseModel {
   @prop({ required: true, ref: () => Team })
   public teamId: Ref<Team>;
@@ -41,6 +42,9 @@ class Lesson extends BaseModel {
 
   @prop({ required: true, enum: ["english", "portuguese", "spanish"], type: String, default: "english" })
   public language: string;
+
+  @prop({ required: true, type: String })
+  public slug: string;
 
   @prop({ required: true, type: String })
   public body: string;
