@@ -5,8 +5,8 @@ import { LessonModel } from "@/models/Lesson";
 
 export const createLesson = async (req: Request, res: Response) => {
   const { teamId } = req.params;
-  const { title, language, body, difficulty, challenge, references } = req.body;
-  if (!teamId || !title || !language || !body || !difficulty || !challenge) {
+  const { title, language, slug, body, difficulty, challenge, references } = req.body;
+  if (!teamId || !title || !language || !slug || !body || !difficulty || !challenge) {
     return res.status(400).send({ error: { message: "Missing params" } });
   }
 
@@ -16,6 +16,7 @@ export const createLesson = async (req: Request, res: Response) => {
       teamId: new ObjectId(teamId as string),
       title,
       language,
+      slug,
       body,
       difficulty,
       challenge,
@@ -201,10 +202,16 @@ export const duplicateLessons = async (req: Request, res: Response) => {
           throw new Error(`Lesson with id ${id} not found`);
         }
 
+        // Generate new slug by incrementing number or adding "-1"
+        const originalSlug = existingLesson.slug;
+        const numberMatch = originalSlug.match(/^(.*?)(\d+)$/);
+        const newSlug = numberMatch ? `${numberMatch[1]}${parseInt(numberMatch[2]) + 1}` : `${originalSlug}-1`;
+
         const duplicatedLesson = await LessonModel.create({
           teamId: existingLesson.teamId,
           title: existingLesson.title,
           language: existingLesson.language,
+          slug: newSlug,
           body: existingLesson.body,
           difficulty: existingLesson.difficulty,
           challenge: existingLesson.challenge,

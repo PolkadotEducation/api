@@ -93,6 +93,7 @@ describe("Setting API Server up...", () => {
         teamId: team,
         title: "Lesson #1",
         language: "english",
+        slug: "lesson-1-course-create",
         body: loadFixture("example.md"),
         difficulty: "easy",
         challenge: {
@@ -175,6 +176,7 @@ describe("Setting API Server up...", () => {
         teamId: team,
         title: "Lesson #1",
         language: "english",
+        slug: "lesson-1-course-update",
         body: loadFixture("example.md"),
         difficulty: "easy",
         challenge: {
@@ -188,6 +190,7 @@ describe("Setting API Server up...", () => {
         teamId: team,
         title: "Lesson #2",
         language: "english",
+        slug: "lesson-2-course-update",
         body: loadFixture("example.md"),
         difficulty: "easy",
         challenge: {
@@ -272,6 +275,7 @@ describe("Setting API Server up...", () => {
         teamId: team,
         title: "Lesson #3",
         language: "english",
+        slug: "lesson-3-course-get",
         body: loadFixture("example.md"),
         difficulty: "easy",
         challenge: {
@@ -318,6 +322,7 @@ describe("Setting API Server up...", () => {
         teamId: team,
         title: "Lesson in English #1",
         language: "english",
+        slug: "lesson-in-english-1-course-language",
         body: loadFixture("example.md"),
         difficulty: "easy",
         challenge: {
@@ -331,6 +336,7 @@ describe("Setting API Server up...", () => {
         teamId: team,
         title: "Aula em Português",
         language: "portuguese",
+        slug: "lesson-in-language-course",
         body: loadFixture("example.md"),
         difficulty: "medium",
         challenge: {
@@ -411,6 +417,7 @@ describe("Setting API Server up...", () => {
         teamId: team,
         title: "Lesson #4",
         language: "english",
+        slug: "lesson-4-course-delete",
         body: loadFixture("example.md"),
         difficulty: "hard",
         challenge: {
@@ -453,6 +460,7 @@ describe("Setting API Server up...", () => {
         teamId: team,
         title: "Lesson #5",
         language: "english",
+        slug: "lesson-5-course-duplicate",
         body: loadFixture("example.md"),
         difficulty: "medium",
         challenge: {
@@ -490,6 +498,7 @@ describe("Setting API Server up...", () => {
         teamId: team,
         title: "Lesson #1",
         language: "english",
+        slug: "lesson-1-course-permissions",
         body: loadFixture("example.md"),
         difficulty: "easy",
         challenge: {
