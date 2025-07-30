@@ -134,6 +134,7 @@ export const getCourseSummary = async (req: Request, res: Response) => {
     const progressMap = new Map(progress.map((p) => [String(p.lessonId), p]));
 
     const courseSummary = {
+      id: course._id,
       title: course.title,
       modules: course.modules.map((module) => {
         const populatedModule = module as Module & { lessons: Lesson[] };
@@ -146,6 +147,7 @@ export const getCourseSummary = async (req: Request, res: Response) => {
           const correctAtFirstTry = progressRecord?.correctAtFirstTry || false;
 
           return {
+            id: populatedLesson._id,
             title: populatedLesson.title,
             difficulty: populatedLesson.difficulty,
             expEarned: isCompleted
