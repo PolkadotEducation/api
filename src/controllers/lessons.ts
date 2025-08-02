@@ -146,7 +146,7 @@ export const getLessonsSummary = async (req: Request, res: Response) => {
     let query = {};
     if (teamId) query = { teamId: new ObjectId(teamId as string) };
 
-    const lessonsSummary = await LessonModel.find(query).select("_id title language").lean();
+    const lessonsSummary = await LessonModel.find(query).select("_id title language updatedAt").lean();
 
     if (lessonsSummary.length > 0) {
       return res.status(200).send(lessonsSummary);
