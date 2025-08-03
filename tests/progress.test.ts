@@ -328,6 +328,7 @@ describe("Setting API Server up...", () => {
         choice: easyChallenge.correctChoice + 1,
         isCorrect: false,
         difficulty: easyChallenge.difficulty,
+        challengeId: easyChallenge._id,
       });
 
       await ProgressModel.create({
@@ -337,6 +338,7 @@ describe("Setting API Server up...", () => {
         choice: easyChallenge.correctChoice,
         isCorrect: true,
         difficulty: easyChallenge.difficulty,
+        challengeId: easyChallenge._id,
       });
 
       await axios
@@ -379,6 +381,7 @@ describe("Setting API Server up...", () => {
         choice: 0,
         isCorrect: true,
         difficulty: easyChallenge.difficulty,
+        challengeId: easyChallenge._id,
       });
 
       const expectedModulesProgress: Record<string, Record<string, boolean>> = {};
@@ -411,6 +414,7 @@ describe("Setting API Server up...", () => {
         choice: 0,
         isCorrect: true,
         difficulty: easyChallenge.difficulty,
+        challengeId: easyChallenge._id,
       });
       await ProgressModel.create({
         courseId: course._id,
@@ -419,6 +423,7 @@ describe("Setting API Server up...", () => {
         choice: 2,
         isCorrect: false,
         difficulty: mediumChallenge.difficulty,
+        challengeId: mediumChallenge._id,
       });
 
       const expectedModulesProgress: Record<string, Record<string, boolean>> = {};
@@ -451,6 +456,7 @@ describe("Setting API Server up...", () => {
         choice: easyChallenge.correctChoice,
         isCorrect: true,
         difficulty: easyChallenge.difficulty,
+        challengeId: easyChallenge._id,
       });
 
       await ProgressModel.create({
@@ -460,6 +466,7 @@ describe("Setting API Server up...", () => {
         choice: easyChallenge.correctChoice,
         isCorrect: true,
         difficulty: easyChallenge.difficulty,
+        challengeId: easyChallenge._id,
       });
 
       await ProgressModel.create({
@@ -469,6 +476,7 @@ describe("Setting API Server up...", () => {
         choice: mediumChallenge.correctChoice,
         isCorrect: true,
         difficulty: mediumChallenge.difficulty,
+        challengeId: mediumChallenge._id,
       });
 
       await ProgressModel.create({
@@ -478,6 +486,7 @@ describe("Setting API Server up...", () => {
         choice: mediumChallenge.correctChoice,
         isCorrect: true,
         difficulty: mediumChallenge.difficulty,
+        challengeId: mediumChallenge._id,
       });
 
       await ProgressModel.create({
@@ -487,6 +496,7 @@ describe("Setting API Server up...", () => {
         choice: hardChallenge.correctChoice,
         isCorrect: true,
         difficulty: hardChallenge.difficulty,
+        challengeId: hardChallenge._id,
       });
 
       const expectedModulesProgress: Record<string, Record<string, boolean>> = {};
@@ -521,6 +531,7 @@ describe("Setting API Server up...", () => {
         choice: easyChallenge.correctChoice + 1,
         isCorrect: false,
         difficulty: easyChallenge.difficulty,
+        challengeId: easyChallenge._id,
       });
 
       // Easy challenge correct (25 XP)
@@ -531,6 +542,7 @@ describe("Setting API Server up...", () => {
         choice: easyChallenge.correctChoice,
         isCorrect: true,
         difficulty: easyChallenge.difficulty,
+        challengeId: easyChallenge._id,
       });
 
       // Easy challenge correct at first try (50 XP)
@@ -541,6 +553,7 @@ describe("Setting API Server up...", () => {
         choice: easyChallenge.correctChoice,
         isCorrect: true,
         difficulty: easyChallenge.difficulty,
+        challengeId: easyChallenge._id,
       });
 
       // Medium challenge mistake (0 XP)
@@ -551,6 +564,7 @@ describe("Setting API Server up...", () => {
         choice: mediumChallenge.correctChoice + 1,
         isCorrect: false,
         difficulty: mediumChallenge.difficulty,
+        challengeId: mediumChallenge._id,
       });
 
       // Medium challenge another mistake (0 XP)
@@ -561,6 +575,7 @@ describe("Setting API Server up...", () => {
         choice: mediumChallenge.correctChoice + 2,
         isCorrect: false,
         difficulty: mediumChallenge.difficulty,
+        challengeId: mediumChallenge._id,
       });
 
       // Medium challenge correct (50 XP)
@@ -571,6 +586,7 @@ describe("Setting API Server up...", () => {
         choice: mediumChallenge.correctChoice,
         isCorrect: true,
         difficulty: mediumChallenge.difficulty,
+        challengeId: mediumChallenge._id,
       });
 
       // Hard challenge mistake, incomplete (0 XP)
@@ -581,6 +597,7 @@ describe("Setting API Server up...", () => {
         choice: hardChallenge.correctChoice + 1,
         isCorrect: false,
         difficulty: hardChallenge.difficulty,
+        challengeId: hardChallenge._id,
       });
 
       // Total: 125 XP
@@ -608,6 +625,7 @@ describe("Setting API Server up...", () => {
         choice: 0,
         isCorrect: true,
         difficulty: easyChallenge.difficulty,
+        challengeId: easyChallenge._id,
       });
 
       await ProgressModel.create({
@@ -617,6 +635,7 @@ describe("Setting API Server up...", () => {
         choice: 2,
         isCorrect: true,
         difficulty: easyChallenge.difficulty,
+        challengeId: easyChallenge._id,
       });
 
       await ProgressModel.create({
@@ -626,6 +645,7 @@ describe("Setting API Server up...", () => {
         choice: 2,
         isCorrect: true,
         difficulty: mediumChallenge.difficulty,
+        challengeId: mediumChallenge._id,
       });
 
       await ProgressModel.create({
@@ -635,6 +655,7 @@ describe("Setting API Server up...", () => {
         choice: 1,
         isCorrect: false,
         difficulty: mediumChallenge.difficulty,
+        challengeId: mediumChallenge._id,
       });
 
       await ProgressModel.create({
@@ -644,6 +665,7 @@ describe("Setting API Server up...", () => {
         choice: 0,
         isCorrect: true,
         difficulty: mediumChallenge.difficulty,
+        challengeId: mediumChallenge._id,
       });
 
       await ProgressModel.create({
@@ -653,6 +675,7 @@ describe("Setting API Server up...", () => {
         choice: 1,
         isCorrect: false,
         difficulty: hardChallenge.difficulty,
+        challengeId: hardChallenge._id,
       });
 
       await axios
@@ -686,6 +709,7 @@ describe("Setting API Server up...", () => {
         choice: easyChallenge.correctChoice,
         isCorrect: true,
         difficulty: easyChallenge.difficulty,
+        challengeId: easyChallenge._id,
       });
 
       await ProgressModel.create({
@@ -695,6 +719,7 @@ describe("Setting API Server up...", () => {
         choice: easyChallenge.correctChoice,
         isCorrect: true,
         difficulty: easyChallenge.difficulty,
+        challengeId: easyChallenge._id,
       });
 
       await ProgressModel.create({
@@ -704,6 +729,7 @@ describe("Setting API Server up...", () => {
         choice: mediumChallenge.correctChoice,
         isCorrect: true,
         difficulty: mediumChallenge.difficulty,
+        challengeId: mediumChallenge._id,
       });
 
       await ProgressModel.create({
@@ -713,6 +739,7 @@ describe("Setting API Server up...", () => {
         choice: mediumChallenge.correctChoice,
         isCorrect: true,
         difficulty: mediumChallenge.difficulty,
+        challengeId: mediumChallenge._id,
       });
 
       await ProgressModel.create({
@@ -722,6 +749,7 @@ describe("Setting API Server up...", () => {
         choice: hardChallenge.correctChoice,
         isCorrect: true,
         difficulty: hardChallenge.difficulty,
+        challengeId: hardChallenge._id,
       });
 
       const completedCourses = await getCompletedCoursesByUserId(user?.id as string);

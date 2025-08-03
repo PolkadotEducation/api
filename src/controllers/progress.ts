@@ -59,6 +59,7 @@ export const submitAnswer = async (req: Request, res: Response) => {
       choice,
       isCorrect,
       difficulty: challenge.difficulty,
+      challengeId: challenge._id,
     });
     if (newProgress) return res.status(201).send(newProgress);
   } catch (e) {

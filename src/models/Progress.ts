@@ -11,6 +11,9 @@ class Progress extends BaseModel {
   @prop({ required: false, ref: () => Challenge })
   public challenge: Ref<Challenge>;
 
+  @prop({ required: false, ref: () => Challenge })
+  public challengeId: Ref<Challenge>;
+
   @prop({ required: false, ref: () => Lesson })
   public lessonId: Ref<Lesson>;
 
