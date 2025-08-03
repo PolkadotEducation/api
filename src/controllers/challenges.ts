@@ -1,19 +1,25 @@
 import { Request, Response } from "express";
+import { ObjectId } from "mongodb";
 import { ChallengeModel } from "@/models/Challenge";
 
 export const createChallenge = async (req: Request, res: Response) => {
-  const { question, choices, correctChoice, difficulty } = req.body;
+  const { teamId } = req.params;
+  const { question, choices, correctChoice, difficulty, language } = req.body;
 
-  if (!question || !choices || correctChoice === undefined || !difficulty) {
-    return res.status(400).send({ error: { message: "Missing required parameters" } });
+  if (!teamId || !question || !choices || correctChoice === undefined || !difficulty || !language) {
+    const error = { error: { message: "Missing required parameters" } };
+    console.error(error);
+    return res.status(400).send(error);
   }
 
   try {
     const newChallenge = await ChallengeModel.create({
+      teamId: new ObjectId(teamId as string),
       question,
       choices,
       correctChoice,
       difficulty,
+      language,
     });
 
     return res.status(201).send(newChallenge);
@@ -28,24 +34,28 @@ export const createChallenge = async (req: Request, res: Response) => {
 };
 
 export const updateChallenge = async (req: Request, res: Response) => {
-  const { id } = req.params;
-  const { question, choices, correctChoice, difficulty } = req.body;
+  const { teamId, id } = req.params;
+  const { question, choices, correctChoice, difficulty, language } = req.body;
 
-  if (!id || !question || !choices || correctChoice === undefined || !difficulty) {
-    return res.status(400).send({ error: { message: "Missing required parameters" } });
+  if (!id || !teamId || !question || !choices || correctChoice === undefined || !difficulty || !language) {
+    const error = { error: { message: "Missing required parameters" } };
+    console.error(error);
+    return res.status(400).send(error);
   }
 
   try {
     const updatedChallenge = await ChallengeModel.findOneAndUpdate(
-      { _id: id },
-      { question, choices, correctChoice, difficulty },
+      { _id: id, teamId: new ObjectId(teamId as string) },
+      { question, choices, correctChoice, difficulty, language },
       { new: true, runValidators: true },
     );
 
     if (updatedChallenge) {
       return res.status(200).send(updatedChallenge);
     } else {
-      return res.status(404).send({ error: { message: "Challenge not found" } });
+      const error = { error: { message: "Challenge not found" } };
+      console.error(error);
+      return res.status(404).send(error);
     }
   } catch (e) {
     console.error(`[ERROR][updateChallenge] ${e}`);
@@ -90,16 +100,21 @@ export const getChallenges = async (req: Request, res: Response) => {
 
 export const getChallenge = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
-    if (!id) {
-      return res.status(400).send({ error: { message: "Missing challenge ID" } });
+    const { challengeId } = req.query;
+    if (!challengeId) {
+      const error = { error: { message: "Missing challengeId" } };
+      console.error(error);
+      return res.status(400).send({ error: { message: "Missing challengeId" } });
     }
 
-    const challenge = await ChallengeModel.findById(id);
+    const challenge = await ChallengeModel.findById(challengeId);
     if (challenge) {
       return res.status(200).send(challenge);
     }
-    return res.status(404).send({ error: { message: "Challenge not found" } });
+
+    const error = { error: { message: "Challenge not found" } };
+    console.error(error);
+    return res.status(404).send(error);
   } catch (e) {
     console.error(`[ERROR][getChallenge] ${e}`);
     return res.status(400).send({
@@ -112,21 +127,53 @@ export const getChallenge = async (req: Request, res: Response) => {
 
 export const deleteChallenge = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
-    if (!id) {
-      return res.status(400).send({ error: { message: "Missing challenge ID" } });
+    const { teamId, id } = req.params;
+    if (!teamId || !id) {
+      const error = { error: { message: "Missing teamId or challenge ID" } };
+      console.error(error);
+      return res.status(400).send(error);
     }
 
-    const result = await ChallengeModel.deleteOne({ _id: id });
+    const result = await ChallengeModel.deleteOne({ _id: id, teamId: new ObjectId(teamId as string) });
     if (result?.deletedCount > 0) {
       return res.status(200).send({ message: `Challenge '${id}' deleted` });
     }
+
+    const error = { error: { message: "Challenge not found" } };
+    console.error(error);
     return res.status(404).send({ error: { message: "Challenge not found" } });
   } catch (e) {
     console.error(`[ERROR][deleteChallenge] ${e}`);
     return res.status(400).send({
       error: {
         message: "Challenge not deleted",
+      },
+    });
+  }
+};
+
+export const getChallengesSummary = async (req: Request, res: Response) => {
+  try {
+    const { language } = req.query;
+    let query = {};
+    if (language) {
+      query = { language };
+    }
+
+    const challengesSummary = await ChallengeModel.find(query)
+      .select("_id questionb difficulty language updatedAt")
+      .lean();
+
+    if (challengesSummary.length > 0) {
+      return res.status(200).send(challengesSummary);
+    } else {
+      return res.status(204).send();
+    }
+  } catch (e) {
+    console.error(`[ERROR][getChallengesSummary] ${e}`);
+    return res.status(500).send({
+      error: {
+        message: JSON.stringify(e),
       },
     });
   }

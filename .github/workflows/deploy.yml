@@ -3,11 +3,9 @@ name: CI/CD workflow
 on:
   pull_request:
     branches:
-      - develop
       - main
   push:
     branches:
-      - develop
       - main
 
 permissions:
@@ -21,7 +19,14 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    environment: ${{ github.event.pull_request.base.ref || github.ref_name }}
+    environment: ${{ github.event_name == 'push' && 'production' || 'test' }}
+
+    services:
+      mongodb:
+        image: mongo:7.0.5-jammy
+        ports:
+          - 27017:27017
+        options: --health-cmd "mongosh --eval 'db.hello()'" --health-interval 10s --health-timeout 5s --health-retries 5
 
     steps:
       - name: Checkout
@@ -39,11 +44,11 @@ jobs:
           echo "SERVER_HOST=${{ vars.HOST }}" >> .env
           echo "SERVER_PORT=${{ vars.PORT }}" >> .env
           echo "JWT_SECRET=${{ vars.JWT_SECRET }}" >> .env
+          echo "BREVO_API_KEY=${{ secrets.BREVO_API_KEY }}" >> .env
+          echo "BREVO_FROM_EMAIL=${{ vars.BREVO_FROM_EMAIL }}" >> .env
+          echo "BREVO_FROM_NAME=${{ vars.BREVO_FROM_NAME }}" >> .env
+          echo "SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}" >> .env
           echo "MONGODB_URI=${{ vars.MONGODB_URI }}" >> .env
-          echo "AWS_SES_REGION=${{ vars.AWS_REGION }}" >> .env
-          echo "AWS_SES_ID=${{ secrets.AWS_SES_ID }}" >> .env
-          echo "AWS_SES_SECRET=${{ secrets.AWS_SES_SECRET }}" >> .env
-          echo "AWS_SES_SOURCE=${{ vars.APAWS_SES_SOURCEP_URL }}" >> .env
           echo "APP_URL=${{ vars.APP_URL }}" >> .env
           echo "" >> .env
 
@@ -51,13 +56,13 @@ jobs:
         run: bun i
 
       - name: Format
-        run: bun run format
+        run: bun format
 
       - name: Lint
-        run: bun run lint
+        run: bun lint
 
       - name: Test
-        run: bun run test
+        run: bun test
 
       - name: Build
         run: bun run build

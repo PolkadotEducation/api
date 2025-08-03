@@ -1,8 +1,12 @@
-import { getModelForClass, prop, Severity } from "@typegoose/typegoose";
+import { getModelForClass, prop, Severity, Ref } from "@typegoose/typegoose";
 
 import BaseModel from "./BaseModel";
+import { Team } from "./Team";
 
 class Challenge extends BaseModel {
+  @prop({ required: true, ref: () => Team })
+  public teamId: Ref<Team>;
+
   @prop({ required: true, type: String })
   public question: string;
 
@@ -24,6 +28,9 @@ class Challenge extends BaseModel {
 
   @prop({ required: true, enum: ["easy", "medium", "hard"], type: String })
   public difficulty: string;
+
+  @prop({ required: true, type: String })
+  public language: string;
 }
 
 const ChallengeModel = getModelForClass(Challenge);

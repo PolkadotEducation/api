@@ -51,6 +51,7 @@ import {
   deleteChallenge,
   getChallenge,
   getChallenges,
+  getChallengesSummary,
   updateChallenge,
 } from "./controllers/challenges";
 
@@ -77,11 +78,12 @@ const router = (app: Express) => {
   app.delete("/teams/:id", [authMiddleware], deleteTeam);
 
   // Challenges
-  app.post("/challenge", [authMiddleware, adminMiddleware], createChallenge);
+  app.post("/challenge/:teamId", [authMiddleware, teamMiddleware], createChallenge);
   app.get("/challenges", [authMiddleware], getChallenges);
-  app.get("/challenge/:id", [authMiddleware], getChallenge);
-  app.put("/challenge/:id", [authMiddleware, adminMiddleware], updateChallenge);
-  app.delete("/challenge/:id", [authMiddleware, adminMiddleware], deleteChallenge);
+  app.get("/challenges/summary", [authMiddleware], getChallengesSummary);
+  app.get("/challenge", [authMiddleware], getChallenge);
+  app.put("/challenge/:teamId/:id", [authMiddleware, teamMiddleware], updateChallenge);
+  app.delete("/challenge/:teamId/:id", [authMiddleware, teamMiddleware], deleteChallenge);
 
   // Lessons
   app.post("/lesson/:teamId", [authMiddleware, teamMiddleware], createLesson);

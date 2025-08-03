@@ -7,6 +7,8 @@ import { mongoDBsetup } from "./db/setupTestMongo";
 import { ChallengeModel } from "@/models/Challenge";
 import { getAuthHeaders } from "./helpers";
 import { UserModel } from "@/models/User";
+import { Team, TeamModel } from "@/models/Team";
+import { UserTeamModel } from "@/models/UserTeam";
 
 const PORT = 3017;
 const API_URL = `http://0.0.0.0:${PORT}`;
@@ -25,6 +27,8 @@ describe("Setting API Server up...", () => {
 
     server = app.listen(PORT, done);
   });
+
+  let team: Team;
 
   beforeAll(async () => {
     await mongoDBsetup(MONGODB_DATABASE_NAME);
@@ -53,6 +57,14 @@ describe("Setting API Server up...", () => {
       signInType: "Email",
     });
 
+    team = await TeamModel.create({
+      owner: adminEmail,
+      name: "Admin Team",
+      description: "Admin Team Description",
+      picture: "...",
+    });
+    await UserTeamModel.create({ email: adminEmail, teamId: team });
+
     adminHeaders = await getAuthHeaders(adminEmail, "password");
     regularHeaders = await getAuthHeaders(regularEmail, "password");
   });
@@ -60,6 +72,8 @@ describe("Setting API Server up...", () => {
   afterAll(async () => {
     await ChallengeModel.deleteMany({});
     await UserModel.deleteMany({});
+    await TeamModel.deleteMany({});
+    await UserTeamModel.deleteMany({});
   });
 
   afterEach(async () => {
@@ -78,9 +92,10 @@ describe("Setting API Server up...", () => {
         choices: ["3", "4", "5", "6"],
         correctChoice: 1,
         difficulty: "easy",
+        language: "english",
       };
 
-      const response = await axios.post(`${API_URL}/challenge`, challengeData, { headers: adminHeaders });
+      const response = await axios.post(`${API_URL}/challenge/${team._id}`, challengeData, { headers: adminHeaders });
 
       expect(response.status).toBe(201);
       expect(response.data.question).toEqual(challengeData.question);
@@ -95,10 +110,11 @@ describe("Setting API Server up...", () => {
         choices: ["1"],
         correctChoice: 0,
         difficulty: "easy",
+        language: "english",
       };
 
       await expect(
-        axios.post(`${API_URL}/challenge`, invalidChallenge, { headers: adminHeaders }),
+        axios.post(`${API_URL}/challenge/${team._id}`, invalidChallenge, { headers: adminHeaders }),
       ).rejects.toMatchObject({
         response: {
           status: 400,
@@ -113,20 +129,26 @@ describe("Setting API Server up...", () => {
 
     it("Update a Challenge (PUT /challenge/:id)", async () => {
       const challenge = await ChallengeModel.create({
+        teamId: team._id,
         question: "Old question",
         choices: ["A", "B", "C", "D"],
         correctChoice: 0,
         difficulty: "medium",
+        language: "english",
       });
 
       const updatedData = {
+        teamId: team._id,
         question: "New question",
         choices: ["X", "Y", "Z", "W"],
         correctChoice: 2,
         difficulty: "hard",
+        language: "english",
       };
 
-      const response = await axios.put(`${API_URL}/challenge/${challenge._id}`, updatedData, { headers: adminHeaders });
+      const response = await axios.put(`${API_URL}/challenge/${team._id}/${challenge._id}`, updatedData, {
+        headers: adminHeaders,
+      });
 
       expect(response.status).toBe(200);
       expect(response.data.question).toEqual(updatedData.question);
@@ -136,24 +158,30 @@ describe("Setting API Server up...", () => {
 
     it("Get all Challenges with specific daily challenge (GET /challenges)", async () => {
       await ChallengeModel.create({
+        teamId: team._id,
         question: "Test 1",
         choices: ["A", "B", "C"],
         correctChoice: 0,
         difficulty: "easy",
+        language: "english",
       });
 
       await ChallengeModel.create({
+        teamId: team._id,
         question: "Test 2",
         choices: ["X", "Y", "Z", "W"],
         correctChoice: 1,
         difficulty: "medium",
+        language: "english",
       });
 
       await ChallengeModel.create({
+        teamId: team._id,
         question: "Test 3",
         choices: ["L", "M", "N", "O"],
         correctChoice: 2,
         difficulty: "hard",
+        language: "english",
       });
 
       const response = await axios.get(`${API_URL}/challenges`, {
@@ -169,15 +197,17 @@ describe("Setting API Server up...", () => {
       // expect(response.data.dailyChallenge.choices).toEqual(["A", "B", "C"]);
     });
 
-    it("Get single Challenge (GET /challenge/:id)", async () => {
+    it("Get single Challenge (GET /challenge)", async () => {
       const challenge = await ChallengeModel.create({
+        teamId: team._id,
         question: "Single test",
         choices: ["1", "2", "3", "4"],
         correctChoice: 2,
         difficulty: "easy",
+        language: "english",
       });
 
-      const response = await axios.get(`${API_URL}/challenge/${challenge._id}`, { headers: adminHeaders });
+      const response = await axios.get(`${API_URL}/challenge?challengeId=${challenge._id}`, { headers: adminHeaders });
 
       expect(response.status).toBe(200);
       expect(response.data.question).toEqual(challenge.question);
@@ -187,15 +217,19 @@ describe("Setting API Server up...", () => {
 
     it("Delete a Challenge (DELETE /challenge/:id)", async () => {
       const challenge = await ChallengeModel.create({
+        teamId: team._id,
         question: "To be deleted",
         choices: ["A", "B", "C"],
         correctChoice: 0,
         difficulty: "easy",
+        language: "english",
       });
 
       const countBefore = await ChallengeModel.countDocuments();
 
-      const response = await axios.delete(`${API_URL}/challenge/${challenge._id}`, { headers: adminHeaders });
+      const response = await axios.delete(`${API_URL}/challenge/${team._id}/${challenge._id}`, {
+        headers: adminHeaders,
+      });
 
       expect(response.status).toBe(200);
       expect(response.data.message).toEqual(`Challenge '${challenge._id}' deleted`);
@@ -207,7 +241,9 @@ describe("Setting API Server up...", () => {
     it("Returns 404 for non-existent challenge", async () => {
       const fakeId = "60e4b68f2f8fb814b56fa181";
 
-      await expect(axios.get(`${API_URL}/challenge/${fakeId}`, { headers: adminHeaders })).rejects.toMatchObject({
+      await expect(
+        axios.get(`${API_URL}/challenge?challengeId=${fakeId}`, { headers: adminHeaders }),
+      ).rejects.toMatchObject({
         response: {
           status: 404,
           data: { error: { message: "Challenge not found" } },
@@ -220,26 +256,28 @@ describe("Setting API Server up...", () => {
         question: "Incomplete",
       };
 
-      await expect(axios.post(`${API_URL}/challenge`, incompleteData, { headers: adminHeaders })).rejects.toMatchObject(
-        {
-          response: {
-            status: 400,
-            data: { error: { message: "Missing required parameters" } },
-          },
+      await expect(
+        axios.post(`${API_URL}/challenge/${team._id}`, incompleteData, { headers: adminHeaders }),
+      ).rejects.toMatchObject({
+        response: {
+          status: 400,
+          data: { error: { message: "Missing required parameters" } },
         },
-      );
+      });
     });
 
     it("Should return 403 for non-admin users", async () => {
       const challengeData = {
+        teamId: team._id,
         question: "Test",
         choices: ["A", "B", "C"],
         correctChoice: 0,
         difficulty: "easy",
+        language: "english",
       };
 
       await expect(
-        axios.post(`${API_URL}/challenge`, challengeData, { headers: regularHeaders }),
+        axios.post(`${API_URL}/challenge/${team._id}`, challengeData, { headers: regularHeaders }),
       ).rejects.toMatchObject({
         response: { status: 403 },
       });
@@ -247,13 +285,13 @@ describe("Setting API Server up...", () => {
       const challenge = await ChallengeModel.create(challengeData);
 
       await expect(
-        axios.put(`${API_URL}/challenge/${challenge._id}`, challengeData, { headers: regularHeaders }),
+        axios.put(`${API_URL}/challenge/${team._id}/${challenge._id}`, challengeData, { headers: regularHeaders }),
       ).rejects.toMatchObject({
         response: { status: 403 },
       });
 
       await expect(
-        axios.delete(`${API_URL}/challenge/${challenge._id}`, { headers: regularHeaders }),
+        axios.delete(`${API_URL}/challenge/${team._id}/${challenge._id}`, { headers: regularHeaders }),
       ).rejects.toMatchObject({
         response: { status: 403 },
       });
