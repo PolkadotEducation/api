@@ -32,6 +32,8 @@ app.listen(env.SERVER_PORT, env.SERVER_HOST, async () => {
   await setupMongoDB(db);
 
   // eslint-disable-next-line no-console
+  console.info(`> Environment: ${env.NODE_ENV}`);
+  // eslint-disable-next-line no-console
   console.info(`> Listening at http://${env.SERVER_HOST}:${env.SERVER_PORT}`);
 
   scheduleRankingUpdate();
