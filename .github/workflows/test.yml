@@ -1,4 +1,4 @@
-name: CI/CD workflow
+name: Test
 
 on:
   pull_request:
@@ -9,15 +9,21 @@ on:
       - main
 
 permissions:
-  id-token: write
   contents: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  NODE_ENV: test
+  MONGODB_HOST: localhost
+  MONGODB_PORT: 27017
+  HOST: 0.0.0.0
+  PORT: 4000
+
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
     environment: ${{ github.event_name == 'push' && 'production' || 'test' }}
 
@@ -26,43 +32,36 @@ jobs:
         image: mongo:7.0.5-jammy
         ports:
           - 27017:27017
-        options: --health-cmd "mongosh --eval 'db.hello()'" --health-interval 10s --health-timeout 5s --health-retries 5
-
+          options: >-
+            --health-cmd "mongosh --eval 'db.hello()'"
+            --health-interval 3s
+            --health-timeout 2s
+            --health-retries 5
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Setup
+      - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.1.29
 
-      - name: Environment
+      - name: Set up environment variables
         run: |
           touch .env
-          echo "NODE_ENV=${{ vars.NODE_ENV }}" >> .env
-          echo "SERVER_HOST=${{ vars.HOST }}" >> .env
-          echo "SERVER_PORT=${{ vars.PORT }}" >> .env
+          echo "NODE_ENV=${{ env.NODE_ENV }}" >> .env
+          echo "SERVER_HOST=${{ env.HOST }}" >> .env
+          echo "SERVER_PORT=${{ env.PORT }}" >> .env
           echo "JWT_SECRET=${{ vars.JWT_SECRET }}" >> .env
           echo "BREVO_API_KEY=${{ secrets.BREVO_API_KEY }}" >> .env
           echo "BREVO_FROM_EMAIL=${{ vars.BREVO_FROM_EMAIL }}" >> .env
           echo "BREVO_FROM_NAME=${{ vars.BREVO_FROM_NAME }}" >> .env
           echo "SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}" >> .env
-          echo "MONGODB_URI=${{ vars.MONGODB_URI }}" >> .env
+          echo "MONGODB_URI=mongodb://${{ env.MONGODB_HOST }}:${{ env.MONGODB_PORT }}" >> .env
           echo "APP_URL=${{ vars.APP_URL }}" >> .env
-          echo "" >> .env
 
-      - name: Install
+      - name: Install dependencies
         run: bun i
 
-      - name: Format
-        run: bun format
-
-      - name: Lint
-        run: bun lint
-
       - name: Test
-        run: bun test
-
-      - name: Build
-        run: bun run build
+        run: bun run test
