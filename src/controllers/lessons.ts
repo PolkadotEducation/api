@@ -137,8 +137,12 @@ export const getLesson = async (req: Request, res: Response) => {
       console.error(error);
       return res.status(400).send(error);
     }
-    const lesson = await LessonModel.findOne({ _id: lessonId }).populate("challenge");
+    const lesson = await LessonModel.findOne({ _id: lessonId }).populate({
+      path: "challenge",
+      model: "Challenge",
+    });
     if (lesson) {
+      console.info(lesson);
       const lessonRecord = lesson.toObject();
 
       // Remove correct choice from challenge to prevent cheating
@@ -176,7 +180,10 @@ export const getLessons = async (req: Request, res: Response) => {
     if (teamId) query = { teamId: new ObjectId(teamId as string) };
     if (language) query = { ...query, language };
 
-    const lessons = await LessonModel.find(query).populate("challenge");
+    const lessons = await LessonModel.find(query).populate({
+      path: "challenge",
+      model: "Challenge",
+    });
 
     if (lessons.length > 0) {
       return res.status(200).send(lessons);
@@ -254,9 +261,10 @@ export const duplicateLessons = async (req: Request, res: Response) => {
   try {
     const duplicatedLessonsIds = await Promise.all(
       lessons.map(async (id: string) => {
-        const existingLesson = await LessonModel.findOne({ _id: id, teamId: new ObjectId(teamId as string) }).populate(
-          "challenge",
-        );
+        const existingLesson = await LessonModel.findOne({ _id: id, teamId: new ObjectId(teamId as string) }).populate({
+          path: "challenge",
+          model: "Challenge",
+        });
 
         if (!existingLesson) {
           throw new Error(`Lesson with id ${id} not found`);

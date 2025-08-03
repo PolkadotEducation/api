@@ -139,6 +139,10 @@ export const getCourseSummary = async (req: Request, res: Response) => {
       populate: {
         path: "lessons",
         model: "Lesson",
+        populate: {
+          path: "challenge",
+          model: "Challenge",
+        },
       },
     })) as Course;
 
@@ -150,18 +154,6 @@ export const getCourseSummary = async (req: Request, res: Response) => {
 
     const progressMap = new Map(progress.map((p) => [String(p.lessonId), p]));
 
-    const allChallengeIds = course.modules.flatMap((module) => {
-      const populatedModule = module as Module & { lessons: Lesson[] };
-      return populatedModule.lessons.map((lesson) => {
-        const populatedLesson = lesson as Lesson;
-        return populatedLesson.challenge;
-      });
-    });
-
-    const challenges = await ChallengeModel.find({ _id: { $in: allChallengeIds } }).lean();
-
-    const challengeMap = new Map(challenges.map((challenge) => [String(challenge._id), challenge]));
-
     const courseSummary = {
       id: course._id,
       title: course.title,
@@ -169,8 +161,8 @@ export const getCourseSummary = async (req: Request, res: Response) => {
         const populatedModule = module as Module & { lessons: Lesson[] };
 
         const lessons = populatedModule.lessons.map((lesson) => {
-          const populatedLesson = lesson as Lesson;
-          const challenge = challengeMap.get(String(populatedLesson.challenge));
+          const populatedLesson = lesson as Lesson & { challenge: { difficulty: string } };
+          const challenge = populatedLesson.challenge;
 
           const progressRecord = progressMap.get(String(populatedLesson._id));
           const isCompleted = progressRecord?.isCorrect || false;
@@ -179,10 +171,8 @@ export const getCourseSummary = async (req: Request, res: Response) => {
           return {
             id: populatedLesson._id,
             title: populatedLesson.title,
-            difficulty: challenge?.difficulty,
-            expEarned: isCompleted
-              ? calculateExperience((challenge?.difficulty || "easy") as Difficulty, correctAtFirstTry)
-              : 0,
+            difficulty: challenge.difficulty,
+            expEarned: isCompleted ? calculateExperience(challenge.difficulty as Difficulty, correctAtFirstTry) : 0,
           };
         });
 
@@ -219,6 +209,10 @@ export const getCourseProgress = async (req: Request, res: Response) => {
       populate: {
         path: "lessons",
         model: "Lesson",
+        populate: {
+          path: "challenge",
+          model: "Challenge",
+        },
       },
     })) as Course;
 
