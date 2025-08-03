@@ -18,7 +18,7 @@ export const createChallenge = async (req: Request, res: Response) => {
       question,
       choices,
       correctChoice,
-      difficulty,
+      difficulty: difficulty.toLowerCase(),
       language,
     });
 
@@ -46,7 +46,7 @@ export const updateChallenge = async (req: Request, res: Response) => {
   try {
     const updatedChallenge = await ChallengeModel.findOneAndUpdate(
       { _id: id, teamId: new ObjectId(teamId as string) },
-      { question, choices, correctChoice, difficulty, language },
+      { question, choices, correctChoice, difficulty: difficulty.toLowerCase(), language },
       { new: true, runValidators: true },
     );
 
