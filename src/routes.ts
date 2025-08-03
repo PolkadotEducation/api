@@ -46,6 +46,14 @@ import {
 import adminMiddleware from "./middlewares/admin";
 import { generateCertificate, getCertificate, getCertificates, mintCertificate } from "./controllers/certificates";
 import { getRanking } from "./controllers/ranking";
+import {
+  createChallenge,
+  deleteChallenge,
+  getChallenge,
+  getChallenges,
+  getChallengesSummary,
+  updateChallenge,
+} from "./controllers/challenges";
 
 const router = (app: Express) => {
   // Users
@@ -68,6 +76,14 @@ const router = (app: Express) => {
   app.get("/teams", [authMiddleware], getTeams);
   app.put("/teams/:id", [authMiddleware], updateTeam);
   app.delete("/teams/:id", [authMiddleware], deleteTeam);
+
+  // Challenges
+  app.post("/challenge/:teamId", [authMiddleware, teamMiddleware], createChallenge);
+  app.get("/challenges", [authMiddleware], getChallenges);
+  app.get("/challenges/summary", [authMiddleware], getChallengesSummary);
+  app.get("/challenge", [authMiddleware], getChallenge);
+  app.put("/challenge/:teamId/:id", [authMiddleware, teamMiddleware], updateChallenge);
+  app.delete("/challenge/:teamId/:id", [authMiddleware, teamMiddleware], deleteChallenge);
 
   // Lessons
   app.post("/lesson/:teamId", [authMiddleware, teamMiddleware], createLesson);

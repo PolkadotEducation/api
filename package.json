@@ -4,16 +4,14 @@
   "main": "dist/index.js",
   "scripts": {
     "dev": "nodemon",
-    "test": "bun run test:mongodb:setup; NODE_ENV=test jest $TEST_FILE; bun run test:mongodb:rm",
-    "test:mongodb:setup": "bun run test:mongodb:rm; bun run test:mongodb:run",
-    "test:mongodb:rm": "docker rm -f doteducation-mongodb-test",
-    "test:mongodb:run": "docker run --name doteducation-mongodb-test -p 27777:27017 -dti mongo:7.0.5-jammy",
+    "test": "NODE_ENV=test jest $TEST_FILE",
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
     "format": "prettier --check .",
     "format:fix": "prettier --write .",
-    "build": "tsup",
-    "start": "node dist/index.js"
+    "build": "tsup && bun run sentry:sourcemaps",
+    "start": "node dist/index.js",
+    "sentry:sourcemaps": "sentry-cli sourcemaps inject --org polkadot-education --project api ./dist && sentry-cli sourcemaps upload --org polkadot-education --project api ./dist"
   },
   "dependencies": {
     "@getbrevo/brevo": "^2.5.0",
@@ -21,6 +19,8 @@
     "@polkadot-labs/hdkd": "^0.0.11",
     "@polkadot-labs/hdkd-helpers": "^0.0.10",
     "@polkadot/util-crypto": "^13.3.1",
+    "@sentry/cli": "^2.50.2",
+    "@sentry/node": "^9.42.0",
     "@typegoose/typegoose": "^12.3.1",
     "axios": "^1.7.4",
     "cors": "^2.8.5",

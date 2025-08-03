@@ -20,6 +20,7 @@ import { CertificateModel } from "@/models/Certificate";
 import { signatureVerify } from "@polkadot/util-crypto";
 import mongoose from "mongoose";
 import { env } from "@/environment";
+import { Challenge, ChallengeModel } from "@/models/Challenge";
 
 const PORT = 3016;
 const API_URL = `http://0.0.0.0:${PORT}`;
@@ -61,6 +62,7 @@ describe("Setting API Server up...", () => {
 
   describe("Certificate", () => {
     let course: Course,
+      challenge: Challenge,
       lesson1: Lesson,
       lesson2: Lesson,
       lesson3: Lesson,
@@ -88,69 +90,58 @@ describe("Setting API Server up...", () => {
 
       headers = await getAuthHeaders(email, password);
 
+      challenge = await ChallengeModel.create({
+        teamId: team,
+        question: "What is the capital of Germany?",
+        choices: ["Berlin", "Munich", "Frankfurt"],
+        correctChoice: 0,
+        difficulty: "easy",
+        language: "english",
+      });
+
       lesson1 = await LessonModel.create({
         teamId: team,
         title: "Lesson #1",
         language: "english",
+        slug: "lesson-1-certificate",
         body: loadFixture("example.md"),
-        difficulty: "easy",
-        challenge: {
-          question: "What is the capital of Germany?",
-          choices: ["Berlin", "Munich", "Frankfurt"],
-          correctChoice: 0,
-        },
+        challengeId: challenge._id,
       });
 
       lesson2 = await LessonModel.create({
         teamId: team,
         title: "Lesson #2",
         language: "english",
+        slug: "lesson-2-certificate",
         body: loadFixture("example.md"),
-        difficulty: "easy",
-        challenge: {
-          question: "What is the capital of Italy?",
-          choices: ["Naples", "Milan", "Rome"],
-          correctChoice: 2,
-        },
+        challengeId: challenge._id,
       });
 
       lesson3 = await LessonModel.create({
         teamId: team,
         title: "Lesson #3",
         language: "english",
+        slug: "lesson-3-certificate",
         body: loadFixture("example.md"),
-        difficulty: "medium",
-        challenge: {
-          question: "Another question?",
-          choices: ["1", "2", "3"],
-          correctChoice: 2,
-        },
+        challengeId: challenge._id,
       });
 
       lesson4 = await LessonModel.create({
         teamId: team,
         title: "Lesson #4",
         language: "english",
+        slug: "lesson-4-certificate",
         body: loadFixture("example.md"),
-        difficulty: "hard",
-        challenge: {
-          question: "Another question?",
-          choices: ["1", "2", "3"],
-          correctChoice: 0,
-        },
+        challengeId: challenge._id,
       });
 
       lesson5 = await LessonModel.create({
         teamId: team,
         title: "Lesson #5",
         language: "english",
+        slug: "lesson-5-certificate",
         body: loadFixture("example.md"),
-        difficulty: "hard",
-        challenge: {
-          question: "Another question?",
-          choices: ["1", "2", "3"],
-          correctChoice: 1,
-        },
+        challengeId: challenge._id,
       });
 
       module1 = await ModuleModel.create({
@@ -195,45 +186,45 @@ describe("Setting API Server up...", () => {
         courseId: course._id,
         lessonId: lesson1._id,
         userId: user?.id,
-        choice: lesson1.challenge.correctChoice,
+        choice: challenge.correctChoice,
         isCorrect: true,
-        difficulty: lesson1.difficulty,
+        difficulty: challenge.difficulty,
       });
 
       await ProgressModel.create({
         courseId: course._id,
         lessonId: lesson2._id,
         userId: user?.id,
-        choice: lesson2.challenge.correctChoice,
+        choice: challenge.correctChoice,
         isCorrect: true,
-        difficulty: lesson2.difficulty,
+        difficulty: challenge.difficulty,
       });
 
       await ProgressModel.create({
         courseId: course._id,
         lessonId: lesson3._id,
         userId: user?.id,
-        choice: lesson3.challenge.correctChoice,
+        choice: challenge.correctChoice,
         isCorrect: true,
-        difficulty: lesson3.difficulty,
+        difficulty: challenge.difficulty,
       });
 
       await ProgressModel.create({
         courseId: course._id,
         lessonId: lesson4._id,
         userId: user?.id,
-        choice: lesson4.challenge.correctChoice,
+        choice: challenge.correctChoice,
         isCorrect: true,
-        difficulty: lesson4.difficulty,
+        difficulty: challenge.difficulty,
       });
 
       await ProgressModel.create({
         courseId: course._id,
         lessonId: lesson5._id,
         userId: user?.id,
-        choice: lesson5.challenge.correctChoice,
+        choice: challenge.correctChoice,
         isCorrect: true,
-        difficulty: lesson5.difficulty,
+        difficulty: challenge.difficulty,
       });
 
       const progressRecords = await ProgressModel.find({ userId: user?.id, courseId: course._id });
@@ -264,36 +255,36 @@ describe("Setting API Server up...", () => {
         courseId: course._id,
         lessonId: lesson1._id,
         userId: user?.id,
-        choice: lesson1.challenge.correctChoice,
+        choice: challenge.correctChoice,
         isCorrect: true,
-        difficulty: lesson1.difficulty,
+        difficulty: challenge.difficulty,
       });
 
       await ProgressModel.create({
         courseId: course._id,
         lessonId: lesson2._id,
         userId: user?.id,
-        choice: lesson2.challenge.correctChoice,
+        choice: challenge.correctChoice,
         isCorrect: true,
-        difficulty: lesson2.difficulty,
+        difficulty: challenge.difficulty,
       });
 
       await ProgressModel.create({
         courseId: course._id,
         lessonId: lesson3._id,
         userId: user?.id,
-        choice: lesson3.challenge.correctChoice,
+        choice: challenge.correctChoice,
         isCorrect: true,
-        difficulty: lesson3.difficulty,
+        difficulty: challenge.difficulty,
       });
 
       await ProgressModel.create({
         courseId: course._id,
         lessonId: lesson4._id,
         userId: user?.id,
-        choice: lesson4.challenge.correctChoice,
+        choice: challenge.correctChoice,
         isCorrect: true,
-        difficulty: lesson4.difficulty,
+        difficulty: challenge.difficulty,
       });
 
       // Missing lesson 5 to complete course

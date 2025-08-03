@@ -131,3 +131,6 @@ dist
 
 # MacOS
 .DS_Store
+
+# Sentry Config File
+.sentryclirc
