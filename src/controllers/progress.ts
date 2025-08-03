@@ -39,7 +39,7 @@ export const submitAnswer = async (req: Request, res: Response) => {
   const progress = await ProgressModel.findOne({ courseId, lessonId, userId, isCorrect: true });
   if (progress) return res.status(200).send(progress);
 
-  const challenge = await ChallengeModel.findOne({ _id: lesson.challengeId });
+  const challenge = await ChallengeModel.findOne({ _id: lesson.challenge });
   if (!challenge) {
     const error = { error: { message: "Challenge not found" } };
     console.error(error);
@@ -153,7 +153,7 @@ export const getCourseSummary = async (req: Request, res: Response) => {
       const populatedModule = module as Module & { lessons: Lesson[] };
       return populatedModule.lessons.map((lesson) => {
         const populatedLesson = lesson as Lesson;
-        return populatedLesson.challengeId;
+        return populatedLesson.challenge;
       });
     });
 
@@ -169,7 +169,7 @@ export const getCourseSummary = async (req: Request, res: Response) => {
 
         const lessons = populatedModule.lessons.map((lesson) => {
           const populatedLesson = lesson as Lesson;
-          const challenge = challengeMap.get(String(populatedLesson.challengeId));
+          const challenge = challengeMap.get(String(populatedLesson.challenge));
 
           const progressRecord = progressMap.get(String(populatedLesson._id));
           const isCompleted = progressRecord?.isCorrect || false;

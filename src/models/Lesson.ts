@@ -33,7 +33,7 @@ class Lesson extends BaseModel {
   public difficulty: string;
 
   @prop({ required: true, ref: () => Challenge })
-  public challengeId: Ref<Challenge>;
+  public challenge: Ref<Challenge>;
 
   @prop({ required: false, type: () => Array<Reference>, default: [] })
   public references: Reference[];

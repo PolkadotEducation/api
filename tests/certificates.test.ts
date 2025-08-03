@@ -105,7 +105,7 @@ describe("Setting API Server up...", () => {
         language: "english",
         slug: "lesson-1-certificate",
         body: loadFixture("example.md"),
-        challengeId: challenge._id,
+        challenge: challenge,
       });
 
       lesson2 = await LessonModel.create({
@@ -114,7 +114,7 @@ describe("Setting API Server up...", () => {
         language: "english",
         slug: "lesson-2-certificate",
         body: loadFixture("example.md"),
-        challengeId: challenge._id,
+        challenge: challenge,
       });
 
       lesson3 = await LessonModel.create({
@@ -123,7 +123,7 @@ describe("Setting API Server up...", () => {
         language: "english",
         slug: "lesson-3-certificate",
         body: loadFixture("example.md"),
-        challengeId: challenge._id,
+        challenge: challenge,
       });
 
       lesson4 = await LessonModel.create({
@@ -132,7 +132,7 @@ describe("Setting API Server up...", () => {
         language: "english",
         slug: "lesson-4-certificate",
         body: loadFixture("example.md"),
-        challengeId: challenge._id,
+        challenge: challenge,
       });
 
       lesson5 = await LessonModel.create({
@@ -141,7 +141,7 @@ describe("Setting API Server up...", () => {
         language: "english",
         slug: "lesson-5-certificate",
         body: loadFixture("example.md"),
-        challengeId: challenge._id,
+        challenge: challenge,
       });
 
       module1 = await ModuleModel.create({

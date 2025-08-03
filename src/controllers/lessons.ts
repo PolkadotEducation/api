@@ -6,14 +6,14 @@ import { ChallengeModel } from "@/models/Challenge";
 
 export const createLesson = async (req: Request, res: Response) => {
   const { teamId } = req.params;
-  const { title, language, slug, body, challengeId, references } = req.body;
-  if (!teamId || !title || !language || !slug || !body || !challengeId) {
+  const { title, language, slug, body, challenge, references } = req.body;
+  if (!teamId || !title || !language || !slug || !body || !challenge) {
     return res.status(400).send({ error: { message: "Missing params" } });
   }
 
   let errorMessage;
   try {
-    const challengeExists = await ChallengeModel.findById(challengeId);
+    const challengeExists = await ChallengeModel.findById(challenge);
     if (!challengeExists) {
       const error = { error: { message: "Challenge not found" } };
       console.error(error);
@@ -32,10 +32,25 @@ export const createLesson = async (req: Request, res: Response) => {
       language,
       slug,
       body,
-      challengeId: new ObjectId(challengeId as string),
+      challenge,
       references,
     });
-    if (newLesson) return res.status(200).send(newLesson);
+    if (newLesson) {
+      const populatedLesson = await LessonModel.findById(newLesson._id).populate("challenge");
+      const lessonRecord = populatedLesson?.toObject();
+
+      // Remove correct choice from challenge to prevent cheating
+      if (
+        lessonRecord?.challenge &&
+        typeof lessonRecord.challenge === "object" &&
+        "correctChoice" in lessonRecord.challenge
+      ) {
+        const challenge = lessonRecord.challenge as unknown as { correctChoice?: number };
+        delete challenge.correctChoice;
+      }
+
+      return res.status(200).send(lessonRecord);
+    }
   } catch (e) {
     errorMessage = (e as Error).message;
     console.error(`[ERROR][createLesson] ${e}`);
@@ -50,15 +65,15 @@ export const createLesson = async (req: Request, res: Response) => {
 
 export const updateLesson = async (req: Request, res: Response) => {
   const { teamId, id } = req.params;
-  const { title, language, body, challengeId, references } = req.body;
+  const { title, language, body, challenge, references } = req.body;
 
-  if (!id || !teamId || !title || !language || !body || !challengeId) {
+  if (!id || !teamId || !title || !language || !body || !challenge) {
     return res.status(400).send({ error: { message: "Missing params" } });
   }
 
   let errorMessage;
   try {
-    const challengeExists = await ChallengeModel.findById(challengeId);
+    const challengeExists = await ChallengeModel.findById(challenge);
     if (!challengeExists) {
       const error = { error: { message: "Challenge not found" } };
       console.error(error);
@@ -77,14 +92,26 @@ export const updateLesson = async (req: Request, res: Response) => {
         title,
         language,
         body,
-        challengeId: new ObjectId(challengeId as string),
+        challenge,
         references,
       },
       { new: true, runValidators: true },
-    );
+    ).populate("challenge");
 
     if (updatedLesson) {
-      return res.status(200).send(updatedLesson);
+      const lessonRecord = updatedLesson.toObject();
+
+      // Remove correct choice from challenge to prevent cheating
+      if (
+        lessonRecord.challenge &&
+        typeof lessonRecord.challenge === "object" &&
+        "correctChoice" in lessonRecord.challenge
+      ) {
+        const challenge = lessonRecord.challenge as unknown as { correctChoice?: number };
+        delete challenge.correctChoice;
+      }
+
+      return res.status(200).send(lessonRecord);
     } else {
       const error = { error: { message: "Lesson not found" } };
       console.error(error);
@@ -110,17 +137,17 @@ export const getLesson = async (req: Request, res: Response) => {
       console.error(error);
       return res.status(400).send(error);
     }
-    const lesson = await LessonModel.findOne({ _id: lessonId });
+    const lesson = await LessonModel.findOne({ _id: lessonId }).populate("challenge");
     if (lesson) {
       const lessonRecord = lesson.toObject();
 
       // Remove correct choice from challenge to prevent cheating
       if (
-        lessonRecord.challengeId &&
-        typeof lessonRecord.challengeId === "object" &&
-        "correctChoice" in lessonRecord.challengeId
+        lessonRecord.challenge &&
+        typeof lessonRecord.challenge === "object" &&
+        "correctChoice" in lessonRecord.challenge
       ) {
-        const challenge = lessonRecord.challengeId as unknown as { correctChoice?: number };
+        const challenge = lessonRecord.challenge as unknown as { correctChoice?: number };
         delete challenge.correctChoice;
       }
 
@@ -149,7 +176,7 @@ export const getLessons = async (req: Request, res: Response) => {
     if (teamId) query = { teamId: new ObjectId(teamId as string) };
     if (language) query = { ...query, language };
 
-    const lessons = await LessonModel.find(query);
+    const lessons = await LessonModel.find(query).populate("challenge");
 
     if (lessons.length > 0) {
       return res.status(200).send(lessons);
@@ -227,7 +254,7 @@ export const duplicateLessons = async (req: Request, res: Response) => {
   try {
     const duplicatedLessonsIds = await Promise.all(
       lessons.map(async (id: string) => {
-        const existingLesson = await LessonModel.findOne({ _id: id, teamId: new ObjectId(teamId as string) });
+        const existingLesson = await LessonModel.findOne({ _id: id, teamId: new ObjectId(teamId as string) }).populate("challenge");
 
         if (!existingLesson) {
           throw new Error(`Lesson with id ${id} not found`);
@@ -244,7 +271,7 @@ export const duplicateLessons = async (req: Request, res: Response) => {
           language: existingLesson.language,
           slug: newSlug,
           body: existingLesson.body,
-          challengeId: existingLesson.challengeId,
+          challenge: existingLesson.challenge,
           references: existingLesson.references,
         });
 
