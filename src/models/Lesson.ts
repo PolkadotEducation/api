@@ -29,8 +29,6 @@ class Lesson extends BaseModel {
   @prop({ required: true, type: String })
   public body: string;
 
-
-
   @prop({ required: true, ref: () => Challenge })
   public challenge: Ref<Challenge>;
 

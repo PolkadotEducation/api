@@ -254,7 +254,9 @@ export const duplicateLessons = async (req: Request, res: Response) => {
   try {
     const duplicatedLessonsIds = await Promise.all(
       lessons.map(async (id: string) => {
-        const existingLesson = await LessonModel.findOne({ _id: id, teamId: new ObjectId(teamId as string) }).populate("challenge");
+        const existingLesson = await LessonModel.findOne({ _id: id, teamId: new ObjectId(teamId as string) }).populate(
+          "challenge",
+        );
 
         if (!existingLesson) {
           throw new Error(`Lesson with id ${id} not found`);
