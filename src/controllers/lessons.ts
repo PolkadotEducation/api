@@ -142,7 +142,6 @@ export const getLesson = async (req: Request, res: Response) => {
       model: "Challenge",
     });
     if (lesson) {
-      console.info(lesson);
       const lessonRecord = lesson.toObject();
 
       // Remove correct choice from challenge to prevent cheating
