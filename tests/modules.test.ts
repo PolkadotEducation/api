@@ -12,6 +12,7 @@ import { UserModel } from "@/models/User";
 import { getAuthHeaders } from "./helpers";
 import { Team, TeamModel } from "@/models/Team";
 import { UserTeamModel } from "@/models/UserTeam";
+import { Challenge, ChallengeModel } from "@/models/Challenge";
 
 const PORT = 3012;
 const API_URL = `http://0.0.0.0:${PORT}`;
@@ -24,6 +25,8 @@ const loadFixture = (fixture: string) => {
 
 describe("Setting API Server up...", () => {
   let team: Team;
+  let challenge: Challenge;
+
   let headers: { authorization: string; code: string };
   let adminHeaders: { authorization: string; code: string };
 
@@ -71,6 +74,15 @@ describe("Setting API Server up...", () => {
     });
     await UserTeamModel.create({ email: adminEmail, teamId: team });
 
+    challenge = await ChallengeModel.create({
+      teamId: team,
+      question: "What is the capital of Germany?",
+      choices: ["Berlin", "Munich", "Frankfurt"],
+      correctChoice: 0,
+      difficulty: "easy",
+      language: "english",
+    });
+
     headers = await getAuthHeaders(email, password);
     adminHeaders = await getAuthHeaders(adminEmail, password);
   });
@@ -81,6 +93,7 @@ describe("Setting API Server up...", () => {
   });
 
   afterAll(async () => {
+    await ChallengeModel.deleteMany({});
     await mongoDBsetup(MONGODB_DATABASE_NAME, true);
     return server && server.close();
   });
@@ -93,12 +106,7 @@ describe("Setting API Server up...", () => {
         language: "english",
         slug: "lesson-1",
         body: loadFixture("example.md"),
-        difficulty: "easy",
-        challenge: {
-          question: "What is the capital of France?",
-          choices: ["Berlin", "Madrid", "Paris", "Rome"],
-          correctChoice: 2,
-        },
+        challengeId: challenge._id,
       });
 
       const moduleTitle = "Module #1";
@@ -145,12 +153,7 @@ describe("Setting API Server up...", () => {
         language: "english",
         slug: "lesson-1-module-update",
         body: loadFixture("example.md"),
-        difficulty: "easy",
-        challenge: {
-          question: "What is the capital of Germany?",
-          choices: ["Berlin", "Munich", "Frankfurt"],
-          correctChoice: 0,
-        },
+        challengeId: challenge._id,
       });
 
       const lesson2 = await LessonModel.create({
@@ -159,12 +162,7 @@ describe("Setting API Server up...", () => {
         language: "english",
         slug: "lesson-2-module-update",
         body: loadFixture("example.md"),
-        difficulty: "easy",
-        challenge: {
-          question: "What is the capital of Italy?",
-          choices: ["Rome", "Milan", "Naples"],
-          correctChoice: 0,
-        },
+        challengeId: challenge._id,
       });
 
       const module = await ModuleModel.create({
@@ -204,12 +202,7 @@ describe("Setting API Server up...", () => {
         language: "english",
         slug: "lesson-3-get",
         body: loadFixture("example.md"),
-        difficulty: "easy",
-        challenge: {
-          question: "What is the capital of Japan?",
-          choices: ["Tokyo", "Kyoto", "Osaka"],
-          correctChoice: 0,
-        },
+        challengeId: challenge._id,
       });
 
       const newModule = await ModuleModel.create({
@@ -236,12 +229,7 @@ describe("Setting API Server up...", () => {
         language: "english",
         slug: "lesson-4-delete",
         body: loadFixture("example.md"),
-        difficulty: "hard",
-        challenge: {
-          question: "What is the capital of Kenya?",
-          choices: ["Lagos", "Cairo", "Nairobi", "Addis Ababa"],
-          correctChoice: 2,
-        },
+        challengeId: challenge._id,
       });
 
       const newModule = await ModuleModel.create({
@@ -270,12 +258,7 @@ describe("Setting API Server up...", () => {
         language: "english",
         slug: "lesson-1-permissions",
         body: loadFixture("example.md"),
-        difficulty: "easy",
-        challenge: {
-          question: "What is the capital of France?",
-          choices: ["Berlin", "Madrid", "Paris", "Rome"],
-          correctChoice: 2,
-        },
+        challengeId: challenge._id,
       });
 
       await axios

@@ -8,6 +8,7 @@ import { MongoError } from "mongodb";
 import { Module } from "@/models/Module";
 import { calculateExperience, calculateLevel, calculateXpToNextLevel, Difficulty } from "@/helpers/progress";
 import { countCorrectAnswers } from "@/helpers/achievements";
+import { ChallengeModel } from "@/models/Challenge";
 
 export const submitAnswer = async (req: Request, res: Response) => {
   const { courseId, lessonId, choice } = req.body;
@@ -15,24 +16,37 @@ export const submitAnswer = async (req: Request, res: Response) => {
   const userId = res.locals?.populatedUser?._id;
 
   if (!courseId || !lessonId || (!choice && choice != 0) || !userId) {
-    return res.status(400).send({ error: { message: "Missing params" } });
+    const error = { error: { message: "Missing params" } };
+    console.error(error);
+    return res.status(400).send(error);
   }
 
   const lesson = await LessonModel.findOne({ _id: lessonId });
   if (!lesson) {
-    return res.status(400).send({ error: { message: "Lesson not found" } });
+    const error = { error: { message: "Lesson not found" } };
+    console.error(error);
+    return res.status(400).send(error);
   }
 
   const course = await CourseModel.findOne({ _id: courseId });
   if (!course) {
-    return res.status(400).send({ error: { message: "Course not found" } });
+    const error = { error: { message: "Course not found" } };
+    console.error(error);
+    return res.status(400).send(error);
   }
 
   // prevent the user from submitting again if the lesson is already complete
   const progress = await ProgressModel.findOne({ courseId, lessonId, userId, isCorrect: true });
   if (progress) return res.status(200).send(progress);
 
-  const isCorrect = choice === lesson.challenge.correctChoice;
+  const challenge = await ChallengeModel.findOne({ _id: lesson.challengeId });
+  if (!challenge) {
+    const error = { error: { message: "Challenge not found" } };
+    console.error(error);
+    return res.status(400).send(error);
+  }
+
+  const isCorrect = choice === challenge.correctChoice;
   // Update Correct Answers Counter (Achievements).
   await countCorrectAnswers(userId, isCorrect);
 
@@ -44,27 +58,23 @@ export const submitAnswer = async (req: Request, res: Response) => {
       userId,
       choice,
       isCorrect,
-      difficulty: lesson.difficulty,
+      difficulty: challenge.difficulty,
     });
     if (newProgress) return res.status(201).send(newProgress);
   } catch (e) {
     if (e instanceof MongoError && e.code === 11000) {
-      return res.status(409).send({
-        error: {
-          message: "E11000 duplicate key error",
-        },
-      });
+      const error = { error: { message: "E11000 duplicate key error" } };
+      console.error(error);
+      return res.status(409).send(error);
     }
 
     errorMessage = (e as Error).message;
     console.error(`[ERROR][submitAnswer] ${e}`);
   }
 
-  return res.status(400).send({
-    error: {
-      message: errorMessage ? errorMessage : "Progress not created",
-    },
-  });
+  const error = { error: { message: errorMessage ? errorMessage : "Progress not created" } };
+  console.error(error);
+  return res.status(400).send(error);
 };
 
 export const getLessonProgress = async (req: Request, res: Response) => {
@@ -73,7 +83,9 @@ export const getLessonProgress = async (req: Request, res: Response) => {
   const userId = res.locals?.populatedUser?._id;
 
   if (!courseId || !lessonId || !userId) {
-    return res.status(400).send({ error: { message: "Missing params" } });
+    const error = { error: { message: "Missing params" } };
+    console.error(error);
+    return res.status(400).send(error);
   }
 
   try {
@@ -90,7 +102,9 @@ export const getCourseSummary = async (req: Request, res: Response) => {
   const userId = res.locals?.populatedUser;
 
   if (!userId || !courseId) {
-    return res.status(400).send({ error: { message: "Missing params" } });
+    const error = { error: { message: "Missing params" } };
+    console.error(error);
+    return res.status(400).send(error);
   }
 
   try {
@@ -128,10 +142,24 @@ export const getCourseSummary = async (req: Request, res: Response) => {
     })) as Course;
 
     if (!course) {
-      return res.status(400).send({ error: { message: "Course not found" } });
+      const error = { error: { message: "Course not found" } };
+      console.error(error);
+      return res.status(400).send(error);
     }
 
     const progressMap = new Map(progress.map((p) => [String(p.lessonId), p]));
+
+    const allChallengeIds = course.modules.flatMap((module) => {
+      const populatedModule = module as Module & { lessons: Lesson[] };
+      return populatedModule.lessons.map((lesson) => {
+        const populatedLesson = lesson as Lesson;
+        return populatedLesson.challengeId;
+      });
+    });
+
+    const challenges = await ChallengeModel.find({ _id: { $in: allChallengeIds } }).lean();
+
+    const challengeMap = new Map(challenges.map((challenge) => [String(challenge._id), challenge]));
 
     const courseSummary = {
       id: course._id,
@@ -141,6 +169,7 @@ export const getCourseSummary = async (req: Request, res: Response) => {
 
         const lessons = populatedModule.lessons.map((lesson) => {
           const populatedLesson = lesson as Lesson;
+          const challenge = challengeMap.get(String(populatedLesson.challengeId));
 
           const progressRecord = progressMap.get(String(populatedLesson._id));
           const isCompleted = progressRecord?.isCorrect || false;
@@ -149,9 +178,9 @@ export const getCourseSummary = async (req: Request, res: Response) => {
           return {
             id: populatedLesson._id,
             title: populatedLesson.title,
-            difficulty: populatedLesson.difficulty,
+            difficulty: challenge?.difficulty,
             expEarned: isCompleted
-              ? calculateExperience(populatedLesson.difficulty as Difficulty, correctAtFirstTry)
+              ? calculateExperience((challenge?.difficulty || "easy") as Difficulty, correctAtFirstTry)
               : 0,
           };
         });
@@ -177,7 +206,9 @@ export const getCourseProgress = async (req: Request, res: Response) => {
   const userId = res.locals?.populatedUser;
 
   if (!userId || !courseId) {
-    return res.status(400).send({ error: { message: "Missing params" } });
+    const error = { error: { message: "Missing params" } };
+    console.error(error);
+    return res.status(400).send(error);
   }
 
   try {
@@ -191,7 +222,9 @@ export const getCourseProgress = async (req: Request, res: Response) => {
     })) as Course;
 
     if (!course) {
-      return res.status(400).send({ error: { message: "Course not found" } });
+      const error = { error: { message: "Course not found" } };
+      console.error(error);
+      return res.status(400).send(error);
     }
 
     const totalLessons = course.modules.reduce((sum, module) => {
@@ -230,14 +263,18 @@ export const getUserXPAndLevel = async (_req: Request, res: Response) => {
   const userId = res.locals?.populatedUser?._id;
 
   if (!userId) {
-    return res.status(400).send({ error: { message: "Missing userId" } });
+    const error = { error: { message: "Missing userId" } };
+    console.error(error);
+    return res.status(400).send(error);
   }
 
   try {
     const user = await UserModel.findOne({ _id: userId });
 
     if (!user) {
-      return res.status(400).send({ error: { message: "User not found" } });
+      const error = { error: { message: "User not found" } };
+      console.error(error);
+      return res.status(400).send(error);
     }
 
     const progress = await ProgressModel.aggregate([
@@ -326,7 +363,9 @@ export const getCompletedCourses = async (_req: Request, res: Response) => {
   const userId = res.locals?.populatedUser?._id;
 
   if (!userId) {
-    return res.status(400).send({ error: { message: "Missing userId" } });
+    const error = { error: { message: "Missing userId" } };
+    console.error(error);
+    return res.status(400).send(error);
   }
 
   try {

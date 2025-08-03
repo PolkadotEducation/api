@@ -13,6 +13,7 @@ import { UserModel } from "@/models/User";
 import { getAuthHeaders } from "./helpers";
 import { Team, TeamModel } from "@/models/Team";
 import { UserTeamModel } from "@/models/UserTeam";
+import { Challenge, ChallengeModel } from "@/models/Challenge";
 
 const PORT = 3013;
 const API_URL = `http://0.0.0.0:${PORT}`;
@@ -25,6 +26,8 @@ const loadFixture = (fixture: string) => {
 
 describe("Setting API Server up...", () => {
   let team: Team;
+  let challenge: Challenge;
+
   let headers: { authorization: string; code: string };
   let adminHeaders: { authorization: string; code: string };
 
@@ -72,11 +75,21 @@ describe("Setting API Server up...", () => {
     });
     await UserTeamModel.create({ email: adminEmail, teamId: team });
 
+    challenge = await ChallengeModel.create({
+      teamId: team,
+      question: "What is the capital of France?",
+      choices: ["Berlin", "Madrid", "Paris", "Rome"],
+      correctChoice: 2,
+      difficulty: "easy",
+      language: "english",
+    });
+
     headers = await getAuthHeaders(email, password);
     adminHeaders = await getAuthHeaders(adminEmail, password);
   });
 
   afterAll(async () => {
+    await ChallengeModel.deleteMany({});
     await LessonModel.deleteMany({});
     await ModuleModel.deleteMany({});
     await CourseModel.deleteMany({});
@@ -95,12 +108,7 @@ describe("Setting API Server up...", () => {
         language: "english",
         slug: "lesson-1-course-create",
         body: loadFixture("example.md"),
-        difficulty: "easy",
-        challenge: {
-          question: "What is the capital of France?",
-          choices: ["Berlin", "Madrid", "Paris", "Rome"],
-          correctChoice: 2,
-        },
+        challengeId: challenge._id,
       });
 
       const courseTitle = "Course #1";
@@ -178,12 +186,7 @@ describe("Setting API Server up...", () => {
         language: "english",
         slug: "lesson-1-course-update",
         body: loadFixture("example.md"),
-        difficulty: "easy",
-        challenge: {
-          question: "What is the capital of Germany?",
-          choices: ["Berlin", "Munich", "Frankfurt"],
-          correctChoice: 0,
-        },
+        challengeId: challenge._id,
       });
 
       const lesson2 = await LessonModel.create({
@@ -192,12 +195,7 @@ describe("Setting API Server up...", () => {
         language: "english",
         slug: "lesson-2-course-update",
         body: loadFixture("example.md"),
-        difficulty: "easy",
-        challenge: {
-          question: "What is the capital of Italy?",
-          choices: ["Rome", "Milan", "Naples"],
-          correctChoice: 0,
-        },
+        challengeId: challenge._id,
       });
 
       const module = await ModuleModel.create({
@@ -277,12 +275,7 @@ describe("Setting API Server up...", () => {
         language: "english",
         slug: "lesson-3-course-get",
         body: loadFixture("example.md"),
-        difficulty: "easy",
-        challenge: {
-          question: "What is the capital of Japan?",
-          choices: ["Tokyo", "Kyoto", "Osaka"],
-          correctChoice: 0,
-        },
+        challengeId: challenge._id,
       });
 
       const module = await ModuleModel.create({
@@ -324,12 +317,7 @@ describe("Setting API Server up...", () => {
         language: "english",
         slug: "lesson-in-english-1-course-language",
         body: loadFixture("example.md"),
-        difficulty: "easy",
-        challenge: {
-          question: "What is the capital of the USA?",
-          choices: ["Washington D.C.", "New York", "Los Angeles", "Chicago"],
-          correctChoice: 0,
-        },
+        challengeId: challenge._id,
       });
 
       const lesson2 = await LessonModel.create({
@@ -338,12 +326,7 @@ describe("Setting API Server up...", () => {
         language: "portuguese",
         slug: "lesson-in-language-course",
         body: loadFixture("example.md"),
-        difficulty: "medium",
-        challenge: {
-          question: "Qual é a capital do Brasil?",
-          choices: ["Brasília", "Rio de Janeiro", "São Paulo"],
-          correctChoice: 0,
-        },
+        challengeId: challenge._id,
       });
 
       const moduleEnglish = await ModuleModel.create({
@@ -419,12 +402,7 @@ describe("Setting API Server up...", () => {
         language: "english",
         slug: "lesson-4-course-delete",
         body: loadFixture("example.md"),
-        difficulty: "hard",
-        challenge: {
-          question: "What is the capital of Kenya?",
-          choices: ["Lagos", "Cairo", "Nairobi", "Addis Ababa"],
-          correctChoice: 2,
-        },
+        challengeId: challenge._id,
       });
 
       const module = await ModuleModel.create({
@@ -462,12 +440,7 @@ describe("Setting API Server up...", () => {
         language: "english",
         slug: "lesson-5-course-duplicate",
         body: loadFixture("example.md"),
-        difficulty: "medium",
-        challenge: {
-          question: "What is the capital of Brazil?",
-          choices: ["Rio de Janeiro", "Brasília", "São Paulo", "Salvador"],
-          correctChoice: 1,
-        },
+        challengeId: challenge._id,
       });
 
       const module = await ModuleModel.create({
@@ -500,12 +473,7 @@ describe("Setting API Server up...", () => {
         language: "english",
         slug: "lesson-1-course-permissions",
         body: loadFixture("example.md"),
-        difficulty: "easy",
-        challenge: {
-          question: "What is the capital of France?",
-          choices: ["Berlin", "Madrid", "Paris", "Rome"],
-          correctChoice: 2,
-        },
+        challengeId: challenge._id,
       });
 
       const module = await ModuleModel.create({
