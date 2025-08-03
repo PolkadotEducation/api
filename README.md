@@ -10,11 +10,13 @@ Backend API for the Polkadot Education platform.
 ## Getting Started
 
 1. **Install dependencies**
+
    ```bash
    bun i
    ```
 
 2. **Set up environment**
+
    ```bash
    cp .env.example .env
    # Edit .env with your configuration
@@ -30,7 +32,9 @@ Backend API for the Polkadot Education platform.
 - `bun dev` - Start development server
 - `bun run test` - Run tests
 - `bun run lint` - Lint code with ESLint
+- `bun run lint:fix` - Fix linting errors
 - `bun run format` - Format code with Prettier
+- `bun run format:fix` - Fix formatting errors
 - `bun run build` - Build for production
 
 ## API Endpoints

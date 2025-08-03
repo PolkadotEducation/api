@@ -32,11 +32,11 @@ jobs:
         image: mongo:7.0.5-jammy
         ports:
           - 27017:27017
-          options: >-
-            --health-cmd "mongosh --eval 'db.hello()'"
-            --health-interval 3s
-            --health-timeout 2s
-            --health-retries 5
+        options: >-
+          --health-cmd "mongosh --eval 'db.hello()'"
+          --health-interval 3s
+          --health-timeout 2s
+          --health-retries 5
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
