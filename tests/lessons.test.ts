@@ -8,6 +8,7 @@ import { mongoDBsetup } from "./db/setupTestMongo";
 import { readFileSync } from "fs";
 import { join } from "path";
 import { Lesson, LessonModel } from "@/models/Lesson";
+import { Challenge, ChallengeModel } from "@/models/Challenge";
 import { getAuthHeaders } from "./helpers";
 import { UserModel } from "@/models/User";
 import { Team, TeamModel } from "@/models/Team";
@@ -27,6 +28,11 @@ describe("Setting API Server up...", () => {
   let team: Team;
   let headers: { authorization: string; code: string };
   let adminHeaders: { authorization: string; code: string };
+
+  let firstChallenge: Challenge;
+  let secondChallenge: Challenge;
+  let thirdChallenge: Challenge;
+  let portugueseChallenge: Challenge;
 
   let server: Server;
   beforeAll((done) => {
@@ -74,13 +80,53 @@ describe("Setting API Server up...", () => {
 
     headers = await getAuthHeaders(email, password);
     adminHeaders = await getAuthHeaders(adminEmail, password);
+
+    firstChallenge = await ChallengeModel.create({
+      teamId: team._id,
+      question: "What is the capital of France?",
+      choices: ["Berlin", "Madrid", "Paris", "Rome"],
+      correctChoice: 2,
+      difficulty: "easy",
+      language: "english",
+    });
+
+    secondChallenge = await ChallengeModel.create({
+      teamId: team._id,
+      question: "What is the capital of England?",
+      choices: ["London", "Paris", "Berlin", "Rome"],
+      correctChoice: 0,
+      difficulty: "easy",
+      language: "english",
+    });
+
+    thirdChallenge = await ChallengeModel.create({
+      teamId: team._id,
+      question: "What is the capital of Italy?",
+      choices: ["Rome", "Milan", "Naples", "Turin"],
+      correctChoice: 0,
+      difficulty: "easy",
+      language: "english",
+    });
+
+    portugueseChallenge = await ChallengeModel.create({
+      teamId: team._id,
+      question: "Qual é a capital da África do Sul?",
+      choices: ["Joanesburgo", "Cairo", "Nairobi", "Tunis"],
+      correctChoice: 0,
+      difficulty: "medium",
+      language: "portuguese",
+    });
   });
 
-  afterAll(async () => {
+  afterEach(async () => {
     await LessonModel.deleteMany({});
   });
 
   afterAll(async () => {
+    await ChallengeModel.deleteMany({});
+    await UserModel.deleteMany({});
+    await TeamModel.deleteMany({});
+    await UserTeamModel.deleteMany({});
     await mongoDBsetup(MONGODB_DATABASE_NAME, true);
     return server && server.close();
   });
@@ -89,13 +135,8 @@ describe("Setting API Server up...", () => {
     it("Create a Lesson (POST /lesson)", async () => {
       const title = "Lesson #1";
       const language = "english";
+      const slug = "lesson-1";
       const body = loadFixture("example.md");
-      const difficulty = "easy";
-      const challenge = {
-        question: "What is the capital of France?",
-        choices: ["Berlin", "Madrid", "Paris", "Rome"],
-        correctChoice: 2,
-      };
 
       await axios
         .post(
@@ -103,33 +144,28 @@ describe("Setting API Server up...", () => {
           {
             title,
             language,
+            slug,
             body,
-            difficulty,
-            challenge,
+            challengeId: firstChallenge._id,
           },
           { headers: adminHeaders },
         )
         .then((r) => {
           expect(r.data.title).toEqual(title);
           expect(r.data.language).toEqual(language);
+          expect(r.data.slug).toEqual(slug);
           expect(r.data.body).toEqual(body);
-          expect(r.data.difficulty).toEqual(difficulty);
-          expect(r.data.challenge).toEqual(expect.objectContaining(challenge));
+          expect(r.data.challengeId).toEqual(firstChallenge._id?.toString());
           expect(r.data.references).toEqual([]);
         })
         .catch((e) => expect(e).toBeUndefined());
     });
 
-    it("Create a Lesson without enough choices returns error (POST /lesson)", async () => {
+    it("Create a Lesson with different challenge language returns error (POST /lesson)", async () => {
       const title = "Lesson #1";
       const language = "english";
+      const slug = "lesson-1";
       const body = loadFixture("example.md");
-      const difficulty = "easy";
-      const invalidChallenge = {
-        question: "What is the capital of France?",
-        choices: ["Paris", "Rome"],
-        correctChoice: 0,
-      };
 
       await axios
         .post(
@@ -137,30 +173,97 @@ describe("Setting API Server up...", () => {
           {
             title,
             language,
+            slug,
             body,
-            difficulty,
-            challenge: invalidChallenge,
+            challengeId: portugueseChallenge._id,
           },
           { headers: adminHeaders },
         )
         .then(() => {})
         .catch((e) => {
-          expect(e.response.data.error.message).toContain(
-            "Lesson validation failed: challenge.choices: Choices array must contain between 3 and 5 items.",
-          );
+          expect(e.response.status).toEqual(400);
+          expect(e.response.data.error.message).toContain("Challenge language does not match lesson language");
+        });
+    });
+
+    it("Create a Lesson with same slug but different language returns success (POST /lesson)", async () => {
+      const title = "Lesson #1";
+      const language = "english";
+      const slug = "lesson-slug";
+      const body = loadFixture("example.md");
+
+      await LessonModel.create({
+        teamId: team,
+        title,
+        language,
+        slug,
+        body,
+        challengeId: firstChallenge._id,
+      });
+
+      await axios
+        .post(
+          `${API_URL}/lesson/${team._id}`,
+          {
+            title,
+            language: "portuguese",
+            slug,
+            body,
+            challengeId: portugueseChallenge._id,
+          },
+          { headers: adminHeaders },
+        )
+        .then((r) => {
+          expect(r.data.language).toEqual("portuguese");
+          expect(r.data.slug).toEqual(slug);
+          expect(r.data.challengeId).toEqual(portugueseChallenge._id?.toString());
+        })
+        .catch((e) => {
+          expect(e).toBeUndefined();
+        });
+    });
+
+    it("Create a Lesson with same slug and language returns error (POST /lesson)", async () => {
+      const title = "Lesson #1";
+      const language = "english";
+      const slug = "lesson-slug";
+      const body = loadFixture("example.md");
+      const difficulty = "easy";
+
+      await LessonModel.create({
+        teamId: team,
+        title,
+        language,
+        slug,
+        body,
+        difficulty,
+        challengeId: firstChallenge._id,
+      });
+
+      await axios
+        .post(
+          `${API_URL}/lesson/${team._id}`,
+          {
+            title,
+            language,
+            slug,
+            body,
+            difficulty,
+            challengeId: firstChallenge._id,
+          },
+          { headers: adminHeaders },
+        )
+        .then(() => {})
+        .catch((e) => {
+          expect(e.response.status).toEqual(400);
+          expect(e.response.data.error.message).toContain("duplicate key error");
         });
     });
 
     it("Update a Lesson (PUT /lesson/:id)", async () => {
       const title = "Lesson #2";
       const body = loadFixture("example.md");
-      const difficulty = "hard";
       const language = "english";
-      const challenge = {
-        question: "What is the capital of Lesotho?",
-        choices: ["Maseru", "Gaborone", "Mbabane", "Lilongwe"],
-        correctChoice: 0,
-      };
       const references = [
         {
           title: "Polkadot Wiki",
@@ -176,20 +279,14 @@ describe("Setting API Server up...", () => {
         teamId: team,
         title,
         body,
-        difficulty,
-        challenge,
+        challengeId: firstChallenge._id,
         references,
         language,
+        slug: "lesson-2-update",
       });
 
       const updatedTitle = "Updated Lesson #2";
       const updatedBody = loadFixture("updated-example.md");
-      const updatedDifficulty = "medium";
-      const updatedChallenge = {
-        question: "What is the capital of Botswana?",
-        choices: ["Gaborone", "Maseru", "Mbabane", "Lilongwe"],
-        correctChoice: 0,
-      };
       const updatedReferences = [
         {
           title: "Updated Polkadot Wiki",
@@ -201,14 +298,22 @@ describe("Setting API Server up...", () => {
         },
       ];
       const updatedLanguage = "english";
+      const updatedChallenge = await ChallengeModel.create({
+        teamId: team._id,
+        question: "What is the capital of Botswana?",
+        choices: ["Gaborone", "Maseru", "Mbabane", "Lilongwe"],
+        correctChoice: 0,
+        difficulty: "medium",
+        language: "english",
+      });
 
       await axios.put(
         `${API_URL}/lesson/${team._id}/${lesson._id}`,
         {
           title: updatedTitle,
           body: updatedBody,
-          difficulty: updatedDifficulty,
-          challenge: updatedChallenge,
+          challengeId: updatedChallenge._id,
+          difficulty: updatedChallenge.difficulty,
           references: updatedReferences,
           language: updatedLanguage,
         },
@@ -220,7 +325,7 @@ describe("Setting API Server up...", () => {
         .then((r) => {
           expect(r.data.title).toEqual(updatedTitle);
           expect(r.data.body).toEqual(updatedBody);
-          expect(r.data.difficulty).toEqual(updatedDifficulty);
+          expect(r.data.challengeId).toEqual(updatedChallenge._id?.toString());
           expect(r.data.references[0]).toEqual(expect.objectContaining(updatedReferences[0]));
           expect(r.data.references[1]).toEqual(expect.objectContaining(updatedReferences[1]));
           expect(r.data.language).toEqual(updatedLanguage);
@@ -228,34 +333,23 @@ describe("Setting API Server up...", () => {
         .catch((e) => expect(e).toBeUndefined());
     });
 
-    it("Update a Lesson with not enough choices returns error (PUT /lesson/:id)", async () => {
+    it("Update a Lesson with invalid challenge returns error (PUT /lesson/:id)", async () => {
       const initialTitle = "Initial Lesson";
       const initialBody = loadFixture("example.md");
-      const initialDifficulty = "easy";
-      const initialChallenge = {
-        question: "What is the capital of Germany?",
-        choices: ["Berlin", "Munich", "Frankfurt"],
-        correctChoice: 0,
-      };
       const language = "english";
 
       const initialLesson = await LessonModel.create({
         teamId: team,
         title: initialTitle,
         body: initialBody,
-        difficulty: initialDifficulty,
-        challenge: initialChallenge,
+        challengeId: firstChallenge._id,
         language,
+        slug: "initial-lesson-choices-validation",
       });
 
       const updatedTitle = "Lesson #1";
       const updatedBody = loadFixture("updated-example.md");
-      const updatedDifficulty = "easy";
-      const invalidChallenge = {
-        question: "What is the capital of France?",
-        choices: ["Paris", "Rome"],
-        correctChoice: 0,
-      };
+      const fakeId = "60e4b68f2f8fb814b56fa181";
 
       await axios
         .put(
@@ -263,30 +357,22 @@ describe("Setting API Server up...", () => {
           {
             title: updatedTitle,
             body: updatedBody,
-            difficulty: updatedDifficulty,
-            challenge: invalidChallenge,
+            challengeId: fakeId,
             language,
           },
           { headers: adminHeaders },
         )
         .then(() => {})
         .catch((e) => {
-          expect(e.response.data.error.message).toContain(
-            "Validation failed: challenge.choices: Choices array must contain between 3 and 5 items.",
-          );
+          expect(e.response.status).toEqual(400);
+          expect(e.response.data.error.message).toContain("Challenge not found");
         });
     });
 
     it("Get a Lesson (GET /lesson)", async () => {
       const title = "Aula #2";
       const body = loadFixture("example.md");
-      const difficulty = "hard";
       const language = "portuguese";
-      const challenge = {
-        question: "Qual é a capital do Lesoto?",
-        choices: ["Maseru", "Gaborone", "Mbabane", "Lilongwe"],
-        correctChoice: 0,
-      };
       const references = [
         {
           title: "Wiki Polkadot",
@@ -302,10 +388,10 @@ describe("Setting API Server up...", () => {
         teamId: team,
         title,
         body,
-        difficulty,
-        challenge,
+        challengeId: portugueseChallenge._id,
         references,
         language,
+        slug: "lesson-2",
       });
 
       await axios
@@ -313,7 +399,7 @@ describe("Setting API Server up...", () => {
         .then((r) => {
           expect(r.data.title).toEqual(title);
           expect(r.data.body).toEqual(body);
-          expect(r.data.difficulty).toEqual(difficulty);
+          expect(r.data.challengeId).toEqual(portugueseChallenge._id?.toString());
           expect(r.data.references[0]).toEqual(expect.objectContaining(references[0]));
           expect(r.data.references[1]).toEqual(expect.objectContaining(references[1]));
           expect(r.data.language).toEqual(language);
@@ -322,44 +408,30 @@ describe("Setting API Server up...", () => {
     });
 
     it("Get lessons by language (GET /lessons?language=english)", async () => {
-      await LessonModel.deleteMany({});
-
       const lessonsData = [
         {
           teamId: team,
           title: "Lesson in English #1",
           body: "This is the body of lesson 1 in English.",
-          difficulty: "easy",
           language: "english",
-          challenge: {
-            question: "What is the capital of England?",
-            choices: ["London", "Paris", "Berlin", "Rome"],
-            correctChoice: 0,
-          },
+          slug: "lesson-in-english-1",
+          challengeId: firstChallenge._id,
         },
         {
           teamId: team,
           title: "Lesson in English #2",
           body: "This is the body of lesson 2 in English.",
-          difficulty: "easy",
           language: "english",
-          challenge: {
-            question: "What is the capital of the USA?",
-            choices: ["Washington D.C.", "New York", "Los Angeles", "Chicago"],
-            correctChoice: 0,
-          },
+          slug: "lesson-in-english-2",
+          challengeId: secondChallenge._id,
         },
         {
           teamId: team,
           title: "Lição em Português",
           body: "Este é o corpo da lição em Português.",
-          difficulty: "easy",
           language: "portuguese",
-          challenge: {
-            question: "Qual é a capital do Brasil?",
-            choices: ["Rio de Janeiro", "São Paulo", "Brasília", "Salvador"],
-            correctChoice: 2,
-          },
+          slug: "lesson-in-language",
+          challengeId: portugueseChallenge._id,
         },
       ];
 
@@ -372,11 +444,24 @@ describe("Setting API Server up...", () => {
           expect(r.data.length).toEqual(2);
           expect(r.data[0].title).toEqual("Lesson in English #1");
           expect(r.data[1].title).toEqual("Lesson in English #2");
+          expect(r.data[0].challengeId).toEqual(firstChallenge._id?.toString());
+          expect(r.data[1].challengeId).toEqual(secondChallenge._id?.toString());
           expect(r.data[0].language).toEqual("english");
           expect(r.data[1].language).toEqual("english");
 
           const portugueseLesson = r.data.find((lesson: Lesson) => lesson.language === "portuguese");
           expect(portugueseLesson).toBeUndefined();
+        })
+        .catch((e) => expect(e).toBeUndefined());
+
+      await axios
+        .get(`${API_URL}/lessons?language=portuguese`, { headers: adminHeaders })
+        .then((r) => {
+          expect(r.status).toEqual(200);
+          expect(r.data.length).toEqual(1);
+          expect(r.data[0].title).toEqual("Lição em Português");
+          expect(r.data[0].challengeId).toEqual(portugueseChallenge._id?.toString());
+          expect(r.data[0].language).toEqual("portuguese");
         })
         .catch((e) => expect(e).toBeUndefined());
     });
@@ -404,21 +489,15 @@ describe("Setting API Server up...", () => {
     it("Delete a Lesson (DELETE /lesson)", async () => {
       const title = "Aula #3";
       const body = loadFixture("example.md");
-      const difficulty = "medium";
       const language = "spanish";
-      const challenge = {
-        question: "¿Cuál es la capital de Kenia?",
-        choices: ["Lagos", "Cairo", "Nairobi", "Addis Ababa"],
-        correctChoice: 2,
-      };
 
       const newLesson = await LessonModel.create({
         teamId: team,
         title,
         body,
-        difficulty,
-        challenge,
+        challengeId: firstChallenge._id,
         language,
+        slug: "lesson-3",
       });
 
       await axios
@@ -430,62 +509,53 @@ describe("Setting API Server up...", () => {
     });
 
     it("Should return 200 and lessons summary if lessons found", async () => {
-      await LessonModel.deleteMany({});
-
       const lessonsData = [
         {
           teamId: team,
           title: "Lesson in English #1",
           body: "This is the body of lesson 1 in English.",
-          difficulty: "easy",
           language: "english",
-          challenge: {
-            question: "What is the capital of England?",
-            choices: ["London", "Paris", "Berlin", "Rome"],
-            correctChoice: 0,
-          },
+          slug: "lesson-in-english-1-summary",
+          challengeId: firstChallenge._id,
         },
         {
           teamId: team,
           title: "Lesson in English #2",
           body: "This is the body of lesson 2 in English.",
-          difficulty: "easy",
           language: "english",
-          challenge: {
-            question: "What is the capital of the USA?",
-            choices: ["Washington D.C.", "New York", "Los Angeles", "Chicago"],
-            correctChoice: 0,
-          },
+          slug: "lesson-in-english-2-summary",
+          challengeId: secondChallenge._id,
+        },
+        {
+          teamId: team,
+          title: "Lesson in English #3",
+          body: "This is the body of lesson 3 in English.",
+          language: "english",
+          slug: "lesson-in-english-3-summary",
+          challengeId: thirdChallenge._id,
         },
         {
           teamId: team,
           title: "Lição em Português",
           body: "Este é o corpo da lição em Português.",
-          difficulty: "easy",
           language: "portuguese",
-          challenge: {
-            question: "Qual é a capital do Brasil?",
-            choices: ["Rio de Janeiro", "São Paulo", "Brasília", "Salvador"],
-            correctChoice: 2,
-          },
+          slug: "lesson-in-language-summary",
+          challengeId: portugueseChallenge._id,
         },
       ];
 
       await LessonModel.insertMany(lessonsData);
 
-      // Fetching lessons from an specific teamId
       await axios
         .get(`${API_URL}/lessons/summary?teamId=${team._id}`, { headers: adminHeaders })
         .then((r) => {
           expect(r.status).toEqual(200);
-          expect(r.data.length).toEqual(3);
+          expect(r.data.length).toEqual(4);
         })
         .catch((e) => expect(e).toBeUndefined());
     });
 
     it("Should return 204 if no lessons found", async () => {
-      await LessonModel.deleteMany({});
-
       await axios
         .get(`${API_URL}/lessons/summary`, { headers: adminHeaders })
         .then((r) => {
@@ -499,13 +569,9 @@ describe("Setting API Server up...", () => {
         teamId: team,
         title: "Original Lesson 1",
         body: "Content of lesson 1",
-        difficulty: "easy",
         language: "english",
-        challenge: {
-          question: "What is the capital of England?",
-          choices: ["London", "Paris", "Berlin", "Rome"],
-          correctChoice: 0,
-        },
+        slug: "original-lesson",
+        challengeId: firstChallenge._id,
         references: [],
       });
 
@@ -513,29 +579,41 @@ describe("Setting API Server up...", () => {
         teamId: team,
         title: "Original Lesson 2",
         body: "Content of lesson 2",
+        language: "english",
+        slug: "other-original-lesson-but-with-number-at-the-end-1",
+        challengeId: secondChallenge._id,
+        references: [],
+      });
+
+      const lesson3 = await LessonModel.create({
+        teamId: team,
+        title: "Original Lesson 3",
+        body: "Content of lesson 3",
         difficulty: "medium",
         language: "english",
-        challenge: {
-          question: "What is the capital of the USA?",
-          choices: ["Washington D.C.", "New York", "Los Angeles", "Chicago"],
-          correctChoice: 0,
-        },
+        slug: "yet-another-original-lesson-but-with-number-at-the-end-9",
+        challengeId: thirdChallenge._id,
         references: [],
       });
 
       await axios
         .post(
           `${API_URL}/lessons/duplicate/${team._id}`,
-          { lessons: [lesson1._id, lesson2._id] },
+          { lessons: [lesson1._id, lesson2._id, lesson3._id] },
           { headers: adminHeaders },
         )
-        .then((r) => {
+        .then(async (r) => {
           expect(r.status).toEqual(200);
-          expect(r.data.length).toEqual(2);
+          expect(r.data.length).toEqual(3);
+
           expect(r.data[0]).not.toEqual(lesson1._id);
           expect(r.data[1]).not.toEqual(lesson2._id);
+          expect(r.data[2]).not.toEqual(lesson3._id);
 
-          return Promise.all(r.data.map((id: string) => LessonModel.findById(id)));
+          const duplicatedLessons = await Promise.all(r.data.map((id: string) => LessonModel.findById(id)));
+          expect(duplicatedLessons[0]?.slug).toEqual("original-lesson-1");
+          expect(duplicatedLessons[1]?.slug).toEqual("other-original-lesson-but-with-number-at-the-end-2");
+          expect(duplicatedLessons[2]?.slug).toEqual("yet-another-original-lesson-but-with-number-at-the-end-10");
         })
         .catch((e) => expect(e).toBeUndefined());
     });
@@ -547,16 +625,10 @@ describe("Setting API Server up...", () => {
       });
     });
 
-    it("Should return 403 if no permisson to POST/GET/PUT/DELETE", async () => {
+    it("Should return 403 if no permission to POST/GET/PUT/DELETE", async () => {
       const title = "Lesson #X";
       const language = "english";
       const body = loadFixture("example.md");
-      const difficulty = "easy";
-      const challenge = {
-        question: "What is the capital of France?",
-        choices: ["Berlin", "Madrid", "Paris", "Rome"],
-        correctChoice: 2,
-      };
 
       await axios
         .post(
@@ -565,8 +637,7 @@ describe("Setting API Server up...", () => {
             title,
             language,
             body,
-            difficulty,
-            challenge,
+            challengeId: firstChallenge._id,
           },
           { headers },
         )
@@ -577,10 +648,10 @@ describe("Setting API Server up...", () => {
         teamId: team,
         title,
         body,
-        difficulty,
-        challenge,
+        challengeId: firstChallenge._id,
         references: [],
         language,
+        slug: "lesson-x-permissions",
       });
 
       await axios
@@ -590,8 +661,7 @@ describe("Setting API Server up...", () => {
             title,
             language,
             body,
-            difficulty,
-            challenge,
+            challengeId: firstChallenge._id,
           },
           { headers },
         )

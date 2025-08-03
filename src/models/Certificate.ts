@@ -5,7 +5,7 @@ import { Course } from "./Course";
 import { User } from "./User";
 import { MintSpecs } from "@/types/Mint";
 
-@index({ lessonId: 1, courseId: 1, userId: 1 }, { unique: true })
+@index({ courseId: 1, userId: 1 }, { unique: true })
 class Certificate extends BaseModel {
   @prop({ required: true, type: String, maxlength: 100 })
   public courseTitle: string;

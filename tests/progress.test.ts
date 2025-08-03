@@ -17,6 +17,7 @@ import { getAuthHeaders } from "./helpers";
 import { Team, TeamModel } from "@/models/Team";
 import { UserTeamModel } from "@/models/UserTeam";
 import { getCompletedCoursesByUserId } from "@/controllers/progress";
+import { Challenge, ChallengeModel } from "@/models/Challenge";
 
 const PORT = 3014;
 const API_URL = `http://0.0.0.0:${PORT}`;
@@ -58,6 +59,9 @@ describe("Setting API Server up...", () => {
 
   describe("Progress", () => {
     let course: Course,
+      easyChallenge: Challenge,
+      mediumChallenge: Challenge,
+      hardChallenge: Challenge,
       lesson1: Lesson,
       lesson2: Lesson,
       lesson3: Lesson,
@@ -85,69 +89,76 @@ describe("Setting API Server up...", () => {
 
       headers = await getAuthHeaders(email, password);
 
+      easyChallenge = await ChallengeModel.create({
+        teamId: team,
+        question: "What is the capital of France?",
+        choices: ["Paris", "Lyon", "Marseille"],
+        correctChoice: 0,
+        difficulty: "easy",
+        language: "english",
+      });
+
+      mediumChallenge = await ChallengeModel.create({
+        teamId: team,
+        question: "What is the capital of Germany?",
+        choices: ["Munich", "Berlin", "Frankfurt"],
+        correctChoice: 1,
+        difficulty: "medium",
+        language: "english",
+      });
+
+      hardChallenge = await ChallengeModel.create({
+        teamId: team,
+        question: "What is the capital of Botswana?",
+        choices: ["Francistown", "Gantsi", "Gaborone"],
+        correctChoice: 2,
+        difficulty: "hard",
+        language: "english",
+      });
+
       lesson1 = await LessonModel.create({
         teamId: team,
         title: "Lesson #1",
         language: "english",
+        slug: "lesson-1-progress",
         body: loadFixture("example.md"),
-        difficulty: "easy",
-        challenge: {
-          question: "What is the capital of Germany?",
-          choices: ["Berlin", "Munich", "Frankfurt"],
-          correctChoice: 0,
-        },
+        challengeId: easyChallenge._id,
       });
 
       lesson2 = await LessonModel.create({
         teamId: team,
         title: "Lesson #2",
         language: "english",
+        slug: "lesson-2-progress",
         body: loadFixture("example.md"),
-        difficulty: "easy",
-        challenge: {
-          question: "What is the capital of Italy?",
-          choices: ["Naples", "Milan", "Rome"],
-          correctChoice: 2,
-        },
+        challengeId: easyChallenge._id,
       });
 
       lesson3 = await LessonModel.create({
         teamId: team,
         title: "Lesson #3",
         language: "english",
+        slug: "lesson-3-progress",
         body: loadFixture("example.md"),
-        difficulty: "medium",
-        challenge: {
-          question: "Another question?",
-          choices: ["1", "2", "3"],
-          correctChoice: 2,
-        },
+        challengeId: mediumChallenge._id,
       });
 
       lesson4 = await LessonModel.create({
         teamId: team,
         title: "Lesson #4",
         language: "english",
+        slug: "lesson-4-progress",
         body: loadFixture("example.md"),
-        difficulty: "hard",
-        challenge: {
-          question: "Another question?",
-          choices: ["1", "2", "3"],
-          correctChoice: 0,
-        },
+        challengeId: mediumChallenge._id,
       });
 
       lesson5 = await LessonModel.create({
         teamId: team,
         title: "Lesson #5",
         language: "english",
+        slug: "lesson-5-progress",
         body: loadFixture("example.md"),
-        difficulty: "hard",
-        challenge: {
-          question: "Another question?",
-          choices: ["1", "2", "3"],
-          correctChoice: 1,
-        },
+        challengeId: hardChallenge._id,
       });
 
       module1 = await ModuleModel.create({
@@ -179,6 +190,7 @@ describe("Setting API Server up...", () => {
     });
 
     afterEach(async () => {
+      await ChallengeModel.deleteMany({});
       await ProgressModel.deleteMany({});
       await LessonModel.deleteMany({});
       await ModuleModel.deleteMany({});
@@ -313,18 +325,18 @@ describe("Setting API Server up...", () => {
         courseId: course._id,
         lessonId: lesson1._id,
         userId: user?.id,
-        choice: lesson1.challenge.correctChoice + 1,
+        choice: easyChallenge.correctChoice + 1,
         isCorrect: false,
-        difficulty: lesson1.difficulty,
+        difficulty: easyChallenge.difficulty,
       });
 
       await ProgressModel.create({
         courseId: course._id,
         lessonId: lesson1._id,
         userId: user?.id,
-        choice: lesson1.challenge.correctChoice,
+        choice: easyChallenge.correctChoice,
         isCorrect: true,
-        difficulty: lesson1.difficulty,
+        difficulty: easyChallenge.difficulty,
       });
 
       await axios
@@ -366,7 +378,7 @@ describe("Setting API Server up...", () => {
         userId: user?.id,
         choice: 0,
         isCorrect: true,
-        difficulty: lesson1.difficulty,
+        difficulty: easyChallenge.difficulty,
       });
 
       const expectedModulesProgress: Record<string, Record<string, boolean>> = {};
@@ -398,7 +410,7 @@ describe("Setting API Server up...", () => {
         userId: user?.id,
         choice: 0,
         isCorrect: true,
-        difficulty: lesson1.difficulty,
+        difficulty: easyChallenge.difficulty,
       });
       await ProgressModel.create({
         courseId: course._id,
@@ -406,7 +418,7 @@ describe("Setting API Server up...", () => {
         userId: user?.id,
         choice: 2,
         isCorrect: false,
-        difficulty: lesson2.difficulty,
+        difficulty: mediumChallenge.difficulty,
       });
 
       const expectedModulesProgress: Record<string, Record<string, boolean>> = {};
@@ -436,45 +448,45 @@ describe("Setting API Server up...", () => {
         courseId: course._id,
         lessonId: lesson1._id,
         userId: user?.id,
-        choice: 0,
+        choice: easyChallenge.correctChoice,
         isCorrect: true,
-        difficulty: lesson1.difficulty,
+        difficulty: easyChallenge.difficulty,
       });
 
       await ProgressModel.create({
         courseId: course._id,
         lessonId: lesson2._id,
         userId: user?.id,
-        choice: 2,
+        choice: easyChallenge.correctChoice,
         isCorrect: true,
-        difficulty: lesson2.difficulty,
+        difficulty: easyChallenge.difficulty,
       });
 
       await ProgressModel.create({
         courseId: course._id,
         lessonId: lesson3._id,
         userId: user?.id,
-        choice: 2,
+        choice: mediumChallenge.correctChoice,
         isCorrect: true,
-        difficulty: lesson3.difficulty,
+        difficulty: mediumChallenge.difficulty,
       });
 
       await ProgressModel.create({
         courseId: course._id,
         lessonId: lesson4._id,
         userId: user?.id,
-        choice: 0,
+        choice: mediumChallenge.correctChoice,
         isCorrect: true,
-        difficulty: lesson4.difficulty,
+        difficulty: mediumChallenge.difficulty,
       });
 
       await ProgressModel.create({
         courseId: course._id,
         lessonId: lesson5._id,
         userId: user?.id,
-        choice: 1,
+        choice: hardChallenge.correctChoice,
         isCorrect: true,
-        difficulty: lesson5.difficulty,
+        difficulty: hardChallenge.difficulty,
       });
 
       const expectedModulesProgress: Record<string, Record<string, boolean>> = {};
@@ -501,74 +513,74 @@ describe("Setting API Server up...", () => {
     });
 
     it("Get user XP and level (GET /progress/level)", async () => {
-      // Easy lesson mistake (0 XP)
+      // Easy challenge mistake (0 XP)
       await ProgressModel.create({
         courseId: course._id,
         lessonId: lesson1._id,
         userId: user?.id,
-        choice: lesson1.challenge.correctChoice + 1,
+        choice: easyChallenge.correctChoice + 1,
         isCorrect: false,
-        difficulty: lesson1.difficulty,
+        difficulty: easyChallenge.difficulty,
       });
 
-      // Easy lesson correct (25 XP)
+      // Easy challenge correct (25 XP)
       await ProgressModel.create({
         courseId: course._id,
         lessonId: lesson1._id,
         userId: user?.id,
-        choice: lesson1.challenge.correctChoice,
+        choice: easyChallenge.correctChoice,
         isCorrect: true,
-        difficulty: lesson1.difficulty,
+        difficulty: easyChallenge.difficulty,
       });
 
-      // Easy lesson correct at first try (50 XP)
+      // Easy challenge correct at first try (50 XP)
       await ProgressModel.create({
         courseId: course._id,
         lessonId: lesson2._id,
         userId: user?.id,
-        choice: lesson2.challenge.correctChoice,
+        choice: easyChallenge.correctChoice,
         isCorrect: true,
-        difficulty: lesson2.difficulty,
+        difficulty: easyChallenge.difficulty,
       });
 
-      // Medium lesson mistake (0 XP)
+      // Medium challenge mistake (0 XP)
       await ProgressModel.create({
         courseId: course._id,
         lessonId: lesson3._id,
         userId: user?.id,
-        choice: lesson3.challenge.correctChoice + 1,
+        choice: mediumChallenge.correctChoice + 1,
         isCorrect: false,
-        difficulty: lesson3.difficulty,
+        difficulty: mediumChallenge.difficulty,
       });
 
-      // Medium lesson another mistake (0 XP)
+      // Medium challenge another mistake (0 XP)
       await ProgressModel.create({
         courseId: course._id,
         lessonId: lesson3._id,
         userId: user?.id,
-        choice: lesson3.challenge.correctChoice + 2,
+        choice: mediumChallenge.correctChoice + 2,
         isCorrect: false,
-        difficulty: lesson3.difficulty,
+        difficulty: mediumChallenge.difficulty,
       });
 
-      // Medium lesson correct (50 XP)
+      // Medium challenge correct (50 XP)
       await ProgressModel.create({
         courseId: course._id,
         lessonId: lesson3._id,
         userId: user?.id,
-        choice: lesson3.challenge.correctChoice,
+        choice: mediumChallenge.correctChoice,
         isCorrect: true,
-        difficulty: lesson3.difficulty,
+        difficulty: mediumChallenge.difficulty,
       });
 
-      // Hard lesson mistake, incomplete (0 XP)
+      // Hard challenge mistake, incomplete (0 XP)
       await ProgressModel.create({
         courseId: course._id,
         lessonId: lesson4._id,
         userId: user?.id,
-        choice: lesson4.challenge.correctChoice + 1,
+        choice: hardChallenge.correctChoice + 1,
         isCorrect: false,
-        difficulty: lesson4.difficulty,
+        difficulty: hardChallenge.difficulty,
       });
 
       // Total: 125 XP
@@ -595,7 +607,7 @@ describe("Setting API Server up...", () => {
         userId: user?.id,
         choice: 0,
         isCorrect: true,
-        difficulty: lesson1.difficulty,
+        difficulty: easyChallenge.difficulty,
       });
 
       await ProgressModel.create({
@@ -604,7 +616,7 @@ describe("Setting API Server up...", () => {
         userId: user?.id,
         choice: 2,
         isCorrect: true,
-        difficulty: lesson2.difficulty,
+        difficulty: easyChallenge.difficulty,
       });
 
       await ProgressModel.create({
@@ -613,7 +625,7 @@ describe("Setting API Server up...", () => {
         userId: user?.id,
         choice: 2,
         isCorrect: true,
-        difficulty: lesson3.difficulty,
+        difficulty: mediumChallenge.difficulty,
       });
 
       await ProgressModel.create({
@@ -622,7 +634,7 @@ describe("Setting API Server up...", () => {
         userId: user?.id,
         choice: 1,
         isCorrect: false,
-        difficulty: lesson4.difficulty,
+        difficulty: mediumChallenge.difficulty,
       });
 
       await ProgressModel.create({
@@ -631,7 +643,7 @@ describe("Setting API Server up...", () => {
         userId: user?.id,
         choice: 0,
         isCorrect: true,
-        difficulty: lesson4.difficulty,
+        difficulty: mediumChallenge.difficulty,
       });
 
       await ProgressModel.create({
@@ -640,7 +652,7 @@ describe("Setting API Server up...", () => {
         userId: user?.id,
         choice: 1,
         isCorrect: false,
-        difficulty: lesson5.difficulty,
+        difficulty: hardChallenge.difficulty,
       });
 
       await axios
@@ -671,45 +683,45 @@ describe("Setting API Server up...", () => {
         courseId: course._id,
         lessonId: lesson1._id,
         userId: user?.id,
-        choice: lesson1.challenge.correctChoice,
+        choice: easyChallenge.correctChoice,
         isCorrect: true,
-        difficulty: lesson1.difficulty,
+        difficulty: easyChallenge.difficulty,
       });
 
       await ProgressModel.create({
         courseId: course._id,
         lessonId: lesson2._id,
         userId: user?.id,
-        choice: lesson2.challenge.correctChoice,
+        choice: easyChallenge.correctChoice,
         isCorrect: true,
-        difficulty: lesson2.difficulty,
+        difficulty: easyChallenge.difficulty,
       });
 
       await ProgressModel.create({
         courseId: course._id,
         lessonId: lesson3._id,
         userId: user?.id,
-        choice: lesson3.challenge.correctChoice,
+        choice: mediumChallenge.correctChoice,
         isCorrect: true,
-        difficulty: lesson3.difficulty,
+        difficulty: mediumChallenge.difficulty,
       });
 
       await ProgressModel.create({
         courseId: course._id,
         lessonId: lesson4._id,
         userId: user?.id,
-        choice: lesson4.challenge.correctChoice,
+        choice: mediumChallenge.correctChoice,
         isCorrect: true,
-        difficulty: lesson4.difficulty,
+        difficulty: mediumChallenge.difficulty,
       });
 
       await ProgressModel.create({
         courseId: course._id,
         lessonId: lesson5._id,
         userId: user?.id,
-        choice: lesson5.challenge.correctChoice,
+        choice: hardChallenge.correctChoice,
         isCorrect: true,
-        difficulty: lesson5.difficulty,
+        difficulty: hardChallenge.difficulty,
       });
 
       const completedCourses = await getCompletedCoursesByUserId(user?.id as string);
@@ -724,36 +736,36 @@ describe("Setting API Server up...", () => {
         courseId: course._id,
         lessonId: lesson1._id,
         userId: user?.id,
-        choice: lesson1.challenge.correctChoice,
+        choice: easyChallenge.correctChoice,
         isCorrect: true,
-        difficulty: lesson1.difficulty,
+        difficulty: easyChallenge.difficulty,
       });
 
       await ProgressModel.create({
         courseId: course._id,
         lessonId: lesson2._id,
         userId: user?.id,
-        choice: lesson2.challenge.correctChoice,
+        choice: easyChallenge.correctChoice,
         isCorrect: true,
-        difficulty: lesson2.difficulty,
+        difficulty: easyChallenge.difficulty,
       });
 
       await ProgressModel.create({
         courseId: course._id,
         lessonId: lesson3._id,
         userId: user?.id,
-        choice: lesson3.challenge.correctChoice,
+        choice: mediumChallenge.correctChoice,
         isCorrect: true,
-        difficulty: lesson3.difficulty,
+        difficulty: mediumChallenge.difficulty,
       });
 
       await ProgressModel.create({
         courseId: course._id,
         lessonId: lesson4._id,
         userId: user?.id,
-        choice: lesson4.challenge.correctChoice,
+        choice: mediumChallenge.correctChoice,
         isCorrect: true,
-        difficulty: lesson4.difficulty,
+        difficulty: mediumChallenge.difficulty,
       });
 
       // Missing lesson 5
@@ -770,7 +782,7 @@ describe("Setting API Server up...", () => {
         userId: user?.id,
         choice: 0,
         isCorrect: true,
-        difficulty: lesson1.difficulty,
+        difficulty: easyChallenge.difficulty,
       });
 
       await ProgressModel.create({
@@ -779,7 +791,7 @@ describe("Setting API Server up...", () => {
         userId: user?.id,
         choice: 2,
         isCorrect: true,
-        difficulty: lesson2.difficulty,
+        difficulty: easyChallenge.difficulty,
       });
 
       await ProgressModel.create({
@@ -788,7 +800,7 @@ describe("Setting API Server up...", () => {
         userId: user?.id,
         choice: 2,
         isCorrect: true,
-        difficulty: lesson3.difficulty,
+        difficulty: mediumChallenge.difficulty,
       });
 
       await ProgressModel.create({
@@ -797,7 +809,7 @@ describe("Setting API Server up...", () => {
         userId: user?.id,
         choice: 0,
         isCorrect: true,
-        difficulty: lesson4.difficulty,
+        difficulty: mediumChallenge.difficulty,
       });
 
       await ProgressModel.create({
@@ -806,7 +818,7 @@ describe("Setting API Server up...", () => {
         userId: user?.id,
         choice: 1,
         isCorrect: true,
-        difficulty: lesson5.difficulty,
+        difficulty: hardChallenge.difficulty,
       });
 
       await axios
