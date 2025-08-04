@@ -37,9 +37,13 @@ export const submitAnswer = async (req: Request, res: Response) => {
 
   // prevent the user from submitting again if the lesson is already complete
   const progress = await ProgressModel.findOne({ courseId, lessonId, userId, isCorrect: true });
-  if (progress) return res.status(200).send(progress);
+  if (progress) return res.status(200).send({ progress, points: 0 });
 
-  const challenge = await ChallengeModel.findOne({ _id: lesson.challengeId });
+  let correctAtFirstTry = true;
+  const wrongAnswer = await ProgressModel.findOne({ courseId, lessonId, userId, isCorrect: false });
+  if (wrongAnswer) correctAtFirstTry = false;
+
+  const challenge = await ChallengeModel.findOne({ _id: lesson.challenge });
   if (!challenge) {
     const error = { error: { message: "Challenge not found" } };
     console.error(error);
@@ -50,6 +54,8 @@ export const submitAnswer = async (req: Request, res: Response) => {
   // Update Correct Answers Counter (Achievements).
   await countCorrectAnswers(userId, isCorrect);
 
+  const points = isCorrect ? calculateExperience(challenge.difficulty as Difficulty, correctAtFirstTry) : 0;
+
   let errorMessage;
   try {
     const newProgress = await ProgressModel.create({
@@ -59,8 +65,13 @@ export const submitAnswer = async (req: Request, res: Response) => {
       choice,
       isCorrect,
       difficulty: challenge.difficulty,
+      challengeId: challenge._id,
     });
-    if (newProgress) return res.status(201).send(newProgress);
+    if (newProgress)
+      return res.status(201).send({
+        progress: newProgress,
+        points,
+      });
   } catch (e) {
     if (e instanceof MongoError && e.code === 11000) {
       const error = { error: { message: "E11000 duplicate key error" } };
@@ -138,6 +149,10 @@ export const getCourseSummary = async (req: Request, res: Response) => {
       populate: {
         path: "lessons",
         model: "Lesson",
+        populate: {
+          path: "challenge",
+          model: "Challenge",
+        },
       },
     })) as Course;
 
@@ -149,18 +164,6 @@ export const getCourseSummary = async (req: Request, res: Response) => {
 
     const progressMap = new Map(progress.map((p) => [String(p.lessonId), p]));
 
-    const allChallengeIds = course.modules.flatMap((module) => {
-      const populatedModule = module as Module & { lessons: Lesson[] };
-      return populatedModule.lessons.map((lesson) => {
-        const populatedLesson = lesson as Lesson;
-        return populatedLesson.challengeId;
-      });
-    });
-
-    const challenges = await ChallengeModel.find({ _id: { $in: allChallengeIds } }).lean();
-
-    const challengeMap = new Map(challenges.map((challenge) => [String(challenge._id), challenge]));
-
     const courseSummary = {
       id: course._id,
       title: course.title,
@@ -168,8 +171,8 @@ export const getCourseSummary = async (req: Request, res: Response) => {
         const populatedModule = module as Module & { lessons: Lesson[] };
 
         const lessons = populatedModule.lessons.map((lesson) => {
-          const populatedLesson = lesson as Lesson;
-          const challenge = challengeMap.get(String(populatedLesson.challengeId));
+          const populatedLesson = lesson as Lesson & { challenge: { difficulty: string } };
+          const challenge = populatedLesson.challenge;
 
           const progressRecord = progressMap.get(String(populatedLesson._id));
           const isCompleted = progressRecord?.isCorrect || false;
@@ -178,10 +181,8 @@ export const getCourseSummary = async (req: Request, res: Response) => {
           return {
             id: populatedLesson._id,
             title: populatedLesson.title,
-            difficulty: challenge?.difficulty,
-            expEarned: isCompleted
-              ? calculateExperience((challenge?.difficulty || "easy") as Difficulty, correctAtFirstTry)
-              : 0,
+            difficulty: challenge.difficulty,
+            expEarned: isCompleted ? calculateExperience(challenge.difficulty as Difficulty, correctAtFirstTry) : 0,
           };
         });
 
@@ -218,6 +219,10 @@ export const getCourseProgress = async (req: Request, res: Response) => {
       populate: {
         path: "lessons",
         model: "Lesson",
+        populate: {
+          path: "challenge",
+          model: "Challenge",
+        },
       },
     })) as Course;
 

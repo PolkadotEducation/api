@@ -29,11 +29,8 @@ class Lesson extends BaseModel {
   @prop({ required: true, type: String })
   public body: string;
 
-  @prop({ required: false, enum: ["easy", "medium", "hard"], type: String })
-  public difficulty: string;
-
   @prop({ required: true, ref: () => Challenge })
-  public challengeId: Ref<Challenge>;
+  public challenge: Ref<Challenge>;
 
   @prop({ required: false, type: () => Array<Reference>, default: [] })
   public references: Reference[];

@@ -106,7 +106,7 @@ describe("Setting API Server up...", () => {
         language: "english",
         slug: "lesson-1",
         body: loadFixture("example.md"),
-        challengeId: challenge._id,
+        challenge: challenge,
       });
 
       const moduleTitle = "Module #1";
@@ -153,7 +153,7 @@ describe("Setting API Server up...", () => {
         language: "english",
         slug: "lesson-1-module-update",
         body: loadFixture("example.md"),
-        challengeId: challenge._id,
+        challenge: challenge,
       });
 
       const lesson2 = await LessonModel.create({
@@ -162,7 +162,7 @@ describe("Setting API Server up...", () => {
         language: "english",
         slug: "lesson-2-module-update",
         body: loadFixture("example.md"),
-        challengeId: challenge._id,
+        challenge: challenge,
       });
 
       const module = await ModuleModel.create({
@@ -202,7 +202,7 @@ describe("Setting API Server up...", () => {
         language: "english",
         slug: "lesson-3-get",
         body: loadFixture("example.md"),
-        challengeId: challenge._id,
+        challenge: challenge,
       });
 
       const newModule = await ModuleModel.create({
@@ -229,7 +229,7 @@ describe("Setting API Server up...", () => {
         language: "english",
         slug: "lesson-4-delete",
         body: loadFixture("example.md"),
-        challengeId: challenge._id,
+        challenge: challenge,
       });
 
       const newModule = await ModuleModel.create({
@@ -258,7 +258,7 @@ describe("Setting API Server up...", () => {
         language: "english",
         slug: "lesson-1-permissions",
         body: loadFixture("example.md"),
-        challengeId: challenge._id,
+        challenge: challenge,
       });
 
       await axios

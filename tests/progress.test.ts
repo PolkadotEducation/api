@@ -122,7 +122,7 @@ describe("Setting API Server up...", () => {
         language: "english",
         slug: "lesson-1-progress",
         body: loadFixture("example.md"),
-        challengeId: easyChallenge._id,
+        challenge: easyChallenge,
       });
 
       lesson2 = await LessonModel.create({
@@ -131,7 +131,7 @@ describe("Setting API Server up...", () => {
         language: "english",
         slug: "lesson-2-progress",
         body: loadFixture("example.md"),
-        challengeId: easyChallenge._id,
+        challenge: easyChallenge,
       });
 
       lesson3 = await LessonModel.create({
@@ -140,7 +140,7 @@ describe("Setting API Server up...", () => {
         language: "english",
         slug: "lesson-3-progress",
         body: loadFixture("example.md"),
-        challengeId: mediumChallenge._id,
+        challenge: mediumChallenge,
       });
 
       lesson4 = await LessonModel.create({
@@ -149,7 +149,7 @@ describe("Setting API Server up...", () => {
         language: "english",
         slug: "lesson-4-progress",
         body: loadFixture("example.md"),
-        challengeId: mediumChallenge._id,
+        challenge: mediumChallenge,
       });
 
       lesson5 = await LessonModel.create({
@@ -158,7 +158,7 @@ describe("Setting API Server up...", () => {
         language: "english",
         slug: "lesson-5-progress",
         body: loadFixture("example.md"),
-        challengeId: hardChallenge._id,
+        challenge: hardChallenge,
       });
 
       module1 = await ModuleModel.create({
@@ -213,11 +213,12 @@ describe("Setting API Server up...", () => {
           { headers },
         )
         .then((r) => {
-          expect(r.data.courseId).toEqual(course._id?.toString());
-          expect(r.data.lessonId).toEqual(lesson1._id?.toString());
-          expect(r.data.userId).toEqual(user?.id.toString());
-          expect(r.data.choice).toEqual(wrongChoice);
-          expect(r.data.isCorrect).toEqual(false);
+          expect(r.data.progress.courseId).toEqual(course._id?.toString());
+          expect(r.data.progress.lessonId).toEqual(lesson1._id?.toString());
+          expect(r.data.progress.userId).toEqual(user?.id.toString());
+          expect(r.data.progress.choice).toEqual(wrongChoice);
+          expect(r.data.progress.isCorrect).toEqual(false);
+          expect(r.data.points).toEqual(0);
           expect(r.status).toEqual(201);
         })
         .catch((e) => {
@@ -239,11 +240,12 @@ describe("Setting API Server up...", () => {
           { headers },
         )
         .then((r) => {
-          expect(r.data.courseId).toEqual(course._id?.toString());
-          expect(r.data.lessonId).toEqual(lesson1._id?.toString());
-          expect(r.data.userId).toEqual(user?.id.toString());
-          expect(r.data.choice).toEqual(choice);
-          expect(r.data.isCorrect).toEqual(true);
+          expect(r.data.progress.courseId).toEqual(course._id?.toString());
+          expect(r.data.progress.lessonId).toEqual(lesson1._id?.toString());
+          expect(r.data.progress.userId).toEqual(user?.id.toString());
+          expect(r.data.progress.choice).toEqual(choice);
+          expect(r.data.progress.isCorrect).toEqual(true);
+          expect(r.data.points).toEqual(50);
           expect(r.status).toEqual(201);
         })
         .catch((e) => {
@@ -263,11 +265,12 @@ describe("Setting API Server up...", () => {
           { headers },
         )
         .then((r) => {
-          expect(r.data.courseId).toEqual(course._id?.toString());
-          expect(r.data.lessonId).toEqual(lesson1._id?.toString());
-          expect(r.data.userId).toEqual(user?.id.toString());
-          expect(r.data.choice).toEqual(choice);
-          expect(r.data.isCorrect).toEqual(true);
+          expect(r.data.progress.courseId).toEqual(course._id?.toString());
+          expect(r.data.progress.lessonId).toEqual(lesson1._id?.toString());
+          expect(r.data.progress.userId).toEqual(user?.id.toString());
+          expect(r.data.progress.choice).toEqual(choice);
+          expect(r.data.progress.isCorrect).toEqual(true);
+          expect(r.data.points).toEqual(0);
           expect(r.status).toEqual(200);
         })
         .catch((e) => {
@@ -290,11 +293,12 @@ describe("Setting API Server up...", () => {
           { headers },
         )
         .then((r) => {
-          expect(r.data.courseId).toEqual(course._id?.toString());
-          expect(r.data.lessonId).toEqual(lesson1._id?.toString());
-          expect(r.data.userId).toEqual(user?.id.toString());
-          expect(r.data.choice).toEqual(wrongChoice);
-          expect(r.data.isCorrect).toEqual(false);
+          expect(r.data.progress.courseId).toEqual(course._id?.toString());
+          expect(r.data.progress.lessonId).toEqual(lesson1._id?.toString());
+          expect(r.data.progress.userId).toEqual(user?.id.toString());
+          expect(r.data.progress.choice).toEqual(wrongChoice);
+          expect(r.data.progress.isCorrect).toEqual(false);
+          expect(r.data.points).toEqual(0);
         })
         .catch((e) => {
           expect(e).toBeUndefined();
@@ -328,6 +332,7 @@ describe("Setting API Server up...", () => {
         choice: easyChallenge.correctChoice + 1,
         isCorrect: false,
         difficulty: easyChallenge.difficulty,
+        challengeId: easyChallenge._id,
       });
 
       await ProgressModel.create({
@@ -337,6 +342,7 @@ describe("Setting API Server up...", () => {
         choice: easyChallenge.correctChoice,
         isCorrect: true,
         difficulty: easyChallenge.difficulty,
+        challengeId: easyChallenge._id,
       });
 
       await axios
@@ -379,6 +385,7 @@ describe("Setting API Server up...", () => {
         choice: 0,
         isCorrect: true,
         difficulty: easyChallenge.difficulty,
+        challengeId: easyChallenge._id,
       });
 
       const expectedModulesProgress: Record<string, Record<string, boolean>> = {};
@@ -411,6 +418,7 @@ describe("Setting API Server up...", () => {
         choice: 0,
         isCorrect: true,
         difficulty: easyChallenge.difficulty,
+        challengeId: easyChallenge._id,
       });
       await ProgressModel.create({
         courseId: course._id,
@@ -419,6 +427,7 @@ describe("Setting API Server up...", () => {
         choice: 2,
         isCorrect: false,
         difficulty: mediumChallenge.difficulty,
+        challengeId: mediumChallenge._id,
       });
 
       const expectedModulesProgress: Record<string, Record<string, boolean>> = {};
@@ -451,6 +460,7 @@ describe("Setting API Server up...", () => {
         choice: easyChallenge.correctChoice,
         isCorrect: true,
         difficulty: easyChallenge.difficulty,
+        challengeId: easyChallenge._id,
       });
 
       await ProgressModel.create({
@@ -460,6 +470,7 @@ describe("Setting API Server up...", () => {
         choice: easyChallenge.correctChoice,
         isCorrect: true,
         difficulty: easyChallenge.difficulty,
+        challengeId: easyChallenge._id,
       });
 
       await ProgressModel.create({
@@ -469,6 +480,7 @@ describe("Setting API Server up...", () => {
         choice: mediumChallenge.correctChoice,
         isCorrect: true,
         difficulty: mediumChallenge.difficulty,
+        challengeId: mediumChallenge._id,
       });
 
       await ProgressModel.create({
@@ -478,6 +490,7 @@ describe("Setting API Server up...", () => {
         choice: mediumChallenge.correctChoice,
         isCorrect: true,
         difficulty: mediumChallenge.difficulty,
+        challengeId: mediumChallenge._id,
       });
 
       await ProgressModel.create({
@@ -487,6 +500,7 @@ describe("Setting API Server up...", () => {
         choice: hardChallenge.correctChoice,
         isCorrect: true,
         difficulty: hardChallenge.difficulty,
+        challengeId: hardChallenge._id,
       });
 
       const expectedModulesProgress: Record<string, Record<string, boolean>> = {};
@@ -521,6 +535,7 @@ describe("Setting API Server up...", () => {
         choice: easyChallenge.correctChoice + 1,
         isCorrect: false,
         difficulty: easyChallenge.difficulty,
+        challengeId: easyChallenge._id,
       });
 
       // Easy challenge correct (25 XP)
@@ -531,6 +546,7 @@ describe("Setting API Server up...", () => {
         choice: easyChallenge.correctChoice,
         isCorrect: true,
         difficulty: easyChallenge.difficulty,
+        challengeId: easyChallenge._id,
       });
 
       // Easy challenge correct at first try (50 XP)
@@ -541,6 +557,7 @@ describe("Setting API Server up...", () => {
         choice: easyChallenge.correctChoice,
         isCorrect: true,
         difficulty: easyChallenge.difficulty,
+        challengeId: easyChallenge._id,
       });
 
       // Medium challenge mistake (0 XP)
@@ -551,6 +568,7 @@ describe("Setting API Server up...", () => {
         choice: mediumChallenge.correctChoice + 1,
         isCorrect: false,
         difficulty: mediumChallenge.difficulty,
+        challengeId: mediumChallenge._id,
       });
 
       // Medium challenge another mistake (0 XP)
@@ -561,6 +579,7 @@ describe("Setting API Server up...", () => {
         choice: mediumChallenge.correctChoice + 2,
         isCorrect: false,
         difficulty: mediumChallenge.difficulty,
+        challengeId: mediumChallenge._id,
       });
 
       // Medium challenge correct (50 XP)
@@ -571,6 +590,7 @@ describe("Setting API Server up...", () => {
         choice: mediumChallenge.correctChoice,
         isCorrect: true,
         difficulty: mediumChallenge.difficulty,
+        challengeId: mediumChallenge._id,
       });
 
       // Hard challenge mistake, incomplete (0 XP)
@@ -581,6 +601,7 @@ describe("Setting API Server up...", () => {
         choice: hardChallenge.correctChoice + 1,
         isCorrect: false,
         difficulty: hardChallenge.difficulty,
+        challengeId: hardChallenge._id,
       });
 
       // Total: 125 XP
@@ -608,6 +629,7 @@ describe("Setting API Server up...", () => {
         choice: 0,
         isCorrect: true,
         difficulty: easyChallenge.difficulty,
+        challengeId: easyChallenge._id,
       });
 
       await ProgressModel.create({
@@ -617,6 +639,7 @@ describe("Setting API Server up...", () => {
         choice: 2,
         isCorrect: true,
         difficulty: easyChallenge.difficulty,
+        challengeId: easyChallenge._id,
       });
 
       await ProgressModel.create({
@@ -626,6 +649,7 @@ describe("Setting API Server up...", () => {
         choice: 2,
         isCorrect: true,
         difficulty: mediumChallenge.difficulty,
+        challengeId: mediumChallenge._id,
       });
 
       await ProgressModel.create({
@@ -635,6 +659,7 @@ describe("Setting API Server up...", () => {
         choice: 1,
         isCorrect: false,
         difficulty: mediumChallenge.difficulty,
+        challengeId: mediumChallenge._id,
       });
 
       await ProgressModel.create({
@@ -644,6 +669,7 @@ describe("Setting API Server up...", () => {
         choice: 0,
         isCorrect: true,
         difficulty: mediumChallenge.difficulty,
+        challengeId: mediumChallenge._id,
       });
 
       await ProgressModel.create({
@@ -653,6 +679,7 @@ describe("Setting API Server up...", () => {
         choice: 1,
         isCorrect: false,
         difficulty: hardChallenge.difficulty,
+        challengeId: hardChallenge._id,
       });
 
       await axios
@@ -686,6 +713,7 @@ describe("Setting API Server up...", () => {
         choice: easyChallenge.correctChoice,
         isCorrect: true,
         difficulty: easyChallenge.difficulty,
+        challengeId: easyChallenge._id,
       });
 
       await ProgressModel.create({
@@ -695,6 +723,7 @@ describe("Setting API Server up...", () => {
         choice: easyChallenge.correctChoice,
         isCorrect: true,
         difficulty: easyChallenge.difficulty,
+        challengeId: easyChallenge._id,
       });
 
       await ProgressModel.create({
@@ -704,6 +733,7 @@ describe("Setting API Server up...", () => {
         choice: mediumChallenge.correctChoice,
         isCorrect: true,
         difficulty: mediumChallenge.difficulty,
+        challengeId: mediumChallenge._id,
       });
 
       await ProgressModel.create({
@@ -713,6 +743,7 @@ describe("Setting API Server up...", () => {
         choice: mediumChallenge.correctChoice,
         isCorrect: true,
         difficulty: mediumChallenge.difficulty,
+        challengeId: mediumChallenge._id,
       });
 
       await ProgressModel.create({
@@ -722,6 +753,7 @@ describe("Setting API Server up...", () => {
         choice: hardChallenge.correctChoice,
         isCorrect: true,
         difficulty: hardChallenge.difficulty,
+        challengeId: hardChallenge._id,
       });
 
       const completedCourses = await getCompletedCoursesByUserId(user?.id as string);

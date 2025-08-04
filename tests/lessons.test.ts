@@ -146,7 +146,7 @@ describe("Setting API Server up...", () => {
             language,
             slug,
             body,
-            challengeId: firstChallenge._id,
+            challenge: firstChallenge,
           },
           { headers: adminHeaders },
         )
@@ -155,7 +155,7 @@ describe("Setting API Server up...", () => {
           expect(r.data.language).toEqual(language);
           expect(r.data.slug).toEqual(slug);
           expect(r.data.body).toEqual(body);
-          expect(r.data.challengeId).toEqual(firstChallenge._id?.toString());
+          expect(r.data.challenge._id).toEqual(firstChallenge._id?.toString());
           expect(r.data.references).toEqual([]);
         })
         .catch((e) => expect(e).toBeUndefined());
@@ -175,7 +175,7 @@ describe("Setting API Server up...", () => {
             language,
             slug,
             body,
-            challengeId: portugueseChallenge._id,
+            challenge: portugueseChallenge,
           },
           { headers: adminHeaders },
         )
@@ -198,7 +198,7 @@ describe("Setting API Server up...", () => {
         language,
         slug,
         body,
-        challengeId: firstChallenge._id,
+        challenge: firstChallenge,
       });
 
       await axios
@@ -209,14 +209,14 @@ describe("Setting API Server up...", () => {
             language: "portuguese",
             slug,
             body,
-            challengeId: portugueseChallenge._id,
+            challenge: portugueseChallenge,
           },
           { headers: adminHeaders },
         )
         .then((r) => {
           expect(r.data.language).toEqual("portuguese");
           expect(r.data.slug).toEqual(slug);
-          expect(r.data.challengeId).toEqual(portugueseChallenge._id?.toString());
+          expect(r.data.challenge._id).toEqual(portugueseChallenge._id?.toString());
         })
         .catch((e) => {
           expect(e).toBeUndefined();
@@ -237,7 +237,7 @@ describe("Setting API Server up...", () => {
         slug,
         body,
         difficulty,
-        challengeId: firstChallenge._id,
+        challenge: firstChallenge,
       });
 
       await axios
@@ -249,7 +249,7 @@ describe("Setting API Server up...", () => {
             slug,
             body,
             difficulty,
-            challengeId: firstChallenge._id,
+            challenge: firstChallenge,
           },
           { headers: adminHeaders },
         )
@@ -279,7 +279,7 @@ describe("Setting API Server up...", () => {
         teamId: team,
         title,
         body,
-        challengeId: firstChallenge._id,
+        challenge: firstChallenge,
         references,
         language,
         slug: "lesson-2-update",
@@ -312,8 +312,7 @@ describe("Setting API Server up...", () => {
         {
           title: updatedTitle,
           body: updatedBody,
-          challengeId: updatedChallenge._id,
-          difficulty: updatedChallenge.difficulty,
+          challenge: updatedChallenge,
           references: updatedReferences,
           language: updatedLanguage,
         },
@@ -325,7 +324,7 @@ describe("Setting API Server up...", () => {
         .then((r) => {
           expect(r.data.title).toEqual(updatedTitle);
           expect(r.data.body).toEqual(updatedBody);
-          expect(r.data.challengeId).toEqual(updatedChallenge._id?.toString());
+          expect(r.data.challenge._id).toEqual(updatedChallenge._id?.toString());
           expect(r.data.references[0]).toEqual(expect.objectContaining(updatedReferences[0]));
           expect(r.data.references[1]).toEqual(expect.objectContaining(updatedReferences[1]));
           expect(r.data.language).toEqual(updatedLanguage);
@@ -342,7 +341,7 @@ describe("Setting API Server up...", () => {
         teamId: team,
         title: initialTitle,
         body: initialBody,
-        challengeId: firstChallenge._id,
+        challenge: firstChallenge,
         language,
         slug: "initial-lesson-choices-validation",
       });
@@ -357,7 +356,7 @@ describe("Setting API Server up...", () => {
           {
             title: updatedTitle,
             body: updatedBody,
-            challengeId: fakeId,
+            challenge: fakeId,
             language,
           },
           { headers: adminHeaders },
@@ -388,7 +387,7 @@ describe("Setting API Server up...", () => {
         teamId: team,
         title,
         body,
-        challengeId: portugueseChallenge._id,
+        challenge: portugueseChallenge,
         references,
         language,
         slug: "lesson-2",
@@ -399,7 +398,7 @@ describe("Setting API Server up...", () => {
         .then((r) => {
           expect(r.data.title).toEqual(title);
           expect(r.data.body).toEqual(body);
-          expect(r.data.challengeId).toEqual(portugueseChallenge._id?.toString());
+          expect(r.data.challenge._id).toEqual(portugueseChallenge._id?.toString());
           expect(r.data.references[0]).toEqual(expect.objectContaining(references[0]));
           expect(r.data.references[1]).toEqual(expect.objectContaining(references[1]));
           expect(r.data.language).toEqual(language);
@@ -415,7 +414,7 @@ describe("Setting API Server up...", () => {
           body: "This is the body of lesson 1 in English.",
           language: "english",
           slug: "lesson-in-english-1",
-          challengeId: firstChallenge._id,
+          challenge: firstChallenge,
         },
         {
           teamId: team,
@@ -423,7 +422,7 @@ describe("Setting API Server up...", () => {
           body: "This is the body of lesson 2 in English.",
           language: "english",
           slug: "lesson-in-english-2",
-          challengeId: secondChallenge._id,
+          challenge: secondChallenge,
         },
         {
           teamId: team,
@@ -431,7 +430,7 @@ describe("Setting API Server up...", () => {
           body: "Este é o corpo da lição em Português.",
           language: "portuguese",
           slug: "lesson-in-language",
-          challengeId: portugueseChallenge._id,
+          challenge: portugueseChallenge,
         },
       ];
 
@@ -444,15 +443,17 @@ describe("Setting API Server up...", () => {
           expect(r.data.length).toEqual(2);
           expect(r.data[0].title).toEqual("Lesson in English #1");
           expect(r.data[1].title).toEqual("Lesson in English #2");
-          expect(r.data[0].challengeId).toEqual(firstChallenge._id?.toString());
-          expect(r.data[1].challengeId).toEqual(secondChallenge._id?.toString());
+          expect(r.data[0].challenge._id).toEqual(firstChallenge._id?.toString());
+          expect(r.data[1].challenge._id).toEqual(secondChallenge._id?.toString());
           expect(r.data[0].language).toEqual("english");
           expect(r.data[1].language).toEqual("english");
 
           const portugueseLesson = r.data.find((lesson: Lesson) => lesson.language === "portuguese");
           expect(portugueseLesson).toBeUndefined();
         })
-        .catch((e) => expect(e).toBeUndefined());
+        .catch((e) => {
+          expect(e).toBeUndefined();
+        });
 
       await axios
         .get(`${API_URL}/lessons?language=portuguese`, { headers: adminHeaders })
@@ -460,7 +461,7 @@ describe("Setting API Server up...", () => {
           expect(r.status).toEqual(200);
           expect(r.data.length).toEqual(1);
           expect(r.data[0].title).toEqual("Lição em Português");
-          expect(r.data[0].challengeId).toEqual(portugueseChallenge._id?.toString());
+          expect(r.data[0].challenge._id).toEqual(portugueseChallenge._id?.toString());
           expect(r.data[0].language).toEqual("portuguese");
         })
         .catch((e) => expect(e).toBeUndefined());
@@ -495,7 +496,7 @@ describe("Setting API Server up...", () => {
         teamId: team,
         title,
         body,
-        challengeId: firstChallenge._id,
+        challenge: firstChallenge,
         language,
         slug: "lesson-3",
       });
@@ -516,7 +517,7 @@ describe("Setting API Server up...", () => {
           body: "This is the body of lesson 1 in English.",
           language: "english",
           slug: "lesson-in-english-1-summary",
-          challengeId: firstChallenge._id,
+          challenge: firstChallenge,
         },
         {
           teamId: team,
@@ -524,7 +525,7 @@ describe("Setting API Server up...", () => {
           body: "This is the body of lesson 2 in English.",
           language: "english",
           slug: "lesson-in-english-2-summary",
-          challengeId: secondChallenge._id,
+          challenge: secondChallenge,
         },
         {
           teamId: team,
@@ -532,7 +533,7 @@ describe("Setting API Server up...", () => {
           body: "This is the body of lesson 3 in English.",
           language: "english",
           slug: "lesson-in-english-3-summary",
-          challengeId: thirdChallenge._id,
+          challenge: thirdChallenge,
         },
         {
           teamId: team,
@@ -540,7 +541,7 @@ describe("Setting API Server up...", () => {
           body: "Este é o corpo da lição em Português.",
           language: "portuguese",
           slug: "lesson-in-language-summary",
-          challengeId: portugueseChallenge._id,
+          challenge: portugueseChallenge,
         },
       ];
 
@@ -571,7 +572,7 @@ describe("Setting API Server up...", () => {
         body: "Content of lesson 1",
         language: "english",
         slug: "original-lesson",
-        challengeId: firstChallenge._id,
+        challenge: firstChallenge,
         references: [],
       });
 
@@ -581,7 +582,7 @@ describe("Setting API Server up...", () => {
         body: "Content of lesson 2",
         language: "english",
         slug: "other-original-lesson-but-with-number-at-the-end-1",
-        challengeId: secondChallenge._id,
+        challenge: secondChallenge,
         references: [],
       });
 
@@ -589,10 +590,9 @@ describe("Setting API Server up...", () => {
         teamId: team,
         title: "Original Lesson 3",
         body: "Content of lesson 3",
-        difficulty: "medium",
         language: "english",
         slug: "yet-another-original-lesson-but-with-number-at-the-end-9",
-        challengeId: thirdChallenge._id,
+        challenge: thirdChallenge,
         references: [],
       });
 
@@ -637,7 +637,7 @@ describe("Setting API Server up...", () => {
             title,
             language,
             body,
-            challengeId: firstChallenge._id,
+            challenge: firstChallenge,
           },
           { headers },
         )
@@ -648,7 +648,7 @@ describe("Setting API Server up...", () => {
         teamId: team,
         title,
         body,
-        challengeId: firstChallenge._id,
+        challenge: firstChallenge,
         references: [],
         language,
         slug: "lesson-x-permissions",
@@ -661,7 +661,7 @@ describe("Setting API Server up...", () => {
             title,
             language,
             body,
-            challengeId: firstChallenge._id,
+            challenge: firstChallenge,
           },
           { headers },
         )
