@@ -37,7 +37,11 @@ export const submitAnswer = async (req: Request, res: Response) => {
 
   // prevent the user from submitting again if the lesson is already complete
   const progress = await ProgressModel.findOne({ courseId, lessonId, userId, isCorrect: true });
-  if (progress) return res.status(200).send(progress);
+  if (progress) return res.status(200).send({ progress, points: 0 });
+
+  let correctAtFirstTry = true;
+  const wrongAnswer = await ProgressModel.findOne({ courseId, lessonId, userId, isCorrect: false });
+  if (wrongAnswer) correctAtFirstTry = false;
 
   const challenge = await ChallengeModel.findOne({ _id: lesson.challenge });
   if (!challenge) {
@@ -50,6 +54,8 @@ export const submitAnswer = async (req: Request, res: Response) => {
   // Update Correct Answers Counter (Achievements).
   await countCorrectAnswers(userId, isCorrect);
 
+  const points = isCorrect ? calculateExperience(challenge.difficulty as Difficulty, correctAtFirstTry) : 0;
+
   let errorMessage;
   try {
     const newProgress = await ProgressModel.create({
@@ -61,7 +67,11 @@ export const submitAnswer = async (req: Request, res: Response) => {
       difficulty: challenge.difficulty,
       challengeId: challenge._id,
     });
-    if (newProgress) return res.status(201).send(newProgress);
+    if (newProgress)
+      return res.status(201).send({
+        progress: newProgress,
+        points,
+      });
   } catch (e) {
     if (e instanceof MongoError && e.code === 11000) {
       const error = { error: { message: "E11000 duplicate key error" } };

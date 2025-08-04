@@ -213,11 +213,12 @@ describe("Setting API Server up...", () => {
           { headers },
         )
         .then((r) => {
-          expect(r.data.courseId).toEqual(course._id?.toString());
-          expect(r.data.lessonId).toEqual(lesson1._id?.toString());
-          expect(r.data.userId).toEqual(user?.id.toString());
-          expect(r.data.choice).toEqual(wrongChoice);
-          expect(r.data.isCorrect).toEqual(false);
+          expect(r.data.progress.courseId).toEqual(course._id?.toString());
+          expect(r.data.progress.lessonId).toEqual(lesson1._id?.toString());
+          expect(r.data.progress.userId).toEqual(user?.id.toString());
+          expect(r.data.progress.choice).toEqual(wrongChoice);
+          expect(r.data.progress.isCorrect).toEqual(false);
+          expect(r.data.points).toEqual(0);
           expect(r.status).toEqual(201);
         })
         .catch((e) => {
@@ -239,11 +240,12 @@ describe("Setting API Server up...", () => {
           { headers },
         )
         .then((r) => {
-          expect(r.data.courseId).toEqual(course._id?.toString());
-          expect(r.data.lessonId).toEqual(lesson1._id?.toString());
-          expect(r.data.userId).toEqual(user?.id.toString());
-          expect(r.data.choice).toEqual(choice);
-          expect(r.data.isCorrect).toEqual(true);
+          expect(r.data.progress.courseId).toEqual(course._id?.toString());
+          expect(r.data.progress.lessonId).toEqual(lesson1._id?.toString());
+          expect(r.data.progress.userId).toEqual(user?.id.toString());
+          expect(r.data.progress.choice).toEqual(choice);
+          expect(r.data.progress.isCorrect).toEqual(true);
+          expect(r.data.points).toEqual(50);
           expect(r.status).toEqual(201);
         })
         .catch((e) => {
@@ -263,11 +265,12 @@ describe("Setting API Server up...", () => {
           { headers },
         )
         .then((r) => {
-          expect(r.data.courseId).toEqual(course._id?.toString());
-          expect(r.data.lessonId).toEqual(lesson1._id?.toString());
-          expect(r.data.userId).toEqual(user?.id.toString());
-          expect(r.data.choice).toEqual(choice);
-          expect(r.data.isCorrect).toEqual(true);
+          expect(r.data.progress.courseId).toEqual(course._id?.toString());
+          expect(r.data.progress.lessonId).toEqual(lesson1._id?.toString());
+          expect(r.data.progress.userId).toEqual(user?.id.toString());
+          expect(r.data.progress.choice).toEqual(choice);
+          expect(r.data.progress.isCorrect).toEqual(true);
+          expect(r.data.points).toEqual(0);
           expect(r.status).toEqual(200);
         })
         .catch((e) => {
@@ -290,11 +293,12 @@ describe("Setting API Server up...", () => {
           { headers },
         )
         .then((r) => {
-          expect(r.data.courseId).toEqual(course._id?.toString());
-          expect(r.data.lessonId).toEqual(lesson1._id?.toString());
-          expect(r.data.userId).toEqual(user?.id.toString());
-          expect(r.data.choice).toEqual(wrongChoice);
-          expect(r.data.isCorrect).toEqual(false);
+          expect(r.data.progress.courseId).toEqual(course._id?.toString());
+          expect(r.data.progress.lessonId).toEqual(lesson1._id?.toString());
+          expect(r.data.progress.userId).toEqual(user?.id.toString());
+          expect(r.data.progress.choice).toEqual(wrongChoice);
+          expect(r.data.progress.isCorrect).toEqual(false);
+          expect(r.data.points).toEqual(0);
         })
         .catch((e) => {
           expect(e).toBeUndefined();
