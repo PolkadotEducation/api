@@ -14,7 +14,7 @@
     "sentry:sourcemaps": "sentry-cli sourcemaps inject --org polkadot-education --project api ./dist && sentry-cli sourcemaps upload --org polkadot-education --project api ./dist"
   },
   "dependencies": {
-    "@getbrevo/brevo": "^2.5.0",
+    "@getbrevo/brevo": "^3.0.1",
     "@polkadot-api/signer": "^0.2.4",
     "@polkadot-labs/hdkd": "^0.0.20",
     "@polkadot-labs/hdkd-helpers": "^0.0.20",
