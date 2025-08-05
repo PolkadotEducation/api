@@ -296,5 +296,50 @@ describe("Setting API Server up...", () => {
         response: { status: 403 },
       });
     });
+
+    it("Get challenges summary (GET /challenges/summary)", async () => {
+      await ChallengeModel.create({
+        teamId: team._id,
+        question: "What is the capital of England?",
+        choices: ["London", "Manchester", "Birmingham", "Liverpool"],
+        correctChoice: 0,
+        difficulty: "easy",
+        language: "english",
+      });
+
+      await ChallengeModel.create({
+        teamId: team._id,
+        question: "¿Cuál es la capital de España?",
+        choices: ["Madrid", "Barcelona", "Valencia", "Sevilla"],
+        correctChoice: 0,
+        difficulty: "medium",
+        language: "spanish",
+      });
+
+      const response = await axios.get(`${API_URL}/challenges/summary`, { headers: adminHeaders });
+      expect(response.status).toBe(200);
+      expect(response.data).toHaveLength(2);
+
+      const challenge = response.data[0];
+      expect(challenge).toHaveProperty("_id");
+      expect(challenge).toHaveProperty("question");
+      expect(challenge).toHaveProperty("difficulty");
+      expect(challenge).toHaveProperty("language");
+      expect(challenge).toHaveProperty("updatedAt");
+
+      expect(challenge).not.toHaveProperty("choices");
+      expect(challenge).not.toHaveProperty("correctChoice");
+      expect(challenge).not.toHaveProperty("teamId");
+
+      const englishResponse = await axios.get(`${API_URL}/challenges/summary?language=english`, {
+        headers: adminHeaders,
+      });
+      expect(englishResponse.status).toBe(200);
+      expect(englishResponse.data).toHaveLength(1);
+      expect(englishResponse.data[0].language).toBe("english");
+
+      const emptyResponse = await axios.get(`${API_URL}/challenges/summary?language=french`, { headers: adminHeaders });
+      expect(emptyResponse.status).toBe(204);
+    });
   });
 });
