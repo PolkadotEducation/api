@@ -161,7 +161,7 @@ export const getChallengesSummary = async (req: Request, res: Response) => {
     }
 
     const challengesSummary = await ChallengeModel.find(query)
-      .select("_id questionb difficulty language updatedAt")
+      .select("_id question difficulty language updatedAt")
       .lean();
 
     if (challengesSummary.length > 0) {
