@@ -89,7 +89,7 @@ export const getUserChallenges = async (req: Request, res: Response) => {
 
     return res.status(200).send({ challenges });
   } catch (e) {
-    console.error(`[ERROR][getChallenges] ${e}`);
+    console.error(`[ERROR][getUserChallenges] ${e}`);
     return res.status(400).send({
       error: {
         message: "Challenges not found",
@@ -168,7 +168,7 @@ export const getBackofficeChallenges = async (req: Request, res: Response) => {
       return res.status(204).send();
     }
   } catch (e) {
-    console.error(`[ERROR][getChallenges] ${e}`);
+    console.error(`[ERROR][getBackofficeChallenges] ${e}`);
     return res.status(500).send({
       error: {
         message: JSON.stringify(e),
