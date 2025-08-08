@@ -156,7 +156,7 @@ describe("Setting API Server up...", () => {
       expect(response.data.correctChoice).toEqual(updatedData.correctChoice);
     });
 
-    it("Get all Challenges with specific daily challenge (GET /challenges)", async () => {
+    it("Get all challenges with specific daily challenge (GET /challenges/user)", async () => {
       await ChallengeModel.create({
         teamId: team._id,
         question: "Test 1",
@@ -184,8 +184,8 @@ describe("Setting API Server up...", () => {
         language: "english",
       });
 
-      const response = await axios.get(`${API_URL}/challenges`, {
-        headers: adminHeaders,
+      const response = await axios.get(`${API_URL}/challenges/user`, {
+        headers: regularHeaders,
       });
 
       expect(response.status).toBe(200);
@@ -295,6 +295,109 @@ describe("Setting API Server up...", () => {
       ).rejects.toMatchObject({
         response: { status: 403 },
       });
+
+      await expect(axios.get(`${API_URL}/challenges/backoffice`, { headers: regularHeaders })).rejects.toMatchObject({
+        response: { status: 403 },
+      });
+    });
+
+    it("Get challenges summary (GET /challenges/summary)", async () => {
+      await ChallengeModel.create({
+        teamId: team._id,
+        question: "What is the capital of England?",
+        choices: ["London", "Manchester", "Birmingham", "Liverpool"],
+        correctChoice: 0,
+        difficulty: "easy",
+        language: "english",
+      });
+
+      await ChallengeModel.create({
+        teamId: team._id,
+        question: "¿Cuál es la capital de España?",
+        choices: ["Madrid", "Barcelona", "Valencia", "Sevilla"],
+        correctChoice: 0,
+        difficulty: "medium",
+        language: "spanish",
+      });
+
+      const response = await axios.get(`${API_URL}/challenges/summary`, { headers: adminHeaders });
+      expect(response.status).toBe(200);
+      expect(response.data).toHaveLength(2);
+
+      const challenge = response.data[0];
+      expect(challenge).toHaveProperty("_id");
+      expect(challenge).toHaveProperty("question");
+      expect(challenge).toHaveProperty("difficulty");
+      expect(challenge).toHaveProperty("language");
+      expect(challenge).toHaveProperty("updatedAt");
+
+      expect(challenge).not.toHaveProperty("choices");
+      expect(challenge).not.toHaveProperty("correctChoice");
+      expect(challenge).not.toHaveProperty("teamId");
+
+      const englishResponse = await axios.get(`${API_URL}/challenges/summary?language=english`, {
+        headers: adminHeaders,
+      });
+      expect(englishResponse.status).toBe(200);
+      expect(englishResponse.data).toHaveLength(1);
+      expect(englishResponse.data[0].language).toBe("english");
+
+      const emptyResponse = await axios.get(`${API_URL}/challenges/summary?language=french`, { headers: adminHeaders });
+      expect(emptyResponse.status).toBe(204);
+    });
+
+    it("Get backoffice challenges (GET /challenges/backoffice)", async () => {
+      await ChallengeModel.create({
+        teamId: team._id,
+        question: "What is the capital of England?",
+        choices: ["London", "Manchester", "Birmingham", "Liverpool"],
+        correctChoice: 0,
+        difficulty: "easy",
+        language: "english",
+      });
+
+      await ChallengeModel.create({
+        teamId: team._id,
+        question: "¿Cuál es la capital de España?",
+        choices: ["Madrid", "Barcelona", "Valencia", "Sevilla"],
+        correctChoice: 0,
+        difficulty: "medium",
+        language: "spanish",
+      });
+
+      const response = await axios.get(`${API_URL}/challenges/backoffice`, { headers: adminHeaders });
+      expect(response.status).toBe(200);
+      expect(response.data).toHaveLength(2);
+
+      const challenge = response.data[0];
+      expect(challenge).toHaveProperty("_id");
+      expect(challenge).toHaveProperty("question");
+      expect(challenge).toHaveProperty("choices");
+      expect(challenge).toHaveProperty("correctChoice");
+      expect(challenge).toHaveProperty("difficulty");
+      expect(challenge).toHaveProperty("language");
+      expect(challenge).toHaveProperty("teamId");
+
+      // Test language filtering
+      const englishResponse = await axios.get(`${API_URL}/challenges/backoffice?language=english`, {
+        headers: adminHeaders,
+      });
+      expect(englishResponse.status).toBe(200);
+      expect(englishResponse.data).toHaveLength(1);
+      expect(englishResponse.data[0].language).toBe("english");
+
+      const spanishResponse = await axios.get(`${API_URL}/challenges/backoffice?language=spanish`, {
+        headers: adminHeaders,
+      });
+      expect(spanishResponse.status).toBe(200);
+      expect(spanishResponse.data).toHaveLength(1);
+      expect(spanishResponse.data[0].language).toBe("spanish");
+
+      // Test empty result for non-existent language
+      const emptyResponse = await axios.get(`${API_URL}/challenges/backoffice?language=french`, {
+        headers: adminHeaders,
+      });
+      expect(emptyResponse.status).toBe(204);
     });
   });
 });

@@ -50,7 +50,8 @@ import {
   createChallenge,
   deleteChallenge,
   getChallenge,
-  getChallenges,
+  getBackofficeChallenges,
+  getUserChallenges,
   getChallengesSummary,
   updateChallenge,
 } from "./controllers/challenges";
@@ -79,7 +80,8 @@ const router = (app: Express) => {
 
   // Challenges
   app.post("/challenge/:teamId", [authMiddleware, teamMiddleware], createChallenge);
-  app.get("/challenges", [authMiddleware], getChallenges);
+  app.get("/challenges/backoffice", [authMiddleware, adminMiddleware], getBackofficeChallenges);
+  app.get("/challenges/user", [authMiddleware], getUserChallenges);
   app.get("/challenges/summary", [authMiddleware], getChallengesSummary);
   app.get("/challenge", [authMiddleware], getChallenge);
   app.put("/challenge/:teamId/:id", [authMiddleware, teamMiddleware], updateChallenge);
