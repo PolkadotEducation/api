@@ -67,7 +67,7 @@ export const updateChallenge = async (req: Request, res: Response) => {
   }
 };
 
-export const getChallenges = async (req: Request, res: Response) => {
+export const getUserChallenges = async (req: Request, res: Response) => {
   try {
     const totalRows = await ChallengeModel.countDocuments({});
 
@@ -89,7 +89,7 @@ export const getChallenges = async (req: Request, res: Response) => {
 
     return res.status(200).send({ challenges });
   } catch (e) {
-    console.error(`[ERROR][getChallenges] ${e}`);
+    console.error(`[ERROR][getUserChallenges] ${e}`);
     return res.status(400).send({
       error: {
         message: "Challenges not found",
@@ -147,6 +147,31 @@ export const deleteChallenge = async (req: Request, res: Response) => {
     return res.status(400).send({
       error: {
         message: "Challenge not deleted",
+      },
+    });
+  }
+};
+
+export const getBackofficeChallenges = async (req: Request, res: Response) => {
+  try {
+    const { language } = req.query;
+    let query = {};
+    if (language) {
+      query = { language };
+    }
+
+    const challenges = await ChallengeModel.find(query);
+
+    if (challenges.length > 0) {
+      return res.status(200).send(challenges);
+    } else {
+      return res.status(204).send();
+    }
+  } catch (e) {
+    console.error(`[ERROR][getBackofficeChallenges] ${e}`);
+    return res.status(500).send({
+      error: {
+        message: JSON.stringify(e),
       },
     });
   }
