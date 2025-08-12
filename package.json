@@ -16,7 +16,7 @@
   "dependencies": {
     "@getbrevo/brevo": "^3.0.1",
     "@polkadot-api/signer": "^0.2.4",
-    "@polkadot-labs/hdkd": "^0.0.20",
+    "@polkadot-labs/hdkd": "^0.0.21",
     "@polkadot-labs/hdkd-helpers": "^0.0.20",
     "@polkadot/util-crypto": "^13.3.1",
     "@sentry/cli": "^2.50.2",
