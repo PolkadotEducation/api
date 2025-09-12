@@ -4,8 +4,9 @@ Backend API for the Polkadot Education platform.
 
 ## Prerequisites
 
-- [Bun](https://bun.sh) >= 1.1.29
-- MongoDB 7.0.5 (local or remote)
+- [Bun](https://bun.sh) v1.1.29
+- Node v24.8.0
+- MongoDB v7.0.5 (local or remote)
 
 ## Getting Started
 
