@@ -81,26 +81,28 @@ export const getDailyChallenge = async (req: Request, res: Response) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-
     let dailyChallengeEntry = await DailyChallengeModel.findOne({
       date: today,
       language,
-    }).populate("challenge");
-
+    }).populate({
+      path: "challenge",
+      model: "Challenge",
+    });
 
     if (!dailyChallengeEntry) {
-      console.error(`Daily challenge not found for ${language} on ${today.toISOString()}, setting it now`);
-      await setDailyChallenge();
-
+      await setDailyChallenge(language);
 
       dailyChallengeEntry = await DailyChallengeModel.findOne({
         date: today,
         language,
-      }).populate("challenge");
+      }).populate({
+        path: "challenge",
+        model: "Challenge",
+      });
     }
 
     if (!dailyChallengeEntry || !dailyChallengeEntry.challenge) {
-      return res.status(200).send({ daily: null });
+      return res.status(500).send({ daily: null });
     }
 
     return res.status(200).send({ daily: dailyChallengeEntry.challenge });

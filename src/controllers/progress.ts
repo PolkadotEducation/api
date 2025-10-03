@@ -12,11 +12,54 @@ import { Challenge, ChallengeModel } from "@/models/Challenge";
 import { DailyChallengeModel } from "@/models/DailyChallenge";
 import { setDailyChallenge } from "@/services/challenge";
 
-export const submitDailyChallengeAnswer = async (req: Request, res: Response) => {
-  const { challengeId, choice, language } = req.body;
+export const getDailyChallengeStatus = async (req: Request, res: Response) => {
+  const { language } = req.body;
   const userId = res.locals?.populatedUser?._id;
 
-  if (!challengeId || (!choice && choice != 0) || !userId || !language) {
+  if (!userId || !language) {
+    const error = { error: { message: "Missing params" } };
+    console.error(error);
+    return res.status(400).send(error);
+  }
+
+  try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const dailyChallengeEntry = await DailyChallengeModel.findOne({
+      date: today,
+      language,
+    });
+
+    if (!dailyChallengeEntry) {
+      return res.status(200).send({ isSubmitted: false, isCorrect: null });
+    }
+
+    const existingProgress = await ProgressModel.findOne({
+      dailyChallenge: dailyChallengeEntry._id,
+      userId,
+    });
+
+    if (!existingProgress) {
+      return res.status(200).send({ isSubmitted: false, isCorrect: null });
+    }
+
+    return res.status(200).send({
+      isSubmitted: true,
+      isCorrect: existingProgress.isCorrect,
+    });
+  } catch (e) {
+    console.error(`[ERROR][getDailyChallengeStatus] ${e}`);
+    return res.status(500).send({ error: { message: "Internal server error" } });
+  }
+};
+
+export const submitDailyChallengeAnswer = async (req: Request, res: Response) => {
+  const { challengeId, choice } = req.body;
+  const userId = res.locals?.populatedUser?._id;
+  const language = res.locals?.populatedUser?.language;
+
+  if (!challengeId || (!choice && choice != 0) || !userId) {
     const error = { error: { message: "Missing params" } };
     console.error(error);
     return res.status(400).send(error);

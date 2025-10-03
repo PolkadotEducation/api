@@ -39,6 +39,7 @@ import {
   getCompletedCourses,
   getCourseProgress,
   getCourseSummary,
+  getDailyChallengeStatus,
   getLessonProgress,
   getUserXPAndLevel,
   submitAnswer,
@@ -118,6 +119,7 @@ const router = (app: Express) => {
   // Progress
   app.post("/progress", [authMiddleware], submitAnswer);
   app.post("/progress/daily", [authMiddleware], submitDailyChallengeAnswer);
+  app.post("/progress/daily/status", [authMiddleware], getDailyChallengeStatus);
   app.get("/progress/lesson/:courseId/:lessonId", [authMiddleware], getLessonProgress);
   app.get("/progress/course/:courseId", [authMiddleware], getCourseProgress);
   app.get("/progress/course/summary/:courseId", [authMiddleware], getCourseSummary);

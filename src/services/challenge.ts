@@ -42,6 +42,9 @@ export const setDailyChallenge = async (language: string) => {
       language,
     });
 
+    // eslint-disable-next-line no-console
+    console.debug(`Daily challenge for ${language} set as ${selectedChallenge._id} on ${normalizedDate.toISOString()}`);
+
     return { language, status: "created", challenge: dailyChallenge };
   } catch (error) {
     console.error(`Error setting daily challenge for ${language}:`, error);
