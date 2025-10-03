@@ -1,6 +1,8 @@
 import { Request, Response } from "express";
 import { ObjectId } from "mongodb";
 import { ChallengeModel } from "@/models/Challenge";
+import { DailyChallengeModel } from "@/models/DailyChallenge";
+import { setDailyChallenge } from "@/services/challenge";
 
 export const createChallenge = async (req: Request, res: Response) => {
   const { teamId } = req.params;
@@ -67,32 +69,72 @@ export const updateChallenge = async (req: Request, res: Response) => {
   }
 };
 
-export const getUserChallenges = async (req: Request, res: Response) => {
+export const getDailyChallenge = async (req: Request, res: Response) => {
   try {
-    const totalRows = await ChallengeModel.countDocuments({});
+    const { language } = req.body as { language?: string };
+    if (!language) {
+      const error = { error: { message: "Missing language" } };
+      console.error(error);
+      return res.status(400).send(error);
+    }
 
     const today = new Date();
-    const startOfYear = new Date(today.getFullYear(), 0, 0);
-    const diff = today.getTime() - startOfYear.getTime();
-    const oneDay = 1000 * 60 * 60 * 24;
-    const dayOfYear = Math.floor(diff / oneDay);
+    today.setHours(0, 0, 0, 0);
 
-    const dailyIndex = (dayOfYear * 31 + 17) % totalRows;
-    const dailyChallenge = await ChallengeModel.findOne().skip(dailyIndex).exec();
 
-    const randomChallenges = await ChallengeModel.aggregate([{ $sample: { size: 5 } }]);
+    let dailyChallengeEntry = await DailyChallengeModel.findOne({
+      date: today,
+      language,
+    }).populate("challenge");
 
-    const challenges = {
-      daily: dailyChallenge,
-      random: randomChallenges,
-    };
 
-    return res.status(200).send({ challenges });
+    if (!dailyChallengeEntry) {
+      console.error(`Daily challenge not found for ${language} on ${today.toISOString()}, setting it now`);
+      await setDailyChallenge();
+
+
+      dailyChallengeEntry = await DailyChallengeModel.findOne({
+        date: today,
+        language,
+      }).populate("challenge");
+    }
+
+    if (!dailyChallengeEntry || !dailyChallengeEntry.challenge) {
+      return res.status(200).send({ daily: null });
+    }
+
+    return res.status(200).send({ daily: dailyChallengeEntry.challenge });
   } catch (e) {
-    console.error(`[ERROR][getUserChallenges] ${e}`);
+    console.error(`[ERROR][getDailyChallenge] ${e}`);
     return res.status(400).send({
       error: {
-        message: "Challenges not found",
+        message: "Daily challenge not found",
+      },
+    });
+  }
+};
+
+export const getRandomChallenges = async (req: Request, res: Response) => {
+  try {
+    const { language, size } = req.body as { language?: string; size?: number };
+    if (!language) {
+      const error = { error: { message: "Missing language" } };
+      console.error(error);
+      return res.status(400).send(error);
+    }
+
+    const sampleSize = typeof size === "number" && size > 0 ? size : 5;
+    const randomChallenges = await ChallengeModel.aggregate([
+      { $match: { language } },
+      { $sample: { size: sampleSize } },
+    ]);
+
+    return res.status(200).send({ random: randomChallenges });
+  } catch (e) {
+    console.error(`[ERROR][getRandomChallenges] ${e}`);
+    return res.status(400).send({
+      error: {
+        message: "Random challenges not found",
       },
     });
   }

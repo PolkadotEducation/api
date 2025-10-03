@@ -2,10 +2,15 @@
 const cron = require("node-cron");
 
 import { calculateRanking } from "@/services/ranking";
+import { setDailyChallenge } from "@/services/challenge";
 
 export const scheduleRankingUpdate = () => {
-  cron.schedule("0 0 * * *", async () => {
+  cron.schedule("* * * * *", async () => {
     try {
+      await setDailyChallenge("english");
+      await setDailyChallenge("portuguese");
+      await setDailyChallenge("spanish");
+
       await calculateRanking("weekly");
       await calculateRanking("general");
     } catch (error) {

@@ -8,7 +8,84 @@ import { MongoError } from "mongodb";
 import { Module } from "@/models/Module";
 import { calculateExperience, calculateLevel, calculateXpToNextLevel, Difficulty } from "@/helpers/progress";
 import { countCorrectAnswers } from "@/helpers/achievements";
-import { ChallengeModel } from "@/models/Challenge";
+import { Challenge, ChallengeModel } from "@/models/Challenge";
+import { DailyChallengeModel } from "@/models/DailyChallenge";
+import { setDailyChallenge } from "@/services/challenge";
+
+export const submitDailyChallengeAnswer = async (req: Request, res: Response) => {
+  const { challengeId, choice, language } = req.body;
+  const userId = res.locals?.populatedUser?._id;
+
+  if (!challengeId || (!choice && choice != 0) || !userId || !language) {
+    const error = { error: { message: "Missing params" } };
+    console.error(error);
+    return res.status(400).send(error);
+  }
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  let dailyChallengeEntry = await DailyChallengeModel.findOne({
+    date: today,
+    language,
+    challenge: challengeId,
+  }).populate("challenge");
+
+  // Fallback
+  if (!dailyChallengeEntry) {
+    await setDailyChallenge(language);
+    dailyChallengeEntry = await DailyChallengeModel.findOne({
+      date: today,
+      language,
+      challenge: challengeId,
+    }).populate("challenge");
+
+    if (!dailyChallengeEntry) {
+      const error = { error: { message: "Failed to set daily challenge" } };
+      console.error(error);
+      return res.status(500).send(error);
+    }
+  }
+
+  const challenge = dailyChallengeEntry.challenge as Challenge;
+
+  const isCorrect = choice === challenge.correctChoice;
+  await countCorrectAnswers(userId, isCorrect);
+
+  const dailyExperienceWeight = 5;
+  const dailyExperience = calculateExperience(challenge.difficulty as Difficulty, true) * dailyExperienceWeight;
+  const points = isCorrect ? dailyExperience : 0;
+
+  let errorMessage;
+  try {
+    const newProgress = await ProgressModel.create({
+      challengeId,
+      dailyChallenge: dailyChallengeEntry._id,
+      userId,
+      choice,
+      isCorrect,
+      difficulty: challenge.difficulty,
+    });
+    if (newProgress)
+      return res.status(201).send({
+        progress: newProgress,
+        points,
+      });
+  } catch (e) {
+    if (e instanceof MongoError && e.code === 11000) {
+      const error = { error: { message: "Answer for today's challenge already submitted" } };
+      console.error(error);
+      return res.status(409).send(error);
+    }
+
+    errorMessage = (e as Error).message;
+    console.error(`[ERROR][submitDailyChallengeAnswer] ${e}`);
+  }
+
+  const error = { error: { message: errorMessage ? errorMessage : "Progress not created" } };
+  console.error(error);
+  return res.status(400).send(error);
+};
 
 export const submitAnswer = async (req: Request, res: Response) => {
   const { courseId, lessonId, choice } = req.body;

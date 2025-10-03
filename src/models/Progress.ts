@@ -5,8 +5,10 @@ import { Lesson } from "./Lesson";
 import { Course } from "./Course";
 import { User } from "./User";
 import { Challenge } from "./Challenge";
+import { DailyChallenge } from "./DailyChallenge";
 
 @index({ challenge: 1, lessonId: 1, courseId: 1, userId: 1, choice: 1 }, { unique: true })
+@index({ dailyChallenge: 1, userId: 1 }, { unique: true })
 class Progress extends BaseModel {
   @prop({ required: false, ref: () => Challenge })
   public challenge: Ref<Challenge>;
@@ -19,6 +21,9 @@ class Progress extends BaseModel {
 
   @prop({ required: false, ref: () => Course })
   public courseId: Ref<Course>;
+
+  @prop({ required: false, ref: () => DailyChallenge })
+  public dailyChallenge: Ref<DailyChallenge>;
 
   @prop({ required: true, ref: () => User })
   public userId: Ref<User>;
