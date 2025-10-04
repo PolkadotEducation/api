@@ -39,9 +39,11 @@ import {
   getCompletedCourses,
   getCourseProgress,
   getCourseSummary,
+  getDailyChallengeStatus,
   getLessonProgress,
   getUserXPAndLevel,
   submitAnswer,
+  submitDailyChallengeAnswer,
 } from "./controllers/progress";
 import adminMiddleware from "./middlewares/admin";
 import { generateCertificate, getCertificate, getCertificates, mintCertificate } from "./controllers/certificates";
@@ -51,7 +53,8 @@ import {
   deleteChallenge,
   getChallenge,
   getBackofficeChallenges,
-  getUserChallenges,
+  getDailyChallenge,
+  getRandomChallenges,
   getChallengesSummary,
   updateChallenge,
 } from "./controllers/challenges";
@@ -81,7 +84,8 @@ const router = (app: Express) => {
   // Challenges
   app.post("/challenge/:teamId", [authMiddleware, teamMiddleware], createChallenge);
   app.get("/challenges/backoffice", [authMiddleware, adminMiddleware], getBackofficeChallenges);
-  app.get("/challenges/user", [authMiddleware], getUserChallenges);
+  app.post("/challenges/daily", [authMiddleware], getDailyChallenge);
+  app.post("/challenges/random", [authMiddleware], getRandomChallenges);
   app.get("/challenges/summary", [authMiddleware], getChallengesSummary);
   app.get("/challenge", [authMiddleware], getChallenge);
   app.put("/challenge/:teamId/:id", [authMiddleware, teamMiddleware], updateChallenge);
@@ -114,6 +118,8 @@ const router = (app: Express) => {
 
   // Progress
   app.post("/progress", [authMiddleware], submitAnswer);
+  app.post("/progress/daily", [authMiddleware], submitDailyChallengeAnswer);
+  app.post("/progress/daily/status", [authMiddleware], getDailyChallengeStatus);
   app.get("/progress/lesson/:courseId/:lessonId", [authMiddleware], getLessonProgress);
   app.get("/progress/course/:courseId", [authMiddleware], getCourseProgress);
   app.get("/progress/course/summary/:courseId", [authMiddleware], getCourseSummary);

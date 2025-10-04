@@ -17,6 +17,7 @@ export const mongoDBsetup = async (db: string, disconnect: boolean = false) => {
   if (!isMongoSettingUp) {
     isMongoSettingUp = true;
     await setupMongoDB(db);
+    await Promise.all(Object.values(mongoose.connection.models).map((model) => model.syncIndexes()));
     isMongoReady = true;
   }
   while (!isMongoReady) {
