@@ -8,7 +8,7 @@ import router from "./routes";
 import { setupMongoDB } from "./database";
 import { env } from "./environment";
 import corsConfig from "./middlewares/cors.config";
-import { scheduleRankingUpdate } from "./tasks/scheduleRankingUpdate";
+import { scheduleUpdates } from "./tasks/scheduleUpdates";
 
 const app = express();
 
@@ -36,7 +36,7 @@ app.listen(env.SERVER_PORT, env.SERVER_HOST, async () => {
   // eslint-disable-next-line no-console
   console.info(`> Listening at http://${env.SERVER_HOST}:${env.SERVER_PORT}`);
 
-  scheduleRankingUpdate();
+  scheduleUpdates();
   // eslint-disable-next-line no-console
   console.info("Ranking Schedule initiated");
 });
