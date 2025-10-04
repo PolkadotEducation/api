@@ -5,6 +5,7 @@ import axios from "axios";
 import router from "@/routes";
 import { mongoDBsetup } from "./db/setupTestMongo";
 import { ChallengeModel } from "@/models/Challenge";
+import { DailyChallengeModel } from "@/models/DailyChallenge";
 import { getAuthHeaders } from "./helpers";
 import { UserModel } from "@/models/User";
 import { Team, TeamModel } from "@/models/Team";
@@ -71,6 +72,7 @@ describe("Setting API Server up...", () => {
 
   afterAll(async () => {
     await ChallengeModel.deleteMany({});
+    await DailyChallengeModel.deleteMany({});
     await UserModel.deleteMany({});
     await TeamModel.deleteMany({});
     await UserTeamModel.deleteMany({});
@@ -78,6 +80,7 @@ describe("Setting API Server up...", () => {
 
   afterEach(async () => {
     await ChallengeModel.deleteMany({});
+    await DailyChallengeModel.deleteMany({});
   });
 
   afterAll(async () => {
@@ -156,7 +159,7 @@ describe("Setting API Server up...", () => {
       expect(response.data.correctChoice).toEqual(updatedData.correctChoice);
     });
 
-    it("Get all challenges with specific daily challenge (GET /challenges/user)", async () => {
+    it("Get random challenges (POST /challenges/random)", async () => {
       await ChallengeModel.create({
         teamId: team._id,
         question: "Test 1",
@@ -184,17 +187,85 @@ describe("Setting API Server up...", () => {
         language: "english",
       });
 
-      const response = await axios.get(`${API_URL}/challenges/user`, {
-        headers: regularHeaders,
-      });
+      const response = await axios.post(
+        `${API_URL}/challenges/random`,
+        { language: "english", size: 3 },
+        { headers: regularHeaders },
+      );
 
       expect(response.status).toBe(200);
-      expect(response.data.challenges.random.length).toBe(3);
+      expect(response.data.random).toBeDefined();
+      expect(response.data.random.length).toBe(3);
+    });
 
-      // @TODO: Mock date to test daily challenge
-      // expect(response.data.dailyChallenge.question).toBe("Test 1");
-      // expect(response.data.dailyChallenge.correctChoice).toBe(0);
-      // expect(response.data.dailyChallenge.choices).toEqual(["A", "B", "C"]);
+    it("Get random challenges with custom size (POST /challenges/random)", async () => {
+      await ChallengeModel.create({
+        teamId: team._id,
+        question: "Test 1",
+        choices: ["A", "B"],
+        correctChoice: 0,
+        difficulty: "easy",
+        language: "english",
+      });
+
+      await ChallengeModel.create({
+        teamId: team._id,
+        question: "Test 2",
+        choices: ["X", "Y"],
+        correctChoice: 1,
+        difficulty: "medium",
+        language: "english",
+      });
+
+      const response = await axios.post(
+        `${API_URL}/challenges/random`,
+        { language: "english", size: 2 },
+        { headers: regularHeaders },
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.data.random.length).toBe(2);
+    });
+
+    it("Returns error for random challenges without language", async () => {
+      await expect(axios.post(`${API_URL}/challenges/random`, {}, { headers: regularHeaders })).rejects.toMatchObject({
+        response: {
+          status: 400,
+          data: { error: { message: "Missing language" } },
+        },
+      });
+    });
+
+    it("Get daily challenge (POST /challenges/daily)", async () => {
+      await ChallengeModel.create({
+        teamId: team._id,
+        question: "Daily challenge question",
+        choices: ["A", "B", "C", "D"],
+        correctChoice: 1,
+        difficulty: "medium",
+        language: "english",
+      });
+
+      const response = await axios.post(
+        `${API_URL}/challenges/daily`,
+        { language: "english" },
+        { headers: regularHeaders },
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.data.daily).toBeDefined();
+      expect(response.data.daily.question).toBeDefined();
+      expect(response.data.daily.choices).toBeDefined();
+      expect(response.data.daily.difficulty).toBeDefined();
+    });
+
+    it("Returns error for daily challenge without language", async () => {
+      await expect(axios.post(`${API_URL}/challenges/daily`, {}, { headers: regularHeaders })).rejects.toMatchObject({
+        response: {
+          status: 400,
+          data: { error: { message: "Missing language" } },
+        },
+      });
     });
 
     it("Get single Challenge (GET /challenge)", async () => {
