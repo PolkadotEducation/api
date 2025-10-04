@@ -8,7 +8,10 @@ import { Challenge } from "./Challenge";
 import { DailyChallenge } from "./DailyChallenge";
 
 @index({ challenge: 1, lessonId: 1, courseId: 1, userId: 1, choice: 1 }, { unique: true })
-@index({ dailyChallenge: 1, userId: 1 }, { unique: true, partialFilterExpression: { dailyChallenge: { $type: "objectId" } } })
+@index(
+  { dailyChallenge: 1, userId: 1 },
+  { unique: true, partialFilterExpression: { dailyChallenge: { $type: "objectId" } } },
+)
 class Progress extends BaseModel {
   @prop({ required: false, ref: () => Challenge })
   public challenge: Ref<Challenge>;

@@ -17,10 +17,7 @@ export const mongoDBsetup = async (db: string, disconnect: boolean = false) => {
   if (!isMongoSettingUp) {
     isMongoSettingUp = true;
     await setupMongoDB(db);
-    // Sync indexes to ensure they match the current schema
-    await Promise.all(
-      Object.values(mongoose.connection.models).map((model) => model.syncIndexes())
-    );
+    await Promise.all(Object.values(mongoose.connection.models).map((model) => model.syncIndexes()));
     isMongoReady = true;
   }
   while (!isMongoReady) {
