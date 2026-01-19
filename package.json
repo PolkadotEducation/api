@@ -21,7 +21,7 @@
     "@polkadot/util-crypto": "^13.5.6",
     "@sentry/cli": "^2.53.0",
     "@sentry/node": "^10.11.0",
-    "@typegoose/typegoose": "^12.19.0",
+    "@typegoose/typegoose": "^13.1.0",
     "axios": "^1.12.1",
     "cors": "^2.8.5",
     "crypto-js": "^4.2.0",
